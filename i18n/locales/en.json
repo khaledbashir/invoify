@@ -4,10 +4,10 @@
         "description": "Generate Proposal",
         "newInvBadge": "New Proposal",
         "wizard": {
-            "fromAndTo": "From & To",
-            "invoiceDetails": "Invoice Details",
-            "lineItems": "Line Items",
-            "paymentInfo": "Payment Info",
+            "fromAndTo": "Client & Estimator",
+            "invoiceDetails": "Proposal Details",
+            "lineItems": "Screen Configuration",
+            "paymentInfo": "Terms",
             "summary": "Summary",
             "next": "Next",
             "back": "Back"
@@ -95,12 +95,21 @@
         "title": "Actions",
         "description": "Operations and preview",
         "loadInvoice": "Load Proposal",
+        "loadProposal": "Load Proposal",
         "exportInvoice": "Export Proposal",
+        "exportProposal": "Export JSON",
         "newInvoice": "New Proposal",
+        "newProposal": "New Project",
         "generatePdf": "Generate PDF",
+        "generatePDF": "Generate PDF",
         "pdfView": "PDF View"
     },
     "footer": {
         "developedBy": "Developed by"
-    }
+    },
+    "formNewPropBadge": "Draft",
+    "fromTo": "Client & Estimator",
+    "lineItems": "Screen Configuration",
+    "paymentInfo": "Terms",
+    "summary": "Summary"
 }
