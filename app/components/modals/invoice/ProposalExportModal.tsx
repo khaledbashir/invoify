@@ -16,16 +16,16 @@ import {
 import { BaseButton } from "@/app/components";
 
 // Context
-import { useInvoiceContext } from "@/contexts/InvoiceContext";
+import { useInvoiceContext } from "@/contexts/ProposalContext";
 
 // Types
 import { ExportTypes } from "@/types";
 
-type InvoiceExportModalType = {
+type ProposalExportModalType = {
     children: React.ReactNode;
 };
 
-const InvoiceExportModal = ({ children }: InvoiceExportModalType) => {
+const ProposalExportModal = ({ children }: ProposalExportModalType) => {
     const [open, setOpen] = useState(false);
 
     const { invoicePdfLoading, exportInvoiceAs } = useInvoiceContext();
@@ -84,4 +84,4 @@ const InvoiceExportModal = ({ children }: InvoiceExportModalType) => {
     );
 };
 
-export default InvoiceExportModal;
+export default ProposalExportModal;

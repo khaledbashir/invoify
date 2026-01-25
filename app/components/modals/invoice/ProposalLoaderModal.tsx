@@ -13,17 +13,17 @@ import {
 } from "@/components/ui/dialog";
 
 // Components
-import { SavedInvoicesList } from "@/app/components";
+import { SavedProposalsList } from "@/app/components";
 import { ImportJsonButton } from "@/app/components";
 
 // Context
-import { useInvoiceContext } from "@/contexts/InvoiceContext";
+import { useInvoiceContext } from "@/contexts/ProposalContext";
 
-type InvoiceLoaderModalType = {
+type ProposalLoaderModalType = {
   children: React.ReactNode;
 };
 
-const InvoiceLoaderModal = ({ children }: InvoiceLoaderModalType) => {
+const ProposalLoaderModal = ({ children }: ProposalLoaderModalType) => {
   const [open, setOpen] = useState(false);
 
   const { savedInvoices } = useInvoiceContext();
@@ -43,10 +43,10 @@ const InvoiceLoaderModal = ({ children }: InvoiceLoaderModalType) => {
           </DialogDescription>
         </DialogHeader>
 
-        <SavedInvoicesList setModalState={setOpen} />
+        <SavedProposalsList setModalState={setOpen} />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default InvoiceLoaderModal;
+export default ProposalLoaderModal;

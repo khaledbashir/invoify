@@ -60,11 +60,11 @@ import Subheading from "./reusables/Subheading";
 import SendPdfToEmailModal from "./modals/email/SendPdfToEmailModal";
 
 // Import/Export
-import InvoiceLoaderModal from "./modals/invoice/InvoiceLoaderModal";
-import InvoiceExportModal from "./modals/invoice/InvoiceExportModal";
+import ProposalLoaderModal from "./modals/invoice/ProposalLoaderModal";
+import ProposalExportModal from "./modals/invoice/ProposalExportModal";
 
 // Custom Selectors
-import SavedInvoicesList from "./modals/invoice/components/SavedInvoicesList";
+import SavedProposalsList from "./modals/invoice/components/SavedProposalsList";
 
 // Signature
 import SignatureModal from "./modals/signature/SignatureModal";
@@ -79,7 +79,7 @@ import SignatureColorSelector from "./modals/signature/components/SignatureColor
 import SignatureFontSelector from "./modals/signature/components/SignatureFontSelector";
 
 // Alerts
-import NewInvoiceAlert from "./modals/alerts/NewInvoiceAlert";
+import NewProposalAlert from "./modals/alerts/NewProposalAlert";
 
 /* =========================
    * Templates
@@ -112,7 +112,7 @@ export {
     PaymentInformation,
     ProposalSummary,
     CurrencySelector,
-    SavedInvoicesList,
+    SavedProposalsList,
     PdfViewer,
     LivePreview,
     FinalPdf,
@@ -127,8 +127,8 @@ export {
     LanguageSelector,
     Subheading,
     SendPdfToEmailModal,
-    InvoiceLoaderModal,
-    InvoiceExportModal,
+    ProposalLoaderModal,
+    ProposalExportModal,
     ImportJsonButton,
     SignatureModal,
     DrawSignature,
@@ -136,7 +136,7 @@ export {
     UploadSignature,
     SignatureColorSelector,
     SignatureFontSelector,
-    NewInvoiceAlert,
+    NewProposalAlert,
     DynamicInvoiceTemplate,
     InvoiceLayout,
     InvoiceTemplate1,

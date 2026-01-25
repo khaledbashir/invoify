@@ -6,7 +6,7 @@ import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 // Context
-import { useInvoiceContext } from "@/contexts/InvoiceContext";
+import { useInvoiceContext } from "@/contexts/ProposalContext";
 
 // ShadCn
 import {
@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-type NewInvoiceAlertProps = {
+type NewProposalAlertProps = {
   children: React.ReactNode;
   title?: string;
   description?: string;
@@ -28,13 +28,13 @@ type NewInvoiceAlertProps = {
   onConfirm?: () => void;
 };
 
-const NewInvoiceAlert = ({
+const NewProposalAlert = ({
   children,
   title,
   description,
   confirmLabel,
   onConfirm,
-}: NewInvoiceAlertProps) => {
+}: NewProposalAlertProps) => {
   // Invoice context
   const { newInvoice } = useInvoiceContext();
 
@@ -93,4 +93,4 @@ const NewInvoiceAlert = ({
   );
 };
 
-export default NewInvoiceAlert;
+export default NewProposalAlert;

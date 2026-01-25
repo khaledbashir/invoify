@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BaseButton } from "@/app/components";
 
 // Contexts
-import { useInvoiceContext } from "@/contexts/InvoiceContext";
+import { useInvoiceContext } from "@/contexts/ProposalContext";
 
 // Helpers
 import { formatNumberWithCommas } from "@/lib/helpers";
@@ -23,11 +23,11 @@ import { DATE_OPTIONS } from "@/lib/variables";
 // Types
 import { InvoiceType } from "@/types";
 
-type SavedInvoicesListProps = {
+type SavedProposalsListProps = {
     setModalState: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const SavedInvoicesList = ({ setModalState }: SavedInvoicesListProps) => {
+const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     const { savedInvoices, onFormSubmit, deleteInvoice } = useInvoiceContext();
 
     const { reset } = useFormContext<InvoiceType>();
@@ -170,4 +170,4 @@ const SavedInvoicesList = ({ setModalState }: SavedInvoicesListProps) => {
     );
 };
 
-export default SavedInvoicesList;
+export default SavedProposalsList;

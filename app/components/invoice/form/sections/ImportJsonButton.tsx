@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { BaseButton } from '@/app/components';
-import { useInvoiceContext } from '@/contexts/InvoiceContext';
+import { useInvoiceContext } from '@/contexts/ProposalContext';
 import { Import } from 'lucide-react';
 
 type ImportJsonButtonType = {

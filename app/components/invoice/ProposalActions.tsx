@@ -12,13 +12,13 @@ import {
 import {
   PdfViewer,
   BaseButton,
-  NewInvoiceAlert,
-  InvoiceLoaderModal,
-  InvoiceExportModal,
+  NewProposalAlert,
+  ProposalLoaderModal,
+  ProposalExportModal,
 } from "@/app/components";
 
 // Contexts
-import { useInvoiceContext } from "@/contexts/InvoiceContext";
+import { useProposalContext } from "@/contexts/ProposalContext";
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
 // Icons
@@ -49,53 +49,53 @@ const ProposalActions = () => {
                 <FolderUp />
                 {_t("actions.loadProposal")}
               </BaseButton>
-            </InvoiceLoaderModal>
+            </ProposalLoaderModal>
 
             {/* Export modal button */}
-            <InvoiceExportModal>
+            <ProposalExportModal>
               <BaseButton
                 variant="outline"
                 tooltipLabel="Open export proposal menu"
-                disabled={invoicePdfLoading}
+                disabled={proposalPdfLoading}
                 className="flex-1 min-w-[140px]"
               >
                 <Import />
-                {_t("actions.exportInvoice")}
+                {_t("actions.exportProposal")}
               </BaseButton>
-            </InvoiceExportModal>
+            </ProposalExportModal>
           </div>
 
           <div className="flex flex-wrap gap-3 w-full">
-            {/* New invoice button */}
-            <NewInvoiceAlert>
+            {/* New proposal button */}
+            <NewProposalAlert>
               <BaseButton
                 variant="outline"
                 tooltipLabel="Get a new proposal form"
-                disabled={invoicePdfLoading}
+                disabled={proposalPdfLoading}
                 className="flex-1 min-w-[140px]"
               >
                 <Plus />
-                {_t("actions.newInvoice")}
+                {_t("actions.newProposal")}
               </BaseButton>
-            </NewInvoiceAlert>
+            </NewProposalAlert>
 
             {/* Reset form button */}
-            <NewInvoiceAlert
+            <NewProposalAlert
               title="Reset form?"
               description="This will clear all fields and the saved draft."
               confirmLabel="Reset"
-              onConfirm={newInvoice}
+              onConfirm={newProposal}
             >
               <BaseButton
                 variant="destructive"
                 tooltipLabel="Reset entire form"
-                disabled={invoicePdfLoading}
+                disabled={proposalPdfLoading}
                 className="flex-1 min-w-[140px]"
               >
                 <RotateCcw />
                 Reset Form
               </BaseButton>
-            </NewInvoiceAlert>
+            </NewProposalAlert>
 
             {/* Generate pdf button */}
             <BaseButton
