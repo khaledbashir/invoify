@@ -228,4 +228,4 @@ const ProposalTemplate1 = (data: ProposalType) => {
 	);
 };
 
-export default InvoiceTemplate;
+export default ProposalTemplate1;

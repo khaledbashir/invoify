@@ -13,7 +13,7 @@ const DynamicProposalTemplateSkeleton = () => {
 
 const DynamicProposalTemplate = (props: ProposalType) => {
     // Dynamic template component name
-    const templateName = `InvoiceTemplate${props.details.pdfTemplate}`;
+    const templateName = `ProposalTemplate${props.details.pdfTemplate}`;
 
     const DynamicInvoice = useMemo(
         () =>
