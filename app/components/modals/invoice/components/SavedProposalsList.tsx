@@ -68,10 +68,10 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     * @param {ProposalType} selectedProposal - The selected proposal
      */
     const load = (selectedProposal: ProposalType) => {
-        if (selectedInvoice) {
-            updateFields(selectedInvoice);
-            reset(selectedInvoice);
-            transformDates(selectedInvoice);
+        if (selectedProposal) {
+            updateFields(selectedProposal);
+            reset(selectedProposal);
+            transformDates(selectedProposal);
 
             // Close modal
             setModalState(false);
@@ -84,10 +84,10 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     * @param {ProposalType} selectedProposal - The selected proposal
      */
     const loadAndGeneratePdf = (selectedProposal: ProposalType) => {
-        load(selectedInvoice);
+        load(selectedProposal);
 
         // Submit form
-        onFormSubmit(selectedInvoice);
+        onFormSubmit(selectedProposal);
     };
 
     return (

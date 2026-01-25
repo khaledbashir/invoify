@@ -47,6 +47,8 @@ const defaultProposalContext = {
   previewPdfInTab: () => {},
   saveProposalData: () => {},
   deleteProposalData: (index: number) => {},
+  // Backwards-compatible alias
+  deleteProposal: (index: number) => {},
   sendPdfToMail: (email: string): Promise<void> => Promise.resolve(),
   exportProposalDataAs: (exportAs: ExportTypes) => {},
   // Backwards-compatible alias
@@ -429,6 +431,8 @@ export const ProposalContextProvider = ({
         previewPdfInTab,
         saveProposalData,
         deleteProposalData,
+        // Backwards-compatible alias
+        deleteProposal: deleteProposalData,
         sendPdfToMail,
         exportProposalDataAs,
         // Backwards-compatible alias
