@@ -24,13 +24,13 @@ import { useTranslationContext } from "@/contexts/TranslationContext";
 // Icons
 import { FileInput, FolderUp, Import, Plus, RotateCcw } from "lucide-react";
 
-const InvoiceActions = () => {
-  const { invoicePdfLoading, newInvoice } = useInvoiceContext();
+const ProposalActions = () => {
+  const { proposalPdfLoading, newProposal } = useProposalContext();
 
   const { _t } = useTranslationContext();
   return (
-    <div className={`xl:w-[45%]`}>
-      <Card className="h-auto sticky top-0 px-2 rounded-lg shadow-sm">
+    <div className="w-full">
+      <Card className="h-auto sticky top-4 rounded-lg shadow-lg">
         <CardHeader className="pb-4">
           <CardTitle>{_t("actions.title")}</CardTitle>
           <CardDescription>{_t("actions.description")}</CardDescription>
@@ -39,15 +39,15 @@ const InvoiceActions = () => {
         <div className="flex flex-col flex-wrap items-center gap-3 px-2 pb-6">
           <div className="flex flex-wrap gap-3 w-full">
             {/* Load modal button */}
-            <InvoiceLoaderModal>
+            <ProposalLoaderModal>
               <BaseButton
                 variant="outline"
                 tooltipLabel="Open load proposal menu"
-                disabled={invoicePdfLoading}
+                disabled={proposalPdfLoading}
                 className="flex-1 min-w-[140px]"
               >
                 <FolderUp />
-                {_t("actions.loadInvoice")}
+                {_t("actions.loadProposal")}
               </BaseButton>
             </InvoiceLoaderModal>
 
@@ -101,7 +101,7 @@ const InvoiceActions = () => {
             <BaseButton
               type="submit"
               tooltipLabel="Generate your proposal"
-              loading={invoicePdfLoading}
+              loading={proposalPdfLoading}
               loadingText="Generating your proposal"
               className="flex-1 min-w-[140px]"
             >
@@ -120,4 +120,4 @@ const InvoiceActions = () => {
   );
 };
 
-export default InvoiceActions;
+export default ProposalActions;

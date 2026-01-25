@@ -5,11 +5,11 @@ import BaseNavbar from "./layout/BaseNavbar";
 import BaseFooter from "./layout/BaseFooter";
 
 /* =========================
-   * Invoice
+   * Proposal
    ========================= */
-import InvoiceMain from "./invoice/InvoiceMain";
-import InvoiceForm from "./invoice/InvoiceForm";
-import InvoiceActions from "./invoice/InvoiceActions";
+import ProposalMain from "./invoice/ProposalMain";
+import ProposalForm from "./invoice/ProposalForm";
+import ProposalActions from "./invoice/ProposalActions";
 
 /* =========================
    * Invoice components
@@ -28,10 +28,10 @@ import WizardProgress from "./invoice/form/wizard/WizardProgress";
 // Form / Sections
 import BillFromSection from "./invoice/form/sections/BillFromSection";
 import BillToSection from "./invoice/form/sections/BillToSection";
-import InvoiceDetails from "./invoice/form/sections/InvoiceDetails";
+import ProposalDetails from "./invoice/form/sections/ProposalDetails";
 import Items from "./invoice/form/sections/Items";
 import PaymentInformation from "./invoice/form/sections/PaymentInformation";
-import InvoiceSummary from "./invoice/form/sections/InvoiceSummary";
+import ProposalSummary from "./invoice/form/sections/ProposalSummary";
 import ImportJsonButton from "./invoice/form/sections/ImportJsonButton";
 
 // * Actions
@@ -96,12 +96,12 @@ import SendPdfEmail from "./templates/email/SendPdfEmail";
 export {
     BaseNavbar,
     BaseFooter,
-    InvoiceMain,
-    InvoiceForm,
-    InvoiceActions,
+    ProposalMain,
+    ProposalForm,
+    ProposalActions,
     BillFromSection,
     BillToSection,
-    InvoiceDetails,
+    ProposalDetails,
     Items,
     SingleItem,
     Charges,
@@ -110,7 +110,7 @@ export {
     WizardStep,
     WizardProgress,
     PaymentInformation,
-    InvoiceSummary,
+    ProposalSummary,
     CurrencySelector,
     SavedInvoicesList,
     PdfViewer,

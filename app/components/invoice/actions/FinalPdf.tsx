@@ -96,7 +96,7 @@ export default function FinalPdf() {
                     </BaseButton>
                 </SendPdfToEmailModal>
             </div>
-            <AspectRatio ratio={1 / 1.4}>
+            <AspectRatio ratio={8.5 / 11}>
                 <iframe
                     className="h-full w-full rounded-xl"
                     src={`${pdfUrl}#toolbar=0`}
