@@ -11,7 +11,7 @@ type ImportJsonButtonType = {
 
 const ImportJsonButton = ({ setOpen }: ImportJsonButtonType) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { importProposal, proposalPdfLoading } = useProposalContext();
+    const { importProposalData, proposalPdfLoading } = useProposalContext();
 
     const handleClick = () => {
         fileInputRef.current?.click();
@@ -20,7 +20,7 @@ const ImportJsonButton = ({ setOpen }: ImportJsonButtonType) => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file && file.type === 'application/json') {
-            importProposal(file);
+            importProposalData(file);
             setOpen(false);
         }
         // Reset input value to allow selecting the same file again
