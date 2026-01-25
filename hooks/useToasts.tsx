@@ -8,7 +8,7 @@ const useToasts = () => {
         sendPdfToMail: (email: string) => void;
     };
 
-    const newInvoiceSuccess = () => {
+    const newProposalSuccess = () => {
         toast({
             variant: "default",
             title: "Generated new proposal",
@@ -25,7 +25,7 @@ const useToasts = () => {
         });
     };
 
-    const saveInvoiceSuccess = () => {
+    const saveProposalSuccess = () => {
         toast({
             variant: "default",
             title: "Saved Proposal",
@@ -33,7 +33,7 @@ const useToasts = () => {
         });
     };
 
-    const modifiedInvoiceSuccess = () => {
+    const modifiedProposalSuccess = () => {
         toast({
             variant: "default",
             title: "Modified Proposal",
@@ -65,7 +65,7 @@ const useToasts = () => {
         });
     };
 
-    const importInvoiceError = () => {
+    const importProposalError = () => {
         toast({
             variant: "destructive",
             title: "Error",
@@ -74,13 +74,13 @@ const useToasts = () => {
     };
 
     return {
-        newInvoiceSuccess,
+        newProposalSuccess,
         pdfGenerationSuccess,
-        saveInvoiceSuccess,
-        modifiedInvoiceSuccess,
+        saveProposalSuccess,
+        modifiedProposalSuccess,
         sendPdfSuccess,
         sendPdfError,
-        importInvoiceError,
+        importProposalError,
     };
 };
 

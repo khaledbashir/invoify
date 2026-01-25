@@ -12,7 +12,7 @@ import {
 import { useTranslationContext } from "@/contexts/TranslationContext";
 import { SignatureContextProvider } from "@/contexts/SignatureContext";
 
-const InvoiceSummary = () => {
+const ProposalSummary = () => {
     const { _t } = useTranslationContext();
 
     return (
@@ -45,4 +45,4 @@ const InvoiceSummary = () => {
     );
 };
 
-export default InvoiceSummary;
+export default ProposalSummary;

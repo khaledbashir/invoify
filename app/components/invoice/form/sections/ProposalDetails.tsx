@@ -13,44 +13,44 @@ import {
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
-const InvoiceDetails = () => {
+const ProposalDetails = () => {
     const { _t } = useTranslationContext();
 
     return (
         <section className="flex flex-col flex-wrap gap-5">
-            <Subheading>{_t("form.steps.invoiceDetails.heading")}:</Subheading>
+            <Subheading>{_t("form.steps.proposalDetails.heading")}:</Subheading>
 
             <div className="flex flex-row flex-wrap gap-5">
                 <div className="flex flex-col gap-2">
                     <FormFile
-                        name="details.invoiceLogo"
+                        name="details.proposalLogo"
                         label={_t(
-                            "form.steps.invoiceDetails.invoiceLogo.label"
+                            "form.steps.proposalDetails.proposalLogo.label"
                         )}
                         placeholder={_t(
-                            "form.steps.invoiceDetails.invoiceLogo.placeholder"
+                            "form.steps.proposalDetails.proposalLogo.placeholder"
                         )}
                     />
 
                     <FormInput
-                        name="details.invoiceNumber"
-                        label={_t("form.steps.invoiceDetails.invoiceNumber")}
-                        placeholder="Invoice number"
+                        name="details.proposalId"
+                        label={_t("form.steps.proposalDetails.proposalId")}
+                        placeholder="Proposal ID"
                     />
 
                     <DatePickerFormField
-                        name="details.invoiceDate"
-                        label={_t("form.steps.invoiceDetails.issuedDate")}
+                        name="details.proposalDate"
+                        label={_t("form.steps.proposalDetails.issuedDate")}
                     />
 
                     <DatePickerFormField
                         name="details.dueDate"
-                        label={_t("form.steps.invoiceDetails.dueDate")}
+                        label={_t("form.steps.proposalDetails.dueDate")}
                     />
 
                     <CurrencySelector
                         name="details.currency"
-                        label={_t("form.steps.invoiceDetails.currency")}
+                        label={_t("form.steps.proposalDetails.currency")}
                         placeholder="Select Currency"
                     />
                 </div>
@@ -63,4 +63,4 @@ const InvoiceDetails = () => {
     );
 };
 
-export default InvoiceDetails;
+export default ProposalDetails;

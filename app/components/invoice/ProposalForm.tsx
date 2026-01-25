@@ -23,36 +23,36 @@ import {
     WizardStep,
     BillFromSection,
     BillToSection,
-    InvoiceDetails,
+    ProposalDetails,
     Items,
     PaymentInformation,
-    InvoiceSummary,
+    ProposalSummary,
 } from "@/app/components";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
-const InvoiceForm = () => {
+const ProposalForm = () => {
     const { _t } = useTranslationContext();
 
     const { control } = useFormContext();
 
-    // Get invoice number variable
-    const invoiceNumber = useWatch({
-        name: "details.invoiceNumber",
+    // Get proposal ID variable
+    const proposalId = useWatch({
+        name: "details.proposalId",
         control,
     });
 
-    const invoiceNumberLabel = useMemo(() => {
-        if (invoiceNumber) {
-            return `#${invoiceNumber}`;
+    const proposalIdLabel = useMemo(() => {
+        if (proposalId) {
+            return `#${proposalId}`;
         } else {
-            return _t("form.newInvBadge");
+            return _t("formNewPropBadge");
         }
-    }, [invoiceNumber]);
+    }, [proposalId]);
 
     return (
-        <div className={`xl:w-[55%]`}>
+        <div className="w-full">
             <Card>
                 <CardHeader>
                     <div className="flex gap-3">
@@ -63,7 +63,7 @@ const InvoiceForm = () => {
                         </CardTitle>
                         <Badge variant="secondary" className="w-fit">
                             <p style={{ fontSize: "14px" }}>
-                                {invoiceNumberLabel}
+                                {proposalIdLabel}
                             </p>
                         </Badge>
                     </div>
@@ -81,7 +81,7 @@ const InvoiceForm = () => {
                             </WizardStep>
                             <WizardStep>
                                 <div className="flex flex-wrap gap-y-10">
-                                    <InvoiceDetails />
+                                    <ProposalDetails />
                                 </div>
                             </WizardStep>
 
@@ -94,7 +94,7 @@ const InvoiceForm = () => {
                             </WizardStep>
 
                             <WizardStep>
-                                <InvoiceSummary />
+                                <ProposalSummary />
                             </WizardStep>
                         </Wizard>
                     </div>
@@ -104,4 +104,4 @@ const InvoiceForm = () => {
     );
 };
 
-export default InvoiceForm;
+export default ProposalForm;

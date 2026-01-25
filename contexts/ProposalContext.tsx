@@ -32,70 +32,70 @@ import {
 // Types
 import { ExportTypes, InvoiceType } from "@/types";
 
-const defaultInvoiceContext = {
-  invoicePdf: new Blob(),
-  invoicePdfLoading: false,
-  savedInvoices: [] as InvoiceType[],
+const defaultProposalContext = {
+  proposalPdf: new Blob(),
+  proposalPdfLoading: false,
+  savedProposals: [] as ProposalType[],
   pdfUrl: null as string | null,
-  onFormSubmit: (values: InvoiceType) => {},
-  newInvoice: () => {},
-  generatePdf: async (data: InvoiceType) => {},
+  onFormSubmit: (values: ProposalType) => {},
+  newProposal: () => {},
+  generatePdf: async (data: ProposalType) => {},
   removeFinalPdf: () => {},
   downloadPdf: () => {},
   printPdf: () => {},
   previewPdfInTab: () => {},
-  saveInvoice: () => {},
-  deleteInvoice: (index: number) => {},
+  saveProposalData: () => {},
+  deleteProposalData: (index: number) => {},
   sendPdfToMail: (email: string): Promise<void> => Promise.resolve(),
-  exportInvoiceAs: (exportAs: ExportTypes) => {},
-  importInvoice: (file: File) => {},
+  exportProposalDataAs: (exportAs: ExportTypes) => {},
+  importProposalData: (file: File) => {},
 };
 
-export const InvoiceContext = createContext(defaultInvoiceContext);
+export const ProposalContext = createContext(defaultProposalContext);
 
-export const useInvoiceContext = () => {
-  return useContext(InvoiceContext);
+export const useProposalContext = () => {
+  return useContext(ProposalContext);
 };
 
-type InvoiceContextProviderProps = {
+type ProposalContextProviderProps = {
   children: React.ReactNode;
 };
 
-export const InvoiceContextProvider = ({
+export const ProposalContextProvider = ({
   children,
-}: InvoiceContextProviderProps) => {
+}: ProposalContextProviderProps) => {
   const router = useRouter();
 
   // Toasts
   const {
-    newInvoiceSuccess,
+    newProposalSuccess,
     pdfGenerationSuccess,
-    saveInvoiceSuccess,
-    modifiedInvoiceSuccess,
+    saveProposalDataSuccess,
+    modifiedProposalSuccess,
     sendPdfSuccess,
     sendPdfError,
-    importInvoiceError,
+    importProposalDataError,
   } = useToasts();
 
   // Get form values and methods from form context
   const { getValues, reset, watch } = useFormContext<InvoiceType>();
 
   // Variables
-  const [invoicePdf, setInvoicePdf] = useState<Blob>(new Blob());
-  const [invoicePdfLoading, setInvoicePdfLoading] = useState<boolean>(false);
+  const [proposalPdf, setProposalPdf] = useState<Blob>(new Blob());
+  const [proposalPdfLoading, setProposalPdfLoading] = useState<boolean>(false);
 
-  // Saved invoices
-  const [savedInvoices, setSavedInvoices] = useState<InvoiceType[]>([]);
+  // Saved proposals
+  const [savedProposals, setSavedProposals] = useState<ProposalType[]>([]);
 
   useEffect(() => {
-    let savedInvoicesDefault;
+    let savedProposalsDefault;
     if (typeof window !== undefined) {
       // Saved invoices variables
-      const savedInvoicesJSON = window.localStorage.getItem("savedInvoices");
-      savedInvoicesDefault = savedInvoicesJSON
-        ? JSON.parse(savedInvoicesJSON)
+      const savedProposalsJSON = window.localStorage.getItem("savedProposals");
+      savedProposalsDefault = savedProposalsJSON
+        ? JSON.parse(savedProposalsJSON)
         : [];
-      setSavedInvoices(savedInvoicesDefault);
+      setSavedProposals(savedProposalsDefault);
     }
   }, []);
 
@@ -115,18 +115,18 @@ export const InvoiceContextProvider = ({
 
   // Get pdf url from blob
   const pdfUrl = useMemo(() => {
-    if (invoicePdf.size > 0) {
-      return window.URL.createObjectURL(invoicePdf);
+    if (proposalPdf.size > 0) {
+      return window.URL.createObjectURL(proposalPdf);
     }
     return null;
-  }, [invoicePdf]);
+  }, [proposalPdf]);
 
   /**
    * Handles form submission.
    *
-   * @param {InvoiceType} data - The form values used to generate the PDF.
+   * @param {ProposalType} data - The form values used to generate the PDF.
    */
-  const onFormSubmit = (data: InvoiceType) => {
+  const onFormSubmit = (data: ProposalType) => {
     console.log("VALUE");
     console.log(data);
 
@@ -135,11 +135,11 @@ export const InvoiceContextProvider = ({
   };
 
   /**
-   * Generates a new invoice.
+   * Generates a new proposal.
    */
-  const newInvoice = () => {
+  const newProposal = () => {
     reset(FORM_DEFAULT_VALUES);
-    setInvoicePdf(new Blob());
+    setProposalPdf(new Blob());
 
     // Clear the draft
     if (typeof window !== "undefined") {
@@ -151,7 +151,7 @@ export const InvoiceContextProvider = ({
     router.refresh();
 
     // Toast
-    newInvoiceSuccess();
+    newProposalSuccess();
   };
 
   /**
@@ -195,8 +195,8 @@ export const InvoiceContextProvider = ({
    * Generates a preview of a PDF file and opens it in a new browser tab.
    */
   const previewPdfInTab = () => {
-    if (invoicePdf) {
-      const url = window.URL.createObjectURL(invoicePdf);
+    if (proposalPdf) {
+      const url = window.URL.createObjectURL(proposalPdf);
       window.open(url, "_blank");
     }
   };
@@ -206,9 +206,9 @@ export const InvoiceContextProvider = ({
    */
   const downloadPdf = () => {
     // Only download if there is an invoice
-    if (invoicePdf instanceof Blob && invoicePdf.size > 0) {
+    if (proposalPdf instanceof Blob && proposalPdf.size > 0) {
       // Create a blob URL to trigger the download
-      const url = window.URL.createObjectURL(invoicePdf);
+      const url = window.URL.createObjectURL(proposalPdf);
 
       // Create an anchor element to initiate the download
       const a = document.createElement("a");
@@ -228,8 +228,8 @@ export const InvoiceContextProvider = ({
    * Prints a PDF file.
    */
   const printPdf = () => {
-    if (invoicePdf) {
-      const pdfUrl = URL.createObjectURL(invoicePdf);
+    if (proposalPdf) {
+      const pdfUrl = URL.createObjectURL(proposalPdf);
       const printWindow = window.open(pdfUrl, "_blank");
       if (printWindow) {
         printWindow.onload = () => {
@@ -239,18 +239,18 @@ export const InvoiceContextProvider = ({
     }
   };
 
-  // TODO: Change function name. (saveInvoiceData maybe?)
+  // TODO: Change function name. (saveProposalDataData maybe?)
   /**
    * Saves the invoice data to local storage.
    */
-  const saveInvoice = () => {
-    if (invoicePdf) {
+  const saveProposalData = () => {
+    if (proposalPdf) {
       // If get values function is provided, allow to save the invoice
       if (getValues) {
         // Retrieve the existing array from local storage or initialize an empty array
-        const savedInvoicesJSON = localStorage.getItem("savedInvoices");
-        const savedInvoices = savedInvoicesJSON
-          ? JSON.parse(savedInvoicesJSON)
+        const savedProposalsJSON = localStorage.getItem("savedProposals");
+        const savedProposals = savedProposalsJSON
+          ? JSON.parse(savedProposalsJSON)
           : [];
 
         const updatedDate = new Date().toLocaleDateString(
@@ -261,7 +261,7 @@ export const InvoiceContextProvider = ({
         const formValues = getValues();
         formValues.details.updatedAt = updatedDate;
 
-        const existingInvoiceIndex = savedInvoices.findIndex(
+        const existingInvoiceIndex = savedProposals.findIndex(
           (invoice: InvoiceType) => {
             return (
               invoice.details.invoiceNumber === formValues.details.invoiceNumber
@@ -271,40 +271,40 @@ export const InvoiceContextProvider = ({
 
         // If invoice already exists
         if (existingInvoiceIndex !== -1) {
-          savedInvoices[existingInvoiceIndex] = formValues;
+          savedProposals[existingInvoiceIndex] = formValues;
 
           // Toast
-          modifiedInvoiceSuccess();
+          modifiedProposalSuccess();
         } else {
           // Add the form values to the array
-          savedInvoices.push(formValues);
+          savedProposals.push(formValues);
 
           // Toast
-          saveInvoiceSuccess();
+          saveProposalDataSuccess();
         }
 
-        localStorage.setItem("savedInvoices", JSON.stringify(savedInvoices));
+        localStorage.setItem("savedProposals", JSON.stringify(savedProposals));
 
-        setSavedInvoices(savedInvoices);
+        setSavedInvoices(savedProposals);
       }
     }
   };
 
-  // TODO: Change function name. (deleteInvoiceData maybe?)
+  // TODO: Change function name. (deleteProposalDataData maybe?)
   /**
    * Delete an invoice from local storage based on the given index.
    *
    * @param {number} index - The index of the invoice to be deleted.
    */
-  const deleteInvoice = (index: number) => {
-    if (index >= 0 && index < savedInvoices.length) {
-      const updatedInvoices = [...savedInvoices];
+  const deleteProposalData = (index: number) => {
+    if (index >= 0 && index < savedProposals.length) {
+      const updatedInvoices = [...savedProposals];
       updatedInvoices.splice(index, 1);
       setSavedInvoices(updatedInvoices);
 
       const updatedInvoicesJSON = JSON.stringify(updatedInvoices);
 
-      localStorage.setItem("savedInvoices", updatedInvoicesJSON);
+      localStorage.setItem("savedProposals", updatedInvoicesJSON);
     }
   };
 
@@ -317,7 +317,7 @@ export const InvoiceContextProvider = ({
   const sendPdfToMail = (email: string) => {
     const fd = new FormData();
     fd.append("email", email);
-    fd.append("invoicePdf", invoicePdf, "invoice.pdf");
+    fd.append("proposalPdf", proposalPdf, "invoice.pdf");
     fd.append("invoiceNumber", getValues().details.invoiceNumber);
 
     return fetch(SEND_PDF_API, {
@@ -348,7 +348,7 @@ export const InvoiceContextProvider = ({
    *
    * @param {ExportTypes} exportAs - The format in which to export the invoice.
    */
-  const exportInvoiceAs = (exportAs: ExportTypes) => {
+  const exportProposalDataAs = (exportAs: ExportTypes) => {
     const formValues = getValues();
 
     // Service to export invoice with given parameters
@@ -360,7 +360,7 @@ export const InvoiceContextProvider = ({
    *
    * @param {File} file - The JSON file to import.
    */
-  const importInvoice = (file: File) => {
+  const importProposalData = (file: File) => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
@@ -384,34 +384,34 @@ export const InvoiceContextProvider = ({
         reset(importedData);
       } catch (error) {
         console.error("Error parsing JSON file:", error);
-        importInvoiceError();
+        importProposalDataError();
       }
     };
     reader.readAsText(file);
   };
 
   return (
-    <InvoiceContext.Provider
+    <ProposalContext.Provider
       value={{
-        invoicePdf,
-        invoicePdfLoading,
-        savedInvoices,
+        proposalPdf,
+        proposalPdfLoading,
+        savedProposals,
         pdfUrl,
         onFormSubmit,
-        newInvoice,
+        newProposal,
         generatePdf,
         removeFinalPdf,
         downloadPdf,
         printPdf,
         previewPdfInTab,
-        saveInvoice,
-        deleteInvoice,
+        saveProposalData,
+        deleteProposalData,
         sendPdfToMail,
-        exportInvoiceAs,
-        importInvoice,
+        exportProposalDataAs,
+        importProposalData,
       }}
     >
       {children}
-    </InvoiceContext.Provider>
+    </ProposalContext.Provider>
   );
 };
