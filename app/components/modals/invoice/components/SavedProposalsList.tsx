@@ -21,7 +21,7 @@ import { formatNumberWithCommas } from "@/lib/helpers";
 import { DATE_OPTIONS } from "@/lib/variables";
 
 // Types
-import { InvoiceType } from "@/types";
+import { ProposalType } from "@/types";
 
 type SavedProposalsListProps = {
     setModalState: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,7 +30,7 @@ type SavedProposalsListProps = {
 const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     const { savedProposals, onFormSubmit, deleteProposal } = useProposalContext();
 
-    const { reset } = useFormContext<InvoiceType>();
+    const { reset } = useFormContext<ProposalType>();
 
     // TODO: Remove "any" from the function below
     // Update fields when selected invoice is changed.
@@ -38,7 +38,7 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     const updateFields = (selected: any) => {
         // Next 2 lines are so that when invoice loads,
         // the dates won't be in the wrong format
-        // ? Selected cannot be of type InvoiceType because of these 2 variables
+        // ? Selected cannot be of type ProposalType because of these 2 variables
         selected.details.dueDate = new Date(selected.details.dueDate);
         selected.details.invoiceDate = new Date(selected.details.invoiceDate);
 
@@ -51,9 +51,9 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     /**
      * Transform date values for next submission
      *
-     * @param {InvoiceType} selected - The selected invoice
+    * @param {ProposalType} selected - The selected proposal
      */
-    const transformDates = (selected: InvoiceType) => {
+    const transformDates = (selected: ProposalType) => {
         selected.details.dueDate = new Date(
             selected.details.dueDate
         ).toLocaleDateString("en-US", DATE_OPTIONS);
@@ -65,9 +65,9 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     /**
      * Loads a given invoice into the form.
      *
-     * @param {InvoiceType} selectedInvoice - The selected invoice
+    * @param {ProposalType} selectedProposal - The selected proposal
      */
-    const load = (selectedInvoice: InvoiceType) => {
+    const load = (selectedProposal: ProposalType) => {
         if (selectedInvoice) {
             updateFields(selectedInvoice);
             reset(selectedInvoice);
@@ -81,9 +81,9 @@ const SavedProposalsList = ({ setModalState }: SavedProposalsListProps) => {
     /**
      * Loads a given invoice into the form and generates a pdf by submitting the form.
      *
-     * @param {InvoiceType} selectedInvoice - The selected invoice
+    * @param {ProposalType} selectedProposal - The selected proposal
      */
-    const loadAndGeneratePdf = (selectedInvoice: InvoiceType) => {
+    const loadAndGeneratePdf = (selectedProposal: ProposalType) => {
         load(selectedInvoice);
 
         // Submit form

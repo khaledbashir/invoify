@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Services
-import { sendPdfToEmailService } from "@/services/invoice/server/sendProposalPdfToEmailService";
+import { sendProposalPdfToEmailService } from "@/services/invoice/server/sendProposalPdfToEmailService";
 
 export async function POST(req: NextRequest) {
     try {
-        const emailSent = await sendPdfToEmailService(req);
+        const emailSent = await sendProposalPdfToEmailService(req);
 
         if (emailSent) {
             return new NextResponse("Email sent successfully", {

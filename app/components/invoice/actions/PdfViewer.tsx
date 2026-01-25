@@ -13,12 +13,12 @@ import { FinalPdf, LivePreview } from "@/app/components";
 import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Types
-import { InvoiceType } from "@/types";
+import { ProposalType } from "@/types";
 
 const PdfViewer = () => {
     const { proposalPdf } = useProposalContext();
 
-    const { watch } = useFormContext<InvoiceType>();
+    const { watch } = useFormContext<ProposalType>();
 
     const [debouncedWatch] = useDebounce(watch, 1000);
     const formValues = debouncedWatch();

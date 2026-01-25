@@ -4,9 +4,9 @@ export const maxDuration = 60;
 import { NextRequest } from "next/server";
 
 // Services
-import { generatePdfService } from "@/services/invoice/server/generateProposalPdfService";
+import { generateProposalPdfService } from "@/services/invoice/server/generateProposalPdfService";
 
 export async function POST(req: NextRequest) {
-    const result = await generatePdfService(req);
+    const result = await generateProposalPdfService(req);
     return result;
 }

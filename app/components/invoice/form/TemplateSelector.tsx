@@ -29,10 +29,10 @@ import template2 from "@/public/assets/img/invoice-2-example.png";
 import { Check } from "lucide-react";
 
 // Types
-import { InvoiceType } from "@/types";
+import { ProposalType } from "@/types";
 
 const TemplateSelector = () => {
-    const { watch, setValue } = useFormContext<InvoiceType>();
+    const { watch, setValue } = useFormContext<ProposalType>();
     const formValues = watch();
     const templates = [
         {

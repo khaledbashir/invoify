@@ -9,7 +9,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 // Schema
-import { InvoiceSchema } from "@/lib/schemas";
+import { ProposalSchema } from "@/lib/schemas";
 
 // Context
 import { ThemeProvider } from "@/contexts/ThemeProvider";
@@ -52,7 +52,7 @@ type ProvidersProps = {
 
 const Providers = ({ children }: ProvidersProps) => {
   const form = useForm<InvoiceType>({
-    resolver: zodResolver(InvoiceSchema),
+    resolver: zodResolver(ProposalSchema),
     defaultValues: FORM_DEFAULT_VALUES,
   });
 

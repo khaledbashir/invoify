@@ -18,12 +18,12 @@ import { useTranslationContext } from "@/contexts/TranslationContext";
 import { formatNumberWithCommas } from "@/lib/helpers";
 
 // Types
-import { InvoiceType } from "@/types";
+import { ProposalType } from "@/types";
 
 const Charges = () => {
     const {
         formState: { errors },
-    } = useFormContext<InvoiceType>();
+    } = useFormContext<ProposalType>();
 
     const { _t } = useTranslationContext();
 

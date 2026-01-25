@@ -2,10 +2,10 @@
 import { DynamicProposalTemplate, Subheading } from "@/app/components";
 
 // Types
-import { InvoiceType } from "@/types";
+import { ProposalType } from "@/types";
 
 type LivePreviewProps = {
-    data: InvoiceType;
+    data: ProposalType;
 };
 
 export default function LivePreview({ data }: LivePreviewProps) {

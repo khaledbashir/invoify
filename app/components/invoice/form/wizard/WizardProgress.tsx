@@ -13,7 +13,7 @@ import { BaseButton } from "@/app/components";
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
 // Types
-import { InvoiceType, WizardStepType } from "@/types";
+import { ProposalType, WizardStepType } from "@/types";
 
 type WizardProgressProps = {
     wizard: WizardValues;
@@ -24,7 +24,7 @@ const WizardProgress = ({ wizard }: WizardProgressProps) => {
 
     const {
         formState: { errors },
-    } = useFormContext<InvoiceType>();
+    } = useFormContext<ProposalType>();
 
     const { _t } = useTranslationContext();
 
