@@ -19,9 +19,9 @@ const ProposalTemplate1 = (data: ProposalType) => {
 		<ProposalLayout data={data}>
 			<div className='flex justify-between'>
 				<div>
-					{details.invoiceLogo && (
+					{(details.proposalLogo || details.invoiceLogo) && (
 						<img
-							src={details.invoiceLogo}
+							src={details.proposalLogo || details.invoiceLogo}
 							width={140}
 							height={100}
 							alt={`Logo of ${sender.name}`}
@@ -30,8 +30,8 @@ const ProposalTemplate1 = (data: ProposalType) => {
 					<h1 className='mt-2 text-lg md:text-xl font-semibold text-blue-600'>{sender.name}</h1>
 				</div>
 				<div className='text-right'>
-					<h2 className='text-2xl md:text-3xl font-semibold text-gray-800'>Invoice #</h2>
-					<span className='mt-1 block text-gray-500'>{details.invoiceNumber}</span>
+				<h2 className='text-2xl md:text-3xl font-semibold text-gray-800'>Proposal #</h2>
+				<span className='mt-1 block text-gray-500'>{details.proposalId ?? details.invoiceNumber}</span>
 					<address className='mt-4 not-italic text-gray-800'>
 						{sender.address}
 						<br />
@@ -61,7 +61,7 @@ const ProposalTemplate1 = (data: ProposalType) => {
 						<dl className='grid sm:grid-cols-6 gap-x-3'>
 							<dt className='col-span-3 font-semibold text-gray-800'>Invoice date:</dt>
 							<dd className='col-span-3 text-gray-500'>
-								{new Date(details.invoiceDate).toLocaleDateString("en-US", DATE_OPTIONS)}
+								{new Date(details.proposalDate ?? details.invoiceDate).toLocaleDateString("en-US", DATE_OPTIONS)}
 							</dd>
 						</dl>
 						<dl className='grid sm:grid-cols-6 gap-x-3'>

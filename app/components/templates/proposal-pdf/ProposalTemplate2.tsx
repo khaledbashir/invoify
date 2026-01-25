@@ -19,14 +19,14 @@ const ProposalTemplate2 = (data: ProposalType) => {
             <div className="flex justify-between">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-                        Invoice #
+                        Proposal #
                     </h2>
                     <span className="mt-1 block text-gray-500">
-                        {details.invoiceNumber}
+                        {details.proposalId ?? details.invoiceNumber}
                     </span>
-                    {details.invoiceLogo && (
+                    {(details.proposalLogo || details.invoiceLogo) && (
                         <img
-                            src={details.invoiceLogo}
+                            src={details.proposalLogo || details.invoiceLogo}
                             width={140}
                             height={100}
                             alt={`Logo of ${sender.name}`}
@@ -71,9 +71,7 @@ const ProposalTemplate2 = (data: ProposalType) => {
                                 Invoice date:
                             </dt>
                             <dd className="col-span-3 text-gray-500">
-                                {new Date(
-                                    details.invoiceDate
-                                ).toLocaleDateString("en-US", DATE_OPTIONS)}
+                                {new Date(details.proposalDate ?? details.invoiceDate).toLocaleDateString("en-US", DATE_OPTIONS)}
                             </dd>
                         </dl>
                         <dl className="grid sm:grid-cols-6 gap-x-3">

@@ -244,7 +244,7 @@ export const ProposalContextProvider = ({
 
   // TODO: Change function name. (saveProposalDataData maybe?)
   /**
-   * Saves the invoice data to local storage.
+   * Saves the invoice/proposal data to local storage (normalizes invoice/proposal ids).
    */
   const saveProposalData = () => {
     if (proposalPdf) {
@@ -256,18 +256,26 @@ export const ProposalContextProvider = ({
           ? JSON.parse(savedProposalsJSON)
           : [];
 
+        const formValues = getValues();
+
+        // Normalize IDs: prefer proposalId, fall back to invoiceNumber, keep both in sync
+        const id =
+          formValues?.details?.proposalId ?? formValues?.details?.invoiceNumber ?? "";
+        formValues.details.proposalId = id;
+        formValues.details.invoiceNumber = id;
+
         const updatedDate = new Date().toLocaleDateString(
           "en-US",
           SHORT_DATE_OPTIONS
         );
 
-        const formValues = getValues();
         formValues.details.updatedAt = updatedDate;
 
         const existingInvoiceIndex = savedProposals.findIndex(
           (invoice: ProposalType) => {
             return (
-              invoice.details.invoiceNumber === formValues.details.invoiceNumber
+              invoice.details.invoiceNumber === id ||
+              invoice.details.proposalId === id
             );
           }
         );
@@ -319,9 +327,13 @@ export const ProposalContextProvider = ({
    */
   const sendPdfToMail = (email: string) => {
     const fd = new FormData();
+    const formValues = getValues();
+    const id = formValues?.details?.proposalId ?? formValues?.details?.invoiceNumber ?? "";
     fd.append("email", email);
     fd.append("proposalPdf", proposalPdf, "invoice.pdf");
-    fd.append("invoiceNumber", getValues().details.invoiceNumber);
+    // Keep invoiceNumber for backwards-compatibility and include proposalId
+    fd.append("invoiceNumber", formValues?.details?.invoiceNumber ?? id);
+    fd.append("proposalId", id);
 
     return fetch(SEND_PDF_API, {
       method: "POST",
@@ -353,6 +365,9 @@ export const ProposalContextProvider = ({
    */
   const exportProposalDataAs = (exportAs: ExportTypes) => {
     const formValues = getValues();
+    const id = formValues?.details?.proposalId ?? formValues?.details?.invoiceNumber ?? "";
+    formValues.details.proposalId = id;
+    formValues.details.invoiceNumber = id;
 
     // Service to export invoice with given parameters
     exportProposal(exportAs, formValues);
@@ -381,6 +396,11 @@ export const ProposalContextProvider = ({
               importedData.details.dueDate
             );
           }
+
+          // Normalize IDs/dates: prefer proposalId/proposalDate and fill invoice fallbacks
+          importedData.details.proposalId = importedData.details.proposalId ?? importedData.details.invoiceNumber ?? "";
+          importedData.details.invoiceNumber = importedData.details.invoiceNumber ?? importedData.details.proposalId;
+          importedData.details.proposalDate = importedData.details.proposalDate ?? importedData.details.invoiceDate ?? null;
         }
 
         // Reset form with imported data
