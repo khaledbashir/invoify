@@ -7,7 +7,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 
 // Components
 import { BaseButton, Subheading } from "@/app/components";
-import SingleScreen from "./SingleScreen";
+import SingleScreen from "../SingleScreen";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
