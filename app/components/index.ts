@@ -91,6 +91,7 @@ import DynamicProposalTemplate from "./templates/proposal-pdf/DynamicProposalTem
 import ProposalLayout from "./templates/proposal-pdf/ProposalLayout";
 import ProposalTemplate1 from "./templates/proposal-pdf/ProposalTemplate1";
 import ProposalTemplate2 from "./templates/proposal-pdf/ProposalTemplate2";
+import ProposalTemplate3 from "./templates/proposal-pdf/ProposalTemplate3";
 
 // Email templates
 import SendPdfEmail from "./templates/email/SendPdfEmail";
@@ -145,5 +146,6 @@ export {
     ProposalLayout,
     ProposalTemplate1,
     ProposalTemplate2,
+    ProposalTemplate3,
     SendPdfEmail,
 };

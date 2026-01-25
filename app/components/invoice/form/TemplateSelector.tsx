@@ -19,6 +19,7 @@ import {
     BaseButton,
     ProposalTemplate1,
     ProposalTemplate2,
+    ProposalTemplate3,
 } from "@/app/components";
 
 // Template images
@@ -48,6 +49,13 @@ const TemplateSelector = () => {
             description: "Second template",
             img: template2,
             component: <ProposalTemplate2 {...formValues} />,
+        },
+        {
+            id: 3,
+            name: "ANC LOI",
+            description: "ANC Letter of Intent template",
+            img: template2,
+            component: <ProposalTemplate3 {...formValues} />,
         },
     ];
     return (
