@@ -2,11 +2,11 @@
 
 import React from "react";
 
-type RadioGroupProps = React.PropsWithChildren<{
+export interface RadioGroupProps extends React.PropsWithChildren {
   value?: string;
   onValueChange?: (v: string) => void;
   className?: string;
-}>;
+}
 
 export function RadioGroup({ value, onValueChange, children, className }: RadioGroupProps) {
   return (
