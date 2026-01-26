@@ -62,7 +62,7 @@ const TemplateSelector = () => {
     return (
         <>
             <div className="space-y-4">
-                <Label className="text-base font-medium">Choose Proposal Template:</Label>
+                <Label className="text-lg font-semibold">Select a Proposal Template:</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {templates.map((template, idx) => (
                         <Card 
