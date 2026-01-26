@@ -108,6 +108,36 @@ export type ScreenInput = {
   desiredMargin?: number; // e.g., 0.25 for 25%
 };
 
+export type LineItemBreakdown = {
+  name: string;
+  productType: string;
+  quantity: number;
+  areaSqFt: number;
+  pixelResolution: number;
+  hardware: number; // Display cost
+  shipping: number;
+  labor: number;
+  pm: number;
+  bond: number;
+  marginAmount: number;
+  totalCost: number; // cost before margin
+  totalPrice: number; // after margin + bond
+};
+
+export type ANCProjectResult = {
+  items: LineItemBreakdown[];
+  totals: {
+    hardware: number;
+    shipping: number;
+    labor: number;
+    pm: number;
+    bond: number;
+    margin: number;
+    totalCost: number;
+    totalPrice: number;
+  };
+};
+
 export type ScreenAudit = {
   name: string;
   productType: string;
