@@ -58,7 +58,15 @@ const defaultProposalContext = {
   exportProposalDataAs: (exportAs: ExportTypes) => {},
   // Backwards-compatible alias
   exportProposalAs: (exportAs: ExportTypes) => {},
+  exportAudit: () => Promise.resolve(),
   importProposalData: (file: File) => {},
+  // Diagnostic functions
+  diagnosticOpen: false,
+  diagnosticPayload: null,
+  openDiagnostic: (payload: any) => {},
+  closeDiagnostic: () => {},
+  submitDiagnostic: (answers: any) => {},
+  lowMarginAlerts: [] as any[],
   // Command execution
   applyCommand: (command: any) => {},
 };

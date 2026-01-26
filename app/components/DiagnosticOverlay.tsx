@@ -58,7 +58,7 @@ const DiagnosticOverlay = () => {
             <Label className="text-sm font-medium text-zinc-300">Environment</Label>
             <RadioGroup
               value={environment}
-              onValueChange={(value) => setEnvironment(value)}
+              onChange={(value) => setEnvironment(value)}
               className="flex gap-4"
             >
               <div className="flex items-center space-x-2">
@@ -76,7 +76,7 @@ const DiagnosticOverlay = () => {
             <Label className="text-sm font-medium text-zinc-300">Serviceability</Label>
             <RadioGroup
               value={service}
-              onValueChange={(value) => setService(value)}
+              onChange={(value) => setService(value)}
               className="flex gap-4"
             >
               <div className="flex items-center space-x-2">
@@ -94,7 +94,7 @@ const DiagnosticOverlay = () => {
             <Label className="text-sm font-medium text-zinc-300">Form Factor</Label>
             <RadioGroup
               value={formFactor}
-              onValueChange={(value) => setFormFactor(value)}
+              onChange={(value) => setFormFactor(value)}
               className="flex gap-4"
             >
               <div className="flex items-center space-x-2">
@@ -109,13 +109,13 @@ const DiagnosticOverlay = () => {
           </div>
         </div>
 
-        <div className="mt-6">
-          <label className="block text-sm text-zinc-300 font-semibold">Optional: Select a product (if you know it)</label>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-zinc-300">Optional: Select a product (if you know it)</Label>
           <Select onValueChange={(v) => setSelectedProduct(v)}>
-            <SelectTrigger className="w-full mt-2">
+            <SelectTrigger className="w-full bg-zinc-900/50 border-zinc-700 text-zinc-100">
               <SelectValue placeholder="Choose product (optional)" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-zinc-900 border-zinc-700">
               <SelectItem value="ANC-4-IN">ANC 4mm Elite</SelectItem>
               <SelectItem value="ANC-10-OUT">ANC 10mm Standard</SelectItem>
               <SelectItem value="GPPA062">LG GPPA062</SelectItem>
