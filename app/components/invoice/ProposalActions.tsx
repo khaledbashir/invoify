@@ -66,18 +66,18 @@ const ProposalActions = () => {
           </div>
 
           <div className="flex flex-wrap gap-3 w-full">
-            {/* New proposal button */}
-            <NewProposalAlert>
+            {/* New project / workspace provisioning */}
+            <NewProjectModal>
               <BaseButton
                 variant="outline"
-                tooltipLabel="Get a new proposal form"
+                tooltipLabel="Initialize a new AI workspace + proposal"
                 disabled={proposalPdfLoading}
                 className="flex-1 min-w-[140px]"
               >
                 <Plus />
                 {_t("actions.newProposal")}
               </BaseButton>
-            </NewProposalAlert>
+            </NewProjectModal>
 
             {/* Reset form button */}
             <NewProposalAlert

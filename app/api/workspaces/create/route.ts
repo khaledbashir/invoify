@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create workspace with first user
-    const workspace = await prisma.workspace.create({
+    let workspace = await prisma.workspace.create({
       data: {
         name: body.name,
         users: {
@@ -36,6 +36,93 @@ export async function POST(request: NextRequest) {
         users: true,
       },
     });
+
+    // Provision AnythingLLM workspace synchronously
+    try {
+      const base = (process.env.ANYTHING_LLM_URL || "").replace(/\/$/, "");
+      const key = process.env.ANYTHING_LLM_KEY;
+      if (!base || !key) throw new Error("AnythingLLM not configured");
+
+      const payload = {
+        name: `${body.name} - ANC Project Room`,
+        similarityThreshold: 0.2,
+        openAiTemp: 0.3,
+        chatMode: "chat",
+        topN: 5,
+        openAiPrompt:
+          "You are the ANC Strategic Estimator. Mission: Build high-stakes LED proposals for Natalia. 1. Use RAG for product specs (mm pitch, cabinet weight). 2. Formulas: Structure=20% of hardware, Labor=15%. 3. If specs are missing, trigger INCOMPLETE_SPECS. 4. Always emit JSON actions.",
+      };
+
+      const res = await fetch(`${base}/workspace/new`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+      let created: any;
+      try {
+        created = JSON.parse(text);
+      } catch (e) {
+        created = null;
+      }
+
+      const slug = created?.workspace?.slug || created?.slug || null;
+
+      if (slug) {
+        // Update workspace with slug
+        workspace = await prisma.workspace.update({ where: { id: workspace.id }, data: { aiWorkspaceSlug: slug } });
+
+        // Upload master catalog if available
+        const masterUrl = process.env.ANYTHING_LLM_MASTER_CATALOG_URL;
+        if (masterUrl) {
+          try {
+            const { uploadLinkToWorkspace } = await import("@/lib/rag-sync");
+            await uploadLinkToWorkspace(slug, masterUrl);
+          } catch (e) {
+            console.warn("Failed to upload master catalog to workspace", e);
+          }
+        }
+
+        // If requested, create an initial proposal and thread
+        if (body.createInitialProposal && body.clientName) {
+          try {
+            // Create thread
+            const threadRes = await fetch(`${base}/workspace/${slug}/thread/new`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+              body: JSON.stringify({ title: `${body.clientName} - Initial Proposal Thread` }),
+            });
+            const threadText = await threadRes.text();
+            let threadJson: any;
+            try {
+              threadJson = JSON.parse(threadText);
+            } catch (e) {
+              threadJson = null;
+            }
+            const threadId = threadJson?.thread?.id || threadJson?.id || null;
+
+            // Create a minimal proposal row attached to the workspace
+            const proposal = await prisma.proposal.create({
+              data: {
+                workspaceId: workspace.id,
+                clientName: body.clientName,
+                status: "DRAFT",
+                aiThreadId: threadId ?? undefined,
+              },
+            });
+
+            return NextResponse.json({ success: true, workspace, proposal, ai: { slug, threadId } }, { status: 201 });
+          } catch (e) {
+            console.warn("Failed to create initial thread or proposal", e);
+            return NextResponse.json({ success: true, workspace, ai: { slug } }, { status: 201 });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Provisioning failed:", e);
+      // Continue: return workspace without ai info
+    }
 
     return NextResponse.json(
       {

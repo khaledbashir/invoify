@@ -8,10 +8,11 @@ datasource db {
 }
 
 model Workspace {
-  id        String   @id @default(cuid())
-  name      String
-  users     User[]
-  proposals Proposal[]
+  id            String   @id @default(cuid())
+  name          String
+  users         User[]
+  proposals     Proposal[]
+  aiWorkspaceSlug String? // AnythingLLM workspace slug (optional)
 }
 model User {
   id          String    @id @default(cuid())
@@ -27,6 +28,7 @@ model Proposal {
   screens      ScreenConfig[]
   internalAudit Json?          // Detailed per-screen audit (internal use)
   clientSummary Json?         // Clean summary shown on client PDF
+  aiThreadId   String?         // AnythingLLM thread id (optional)
   workspace    Workspace      @relation(fields: [workspaceId], references: [id])
 }
 model ScreenConfig {

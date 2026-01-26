@@ -83,6 +83,7 @@ import SignatureFontSelector from "./modals/signature/components/SignatureFontSe
 
 // Alerts
 import NewProposalAlert from "./modals/alerts/NewProposalAlert";
+import NewProjectModal from "./modals/NewProjectModal";
 
 /* =========================
    * Templates
@@ -138,6 +139,7 @@ export {
     ProposalExportModal,
     ImportJsonButton,
     SignatureModal,
+    NewProjectModal,
     DrawSignature,
     TypeSignature,
     UploadSignature,
