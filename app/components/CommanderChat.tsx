@@ -48,6 +48,21 @@ export function CommanderChat() {
           threadSlug: aiThreadSlug ?? undefined,
         }),
       })
+      
+      if (!res.ok) {
+        const errorText = await res.text()
+        let errorMsg = `API Error ${res.status}: ${errorText}`
+        try {
+          const errorJson = JSON.parse(errorText)
+          errorMsg = errorJson.error || errorMsg
+        } catch (e) {
+          // Use raw text
+        }
+        setMessages(prev => [...prev, { role: "assistant", content: `❌ ${errorMsg}` }])
+        setIsLoading(false)
+        return
+      }
+      
       const data = await res.json()
 
       // Handle different response formats from AnythingLLM

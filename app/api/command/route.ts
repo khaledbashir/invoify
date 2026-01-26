@@ -18,18 +18,33 @@ export async function POST(req: NextRequest) {
 
     // We'll prefer workspace from request, else from env
     const workspaceSlug = workspace ?? ANYTHING_LLM_WORKSPACE;
-    if (!workspaceSlug || !threadSlug) {
-      return NextResponse.json({ error: 'Protocol Violation: Missing Workspace or Thread identifier.' }, { status: 400 });
-    }
+    // Note: threadSlug is optional - if not provided, we'll create one
+    // This allows initialization without forcing the user to create a project first
 
     // Construct chat payload - mode: 'chat' enables both RAG and general knowledge
     const chatPayload = { message, mode: 'chat' };
 
     // Helper to POST to workspace chat (threaded)
     const postToWorkspaceChat = async (wsSlug: string, threadSlug?: string) => {
-      // Use thread endpoint if threadSlug provided, else fallback to simple chat
-      const endpoint = threadSlug 
-        ? `${ANYTHING_LLM_BASE_URL}/workspace/${wsSlug}/thread/${threadSlug}/chat`
+      // If threadSlug not provided, create one first for proper isolation
+      let effectiveThreadSlug = threadSlug;
+      if (!effectiveThreadSlug && wsSlug) {
+        try {
+          const threadRes = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/${wsSlug}/thread/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANYTHING_LLM_KEY}` },
+            body: JSON.stringify({ title: `Chat Thread - ${new Date().toISOString()}` }),
+          });
+          const threadText = await threadRes.text();
+          const threadJson = JSON.parse(threadText);
+          effectiveThreadSlug = threadJson?.thread?.slug || threadJson?.slug;
+        } catch (e) {
+          console.warn('Failed to create thread, falling back to simple chat', e);
+        }
+      }
+      // Use thread endpoint if threadSlug available, else fallback to simple chat
+      const endpoint = effectiveThreadSlug 
+        ? `${ANYTHING_LLM_BASE_URL}/workspace/${wsSlug}/thread/${effectiveThreadSlug}/chat`
         : `${ANYTHING_LLM_BASE_URL}/workspace/${wsSlug}/chat`;
       const r = await fetch(endpoint, {
         method: 'POST',
@@ -155,8 +170,10 @@ export async function POST(req: NextRequest) {
       console.warn("Vector-search failed or catalog lookup failed", e);
     }
 
-    // Return whatever we got
-    if (result.body) return NextResponse.json({ ok: true, data: result.body }, { status: 200 });
+    // Return whatever we got, include threadSlug if we created one
+    if (result.body) {
+      return NextResponse.json({ ok: true, data: result.body }, { status: 200 });
+    }
     return NextResponse.json({ ok: true, text: result.bodyText ?? '' }, { status: 200 });
   } catch (error: any) {
     console.error("Command route error:", error);
