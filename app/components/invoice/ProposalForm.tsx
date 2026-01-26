@@ -14,6 +14,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // Components
 import {
@@ -60,116 +61,131 @@ const ProposalForm = () => {
                 </Badge>
             </div>
 
-            {/* Party Information */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <Building2 className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Parties</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Bill from & Bill to</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 gap-6">
-                        <BillFromSection />
-                        <BillToSection />
-                    </div>
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="client" className="w-full">
+                <TabsList className="bg-zinc-900/50 border border-zinc-800/50">
+                    <TabsTrigger value="client" className="data-[state=active]:bg-zinc-800 text-zinc-300">Client</TabsTrigger>
+                    <TabsTrigger value="details" className="data-[state=active]:bg-zinc-800 text-zinc-300">Details</TabsTrigger>
+                    <TabsTrigger value="screens" className="data-[state=active]:bg-zinc-800 text-zinc-300">Screens</TabsTrigger>
+                    <TabsTrigger value="summary" className="data-[state=active]:bg-zinc-800 text-zinc-300">Summary</TabsTrigger>
+                </TabsList>
 
-            {/* Proposal Details */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <LayoutGrid className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Proposal Details</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Dates, notes, and project info</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <ProposalDetails />
-                </CardContent>
-            </Card>
+                {/* Client Tab */}
+                <TabsContent value="client" className="space-y-4">
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <Building2 className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Parties</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">Bill from & Bill to</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-6">
+                                <BillFromSection />
+                                <BillToSection />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-            {/* Screens */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <Calculator className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Screens</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">LED screen configurations</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Screens />
-                </CardContent>
-            </Card>
+                {/* Details Tab */}
+                <TabsContent value="details" className="space-y-4">
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <LayoutGrid className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Proposal Details</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">Dates, notes, and project info</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <ProposalDetails />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-            {/* Items */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <Package className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Items</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Additional line items</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Items />
-                </CardContent>
-            </Card>
+                {/* Screens Tab */}
+                <TabsContent value="screens" className="space-y-4">
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <Calculator className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Screens</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">LED screen configurations</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Screens />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-            {/* Payment Information */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <CreditCard className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Payment Information</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Terms and payment details</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <PaymentInformation />
-                </CardContent>
-            </Card>
+                {/* Summary Tab */}
+                <TabsContent value="summary" className="space-y-4">
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <CreditCard className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Payment Information</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">Terms and payment details</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <PaymentInformation />
+                        </CardContent>
+                    </Card>
 
-            {/* Summary */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#003366]/20">
-                            <Calculator className="w-5 h-5 text-[#003366]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Summary</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Totals and breakdown</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <ProposalSummary />
-                </CardContent>
-            </Card>
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <Package className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Items</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">Additional line items</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Items />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-zinc-900/50 border-zinc-800/50">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-[#003366]/20">
+                                    <Calculator className="w-5 h-5 text-[#003366]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-zinc-100 text-base">Summary</CardTitle>
+                                    <CardDescription className="text-zinc-500 text-xs">Totals and breakdown</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <ProposalSummary />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 };
