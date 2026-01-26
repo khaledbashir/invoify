@@ -67,7 +67,9 @@ export default function NewProjectModal({ children }: NewProjectModalProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <div onClick={() => setOpen(true)}>{children}</div>
+        <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }} className="cursor-pointer">
+          {children}
+        </div>
 
         <DialogContent className="max-w-lg bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800">
           <DialogHeader>

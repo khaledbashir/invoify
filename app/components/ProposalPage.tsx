@@ -32,9 +32,18 @@ type ChatMessage = {
 const ProposalPage = () => {
   const { handleSubmit, setValue } = useFormContext<ProposalType>();
   const { _t } = useTranslationContext();
-  const { onFormSubmit, applyCommand, activeTab, setActiveTab } = useProposalContext();
+  const { onFormSubmit, applyCommand, activeTab, setActiveTab, aiWorkspaceSlug } = useProposalContext();
 
-  const [projectName, setProjectName] = useState("Untitled Project");
+  const projectName = useWatch({
+    name: "proposalName",
+    control: useFormContext().control,
+  }) || "Untitled Project";
+
+  const proposalId = useWatch({
+    name: "proposalId",
+    control: useFormContext().control,
+  });
+
   const [commandInput, setCommandInput] = useState("");
   const [commandLoading, setCommandLoading] = useState(false);
   const [commandHistory, setCommandHistory] = useState<ChatMessage[]>([]);
@@ -55,30 +64,21 @@ const ProposalPage = () => {
         body: JSON.stringify({
           message: userMsg.content,
           history: commandHistory.map((m) => ({ role: m.role, content: m.content })),
+          proposalId: proposalId,
+          workspace: aiWorkspaceSlug || localStorage.getItem("aiWorkspaceSlug") || "anc-estimator",
         }),
       });
 
       const data = await res.json();
+      let responseText = data?.data?.textResponse || data?.text || "";
 
-      let responseText = "";
-
-      if (data?.data) {
-        const resp = data.data;
-        if (resp.type === "textResponse" && resp.textResponse) {
-          responseText = resp.textResponse;
-          try {
-            const parsed = JSON.parse(responseText);
-            if (parsed && parsed.type) {
-              applyCommand(parsed);
-              
-              // Switch tab based on command type
-              if (parsed.type === "ADD_SCREEN" || parsed.type === "SET_MARGIN") {
-                setActiveTab("audit");
-              } else if (parsed.type === "UPDATE_CLIENT") {
-                setActiveTab("client");
-              }
-            }
-          } catch (e) {}
+      if (data?.data?.action) {
+        applyCommand(data.data.action);
+        // Switch tab based on command type
+        if (data.data.action.type === "ADD_SCREEN" || data.data.action.type === "SET_MARGIN") {
+          setActiveTab("audit");
+        } else if (data.data.action.type === "UPDATE_CLIENT") {
+          setActiveTab("client");
         }
       }
 
@@ -90,6 +90,11 @@ const ProposalPage = () => {
     } finally {
       setCommandLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    // Trigger standard form submit which leads to PDF generation or call specific export APIs
+    handleSubmit(onFormSubmit)();
   };
 
   return (
@@ -109,8 +114,8 @@ const ProposalPage = () => {
           <div className="flex-1 max-w-md mx-8">
             <Input
               value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              className="bg-transparent border-none text-center text-zinc-100 font-medium text-lg focus:ring-0 px-4"
+              readOnly
+              className="bg-transparent border-none text-center text-zinc-100 font-medium text-lg focus:ring-0 px-4 cursor-default"
             />
           </div>
 
@@ -126,6 +131,7 @@ const ProposalPage = () => {
             </Button>
             <Button
               size="sm"
+              onClick={handleExport}
               className="bg-[#003366] hover:bg-[#004080] text-white"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -176,11 +182,10 @@ const ProposalPage = () => {
               {commandHistory.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`p-3 rounded-xl ${
-                    msg.role === "user"
+                  className={`p-3 rounded-xl ${msg.role === "user"
                       ? "bg-[#003366]/20 text-zinc-200"
                       : "bg-zinc-800/50 text-zinc-400"
-                  }`}
+                    }`}
                 >
                   <div className="text-xs text-zinc-500 mb-1">
                     {msg.role === "user" ? "You" : "AI Assistant"}

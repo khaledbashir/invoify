@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import * as XLSX from "xlsx";
+import { exportFormulaicExcel } from "@/services/invoice/server/exportFormulaicExcel";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,95 +19,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
     }
 
-    const internalAudit = (proposal as any).internalAudit;
-    const clientSummary = (proposal as any).clientSummary;
+    // Prepare data for the formulaic engine
+    // The engine expects an array of screens and global options
+    const screens = (proposal as any).screens || [];
+    const proposalName = proposal.proposalName || proposal.clientName || "Proposal";
 
-    if (!internalAudit) {
-      return NextResponse.json({ error: "No internal audit available for this proposal" }, { status: 404 });
-    }
+    const workbook = await exportFormulaicExcel(screens, { proposalName });
 
-    // Build workbook
-    const wb = XLSX.utils.book_new();
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
 
-    // Tab 1: Summary
-    const summaryRows = [
-      ["Subtotal", clientSummary?.subtotal ?? ""],
-      ["Total", clientSummary?.total ?? ""],
-      [],
-      ["Hardware", clientSummary?.breakdown?.hardware ?? ""],
-      ["Structure", clientSummary?.breakdown?.structure ?? ""],
-      ["Install", clientSummary?.breakdown?.install ?? ""],
-      ["Others", clientSummary?.breakdown?.others ?? ""],
-    ];
-    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
-    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
-
-    // Tab 2: Detailed Calculation
-    const detailHeader = [
-      "Screen Name",
-      "Product Type",
-      "Quantity",
-      "Area (sqft)",
-      "Pixels",
-      "Hardware",
-      "Structure",
-      "Install",
-      "Labor",
-      "Power",
-      "Shipping",
-      "PM",
-      "General Conditions",
-      "Travel",
-      "Submittals",
-      "Engineering",
-      "Permits",
-      "CMS",
-      "Bond",
-      "Margin Amount",
-      "Total Cost",
-      "Total Price",
-    ];
-
-    const detailRows = [detailHeader];
-
-    for (const s of internalAudit.perScreen) {
-      const b = s.breakdown;
-      detailRows.push([
-        s.name,
-        s.productType ?? "",
-        s.quantity ?? 1,
-        s.areaSqFt,
-        s.pixelResolution,
-        b.hardware,
-        b.structure,
-        b.install,
-        b.labor,
-        b.power,
-        b.shipping,
-        b.pm,
-        b.generalConditions,
-        b.travel,
-        b.submittals,
-        b.engineering,
-        b.permits,
-        b.cms,
-        b.bondCost,
-        b.ancMargin,
-        b.totalCost,
-        b.finalClientTotal,
-      ]);
-    }
-
-    const wsDetails = XLSX.utils.aoa_to_sheet(detailRows);
-    XLSX.utils.book_append_sheet(wb, wsDetails, "Detailed Calculation");
-
-    const buffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
-
-    return new Response(buffer, {
+    return new Response(buffer as any, {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename=proposal-${proposalId}-audit.xlsx`,
+        "Content-Disposition": `attachment; filename=${proposalName.replace(/\s+/g, '_')}_Audit.xlsx`,
       },
     });
   } catch (err) {

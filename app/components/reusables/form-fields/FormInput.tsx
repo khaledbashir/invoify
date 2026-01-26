@@ -19,6 +19,7 @@ type FormInputProps = {
     labelHelper?: string;
     placeholder?: string;
     vertical?: boolean;
+    rightElement?: React.ReactNode;
 } & InputProps;
 
 const FormInput = ({
@@ -27,6 +28,7 @@ const FormInput = ({
     labelHelper,
     placeholder,
     vertical = false,
+    rightElement,
     ...props
 }: FormInputProps) => {
     const { control } = useFormContext();
@@ -43,14 +45,17 @@ const FormInput = ({
                         <span className="text-xs"> {labelHelper}</span>
                     )}
 
-                    <FormControl>
-                        <Input
-                            {...field}
-                            placeholder={placeholder}
-                            className="w-[13rem]"
-                            {...props}
-                        />
-                    </FormControl>
+                    <div className="relative flex items-center gap-2">
+                        <FormControl>
+                            <Input
+                                {...field}
+                                placeholder={placeholder}
+                                className="w-full bg-zinc-950/50 border-zinc-800"
+                                {...props}
+                            />
+                        </FormControl>
+                        {rightElement}
+                    </div>
                     <FormMessage />
                 </FormItem>
             )}
@@ -69,18 +74,19 @@ const FormInput = ({
                             <span className="text-xs"> {labelHelper}</span>
                         )}
 
-                        <div className="flex-1">
+                        <div className="flex-[2] relative flex items-center gap-2">
                             <FormControl>
                                 <Input
                                     {...field}
                                     placeholder={placeholder}
-                                    className="w-[13rem]"
+                                    className="w-full bg-zinc-950/50 border-zinc-800"
                                     {...props}
                                 />
                             </FormControl>
-                            <FormMessage />
+                            {rightElement}
                         </div>
                     </div>
+                    <FormMessage className="text-right" />
                 </FormItem>
             )}
         />
