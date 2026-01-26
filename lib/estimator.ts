@@ -99,7 +99,7 @@ export function calculateProposalTotal(
 
 export type ScreenInput = {
   name: string;
-  productType: string;
+  productType?: string;
   heightFt: number; // feet
   widthFt: number; // feet
   quantity?: number;
