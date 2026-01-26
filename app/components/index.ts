@@ -10,6 +10,7 @@ import BaseFooter from "./layout/BaseFooter";
 import ProposalMain from "./invoice/ProposalMain";
 import ProposalForm from "./invoice/ProposalForm";
 import ProposalActions from "./invoice/ProposalActions";
+import ActionToolbar from "./ActionToolbar";
 
 /* =========================
    * Invoice components
@@ -102,6 +103,7 @@ export {
     ProposalMain,
     ProposalForm,
     ProposalActions,
+    ActionToolbar,
     BillFromSection,
     BillToSection,
     ProposalDetails,

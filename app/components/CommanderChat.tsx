@@ -59,34 +59,72 @@ const CommanderChat = () => {
 
       const data = await res.json();
 
-      // anythingLLM returned structured data
+      // anythingLLM returned structured data in data.data
       if (data?.data) {
-        // model sent a JSON object as response
-        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(data.data) }]);
+        const resp = data.data;
 
-        // Try to extract an action entry
-        const action = Array.isArray(data.data) ? data.data[0] : data.data;
-        if (action && action.type) {
-          applyCommand(action);
+        // If model gave a textResponse
+        if (resp.type === "textResponse" && resp.textResponse) {
+          const text = resp.textResponse;
+          setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: text }]);
+
+          // text might itself be JSON action
+          try {
+            const parsed = JSON.parse(text);
+            if (parsed && parsed.type) {
+              applyCommand(parsed);
+            }
+          } catch (e) {
+            // not JSON
+          }
+          return;
         }
-      } else if (data?.text) {
-        // text response
-        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: data.text }]);
 
-        // Try to parse JSON embedded in text
+        // If model returned a direct JSON object with an action
+        if (resp.type === "action" && resp.action) {
+          setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(resp.action) }]);
+          applyCommand(resp.action);
+          return;
+        }
+
+        // If resp itself is an action-like object
+        if (resp.type && resp.type.startsWith && resp.type.startsWith("ADD_") || (resp.type === "action" && resp.payload)) {
+          setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(resp) }]);
+          if ((resp as any).type && (resp as any).type !== "textResponse") applyCommand(resp as any);
+          return;
+        }
+
+        // Fallback: show raw JSON
+        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(resp) }]);
+
+        // try to find embedded JSON in textResponse
+        try {
+          const parsed = JSON.parse(resp.textResponse || "");
+          if (parsed && parsed.type) applyCommand(parsed);
+        } catch (e) {}
+
+        return;
+      }
+
+      // Plain text fallback
+      if (data?.text) {
+        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: data.text }]);
         try {
           const parsed = JSON.parse(data.text);
           if (parsed && parsed.type) {
             applyCommand(parsed);
           }
-        } catch (e) {
-          // not JSON
-        }
-      } else if (data?.ok && typeof data === "object") {
-        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(data) }]);
-      } else {
-        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: "No response from controller" }]);
+        } catch (e) {}
+        return;
       }
+
+      // Fallback to raw object
+      if (data && typeof data === "object") {
+        setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: JSON.stringify(data) }]);
+        return;
+      }
+
+      setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: "No response from controller" }]);
     } catch (err) {
       console.error("Commander send error:", err);
       setMessages((m) => [...m, { id: `a-${Date.now()}`, role: "assistant", content: "Network error" }]);

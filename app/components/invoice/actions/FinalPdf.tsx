@@ -35,7 +35,7 @@ export default function FinalPdf() {
             <Subheading>Final PDF:</Subheading>
             <div className="flex items-center mb-3">
                 <BaseButton
-                    variant={"ghost"}
+                    variant="ghost"
                     size="sm"
                     onClick={removeFinalPdf}
                 >
@@ -50,7 +50,7 @@ export default function FinalPdf() {
                     tooltipLabel="Preview invoice in new tab"
                     onClick={previewPdfInTab}
                     size="sm"
-                    variant={"outline"}
+                    variant="outline"
                 >
                     <Eye className="w-5 h-5" />
                     Preview
@@ -59,7 +59,7 @@ export default function FinalPdf() {
                     tooltipLabel="Download invoice PDF"
                     onClick={downloadPdf}
                     size="sm"
-                    variant={"outline"}
+                    variant="outline"
                 >
                     <DownloadCloudIcon className="w-5 h-5" />
                     Download
@@ -69,7 +69,7 @@ export default function FinalPdf() {
                     tooltipLabel="Print invoice"
                     onClick={printPdf}
                     size="sm"
-                    variant={"outline"}
+                    variant="outline"
                 >
                     <Printer className="w-5 h-5" />
                     Print
@@ -79,7 +79,7 @@ export default function FinalPdf() {
                     tooltipLabel="Save invoice in website"
                     onClick={saveProposalData}
                     size="sm"
-                    variant={"outline"}
+                    variant="outline"
                 >
                     <BookmarkIcon className="w-5 h-5" />
                     Save
@@ -89,7 +89,7 @@ export default function FinalPdf() {
                     <BaseButton
                         tooltipLabel="Send invoice PDF to mail"
                         size="sm"
-                        variant={"outline"}
+                        variant="outline"
                     >
                         <Mail className="w-5 h-5" />
                         Send to mail
