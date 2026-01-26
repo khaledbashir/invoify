@@ -40,7 +40,7 @@ const ImportJsonButton = ({ setOpen }: ImportJsonButtonType) => {
             />
             <BaseButton
                 variant="outline"
-                tooltipLabel="Load project file"
+                tooltipLabel="Load project file from your computer"
                 disabled={proposalPdfLoading}
                 onClick={handleClick}
             >
