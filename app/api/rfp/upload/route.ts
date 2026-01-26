@@ -130,18 +130,23 @@ Do NOT answer the questions - just extract them. Focus on: budget, timeline, tec
       )
     );
 
-    // Update proposal with document URL
-    await prisma.proposal.update({
-      where: { id: proposalId },
-      data: {
-        rfpDocumentUrl: document.location,
-      },
-    });
+    // Use RfpExtractionService to get structured proposal data
+    const { RfpExtractionService } = await import("@/services/rfp/server/RfpExtractionService");
+    const aiWorkspaceSlug = proposal.workspace?.aiWorkspaceSlug || "anc-estimator";
+
+    let extractedData = null;
+    try {
+      extractedData = await RfpExtractionService.extractFromWorkspace(aiWorkspaceSlug);
+    } catch (e) {
+      console.error("AI Extraction error:", e);
+      // Don't fail the whole request if extraction fails
+    }
 
     return NextResponse.json({
       ok: true,
       questions: createdQuestions,
       totalQuestions: questions.length,
+      extractedData, // Return pre-filled form data
     });
   } catch (error: any) {
     console.error("RFP upload error:", error);

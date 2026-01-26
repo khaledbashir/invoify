@@ -102,6 +102,8 @@ export const ProposalContextProvider = ({
     sendPdfSuccess,
     sendPdfError,
     importProposalError,
+    aiExtractionSuccess,
+    aiExtractionError,
   } = useToasts();
 
   // Get form values and methods from form context
@@ -756,7 +758,43 @@ export const ProposalContextProvider = ({
           try {
             const res = await fetch("/api/rfp/upload", { method: "POST", body: formData });
             const data = await res.json();
-            if (data.ok) setRfpDocumentUrl(data.url);
+
+            if (data.ok) {
+              setRfpDocumentUrl(data.url);
+              if (data.questions) setRfpQuestions(data.questions);
+
+              // Apply AI extracted data if available
+              if (data.extractedData) {
+                const ext = data.extractedData;
+                if (ext.receiver?.name) setValue("receiver.name", ext.receiver.name);
+                if (ext.details?.proposalName) setValue("details.proposalName", ext.details.proposalName);
+
+                if (ext.details?.screens && Array.isArray(ext.details.screens)) {
+                  const normalized = ext.details.screens.map((s: any) => ({
+                    name: s.name || "New Screen",
+                    externalName: s.externalName || s.name,
+                    widthFt: Number(s.widthFt || 0),
+                    heightFt: Number(s.heightFt || 0),
+                    quantity: Number(s.quantity || 1),
+                    pitchMm: Number(s.pitchMm || 10),
+                    serviceType: s.serviceType || "Front/Rear",
+                    isReplacement: !!s.isReplacement,
+                    useExistingStructure: !!s.useExistingStructure,
+                    includeSpareParts: s.includeSpareParts !== false,
+                  }));
+                  setValue("details.screens", normalized);
+
+                  // Immediately recalculate audit for the new screens
+                  try {
+                    const { clientSummary, internalAudit } = calculateProposalAudit(normalized);
+                    setValue("details.internalAudit", internalAudit);
+                    setValue("details.clientSummary", clientSummary);
+                  } catch (e) { }
+                }
+              }
+              // Let the user know the magic happened!
+              aiExtractionSuccess();
+            }
           } catch (e) {
             console.error("RFP upload error", e);
           }

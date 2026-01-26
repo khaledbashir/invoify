@@ -73,6 +73,22 @@ const useToasts = () => {
         });
     };
 
+    const aiExtractionSuccess = () => {
+        toast({
+            variant: "default",
+            title: "AI Extraction Complete!",
+            description: "We've pre-filled the project details and screen specs from your RFP.",
+        });
+    };
+
+    const aiExtractionError = () => {
+        toast({
+            variant: "destructive",
+            title: "AI Extraction Partial",
+            description: "We couldn't extract all fields. Please review the proposal details.",
+        });
+    };
+
     return {
         newProposalSuccess,
         pdfGenerationSuccess,
@@ -81,6 +97,8 @@ const useToasts = () => {
         sendPdfSuccess,
         sendPdfError,
         importProposalError,
+        aiExtractionSuccess,
+        aiExtractionError,
     };
 };
 
