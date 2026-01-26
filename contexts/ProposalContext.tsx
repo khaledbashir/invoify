@@ -301,7 +301,18 @@ export const ProposalContextProvider = ({
 
         // Attach deterministic audit snapshot for saved proposals (internal audit + client summary)
         try {
-          const audit = calculateProposalAudit(formValues?.details?.screens || []);
+          const screens = (formValues?.details?.screens || []).map((s: any) => ({
+            name: s.name,
+            productType: s.productType ?? "",
+            heightFt: s.heightFt ?? s.height ?? 0,
+            widthFt: s.widthFt ?? s.width ?? 0,
+            quantity: s.quantity ?? 1,
+            pitchMm: s.pitchMm ?? s.pixelPitch ?? undefined,
+            costPerSqFt: s.costPerSqFt,
+            desiredMargin: s.desiredMargin,
+          }));
+
+          const audit = calculateProposalAudit(screens);
           // store under a non-typed key to avoid type mismatch with Zod/ProposalType
           (formValues as any)._internalAudit = audit.internalAudit;
           (formValues as any)._clientSummary = audit.clientSummary;
