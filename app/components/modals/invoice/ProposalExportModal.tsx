@@ -28,7 +28,7 @@ type ProposalExportModalType = {
 const ProposalExportModal = ({ children }: ProposalExportModalType) => {
     const [open, setOpen] = useState(false);
 
-    const { proposalPdfLoading, exportProposalAs } = useProposalContext();
+    const { proposalPdfLoading, exportProposalAs, exportAudit } = useProposalContext();
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>

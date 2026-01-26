@@ -15,6 +15,7 @@ import {
   NewProposalAlert,
   ProposalLoaderModal,
   ProposalExportModal,
+  NewProjectModal,
 } from "@/app/components";
 
 // Contexts
