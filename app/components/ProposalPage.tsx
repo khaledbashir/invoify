@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 
 // Components
 import ProposalForm from "@/app/components/invoice/ProposalForm";
@@ -183,8 +183,8 @@ const ProposalPage = () => {
                 <div
                   key={msg.id}
                   className={`p-3 rounded-xl ${msg.role === "user"
-                      ? "bg-[#003366]/20 text-zinc-200"
-                      : "bg-zinc-800/50 text-zinc-400"
+                    ? "bg-[#003366]/20 text-zinc-200"
+                    : "bg-zinc-800/50 text-zinc-400"
                     }`}
                 >
                   <div className="text-xs text-zinc-500 mb-1">
