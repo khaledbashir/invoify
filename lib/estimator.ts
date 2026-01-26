@@ -273,6 +273,8 @@ export function calculatePerScreenAudit(
   return {
     name: s.name,
     productType: s.productType ?? "",
+    quantity: qty,
+    areaSqFt: roundToCents(areaTotal),
     pixelResolution,
     breakdown: {
       hardware,
