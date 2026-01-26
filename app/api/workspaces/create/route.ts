@@ -99,9 +99,9 @@ export async function POST(request: NextRequest) {
         if (body.createInitialProposal && body.clientName) {
           try {
             // Create thread
-            const threadRes = await fetch(`${base}/workspace/${slug}/thread/new`, {
+            const threadRes = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/${slug}/thread/new`, {
               method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANYTHING_LLM_KEY}` },
               body: JSON.stringify({ title: `${body.clientName} - Initial Proposal Thread` }),
             });
             const threadText = await threadRes.text();
