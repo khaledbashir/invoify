@@ -496,9 +496,21 @@ export const ProposalContextProvider = ({
           const updatedScreens = [...screens, newScreen];
           setValue("details.screens", updatedScreens);
 
+          // Normalize screens to ensure all have required fields for ScreenInput type
+          const normalizedScreens = updatedScreens.map((s: any) => ({
+            name: s.name || "Unnamed",
+            productType: s.productType || "Unknown",
+            widthFt: Number(s.widthFt || s.width || 0),
+            heightFt: Number(s.heightFt || s.height || 0),
+            quantity: Number(s.quantity || s.qty || 1),
+            pitchMm: Number(s.pitchMm || s.pitch || 10),
+            costPerSqFt: Number(s.costPerSqFt || s.cost_per_sqft || 120),
+            desiredMargin: s.desiredMargin,
+          }));
+
           // Recalculate audit and persist into form for live audit view
           try {
-            const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens);
+            const { clientSummary, internalAudit } = calculateProposalAudit(normalizedScreens);
             setValue("details.internalAudit", internalAudit);
             setValue("details.clientSummary", clientSummary);
 
