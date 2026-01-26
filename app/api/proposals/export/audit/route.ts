@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import XLSX from "xlsx";
+import * as XLSX from "xlsx";
 
 export async function POST(req: NextRequest) {
   try {
