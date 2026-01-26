@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { exportFormulaicExcel } from "@/services/invoice/server/exportFormulaicExcel";
+import { generateFormulaicExcel } from "@/services/invoice/server/exportFormulaicExcel";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const screens = (proposal as any).screens || [];
     const proposalName = proposal.proposalName || proposal.clientName || "Proposal";
 
-    const workbook = await exportFormulaicExcel(screens, { proposalName });
+    const workbook = await generateFormulaicExcel(screens, { proposalName });
 
     // Generate buffer
     const buffer = await workbook.xlsx.writeBuffer();

@@ -69,6 +69,7 @@ const defaultProposalContext = {
   lowMarginAlerts: [] as any[],
   // RFP functions
   rfpDocumentUrl: null as string | null,
+  aiWorkspaceSlug: null as string | null,
   rfpQuestions: [] as Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>,
   uploadRfpDocument: (file: File) => Promise.resolve(),
   answerRfpQuestion: (questionId: string, answer: string) => Promise.resolve(),
