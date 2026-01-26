@@ -463,6 +463,278 @@ export function calculateProposalAudit(
   return { clientSummary, internalAudit };
 }
 
+/* ======================================================
+   Excel-Based Pricing Calculator (ANC Proposal Tab)
+   - Follows the Westfield RFP Excel template structure
+   - Calculates: LED Cost, Shipping, Labor, Bond, Margin, Total
+   - Returns both display level and aggregated pricing
+   ====================================================== */
+
+export interface ExcelPricingRow {
+  option: string;
+  issue: string;
+  vendor: string;
+  product: string;
+  pitch: string; // e.g., "10mm", "4mm"
+  heightFeet: number;
+  widthFeet: number;
+  heightPixels: number;
+  widthPixels: number;
+  squareFeet: number;
+  quantity: number;
+  totalSqFt: number;
+  ledNitRequirement: number;
+  ledServiceRequirement: string;
+  ledCostPerSqFt: number;
+  displayCost: number;
+  shipping: number;
+  totalCost: number; // Display Cost + Shipping
+  margin: number; // e.g., 0.10 for 10%
+  price: number; // Total Cost × (1 + Margin)
+  ancMargin: number; // Price - TotalCost
+  bondCost: number;
+  totalWithBond: number; // Price + BondCost
+  sellingSqFt: number; // TotalWithBond / TotalSqFt
+  shippingSalePrice: number; // Shipping markup
+}
+
+export interface ExcelPricingSheet {
+  rows: ExcelPricingRow[];
+  totals: {
+    totalDisplayCost: number;
+    totalShipping: number;
+    totalCost: number;
+    totalPrice: number;
+    totalAncMargin: number;
+    totalBond: number;
+    grandTotal: number;
+    totalSqFt: number;
+  };
+}
+
+/**
+ * Calculate Excel-based pricing for a screen configuration
+ * Follows the ANC proposal Excel template logic:
+ * - Display Cost = Total SQ FT × Cost Per Sq Ft
+ * - Shipping = fixed amount (default $500) or per-screen calculation
+ * - Total Cost = Display Cost + Shipping
+ * - Margin = percentage (default 10% per Excel example)
+ * - Price = Total Cost ÷ (1 - Margin)
+ * - Bond = Price × 1.5% (from Excel: 10% margin, $16.67 bond on $1,111.11 price)
+ * - Total with Bond = Price + Bond Cost
+ */
+export function calculateExcelPricing(
+  screens: Array<{
+    name: string;
+    product: string;
+    pitchMm: number;
+    widthFeet: number;
+    heightFeet: number;
+    quantity?: number;
+    costPerSqFt?: number;
+    shipping?: number;
+    margin?: number;
+  }>,
+  options?: {
+    defaultMargin?: number;
+    bondRate?: number;
+    shippingFlat?: number;
+  }
+): ExcelPricingSheet {
+  const DEFAULT_MARGIN = options?.defaultMargin ?? 0.10; // 10% per Excel example
+  const BOND_RATE = options?.bondRate ?? 0.015; // 1.5% bond rate
+  const SHIPPING_FLAT = options?.shippingFlat ?? 500;
+
+  const rows: ExcelPricingRow[] = [];
+  let totals = {
+    totalDisplayCost: 0,
+    totalShipping: 0,
+    totalCost: 0,
+    totalPrice: 0,
+    totalAncMargin: 0,
+    totalBond: 0,
+    grandTotal: 0,
+    totalSqFt: 0,
+  };
+
+  screens.forEach((screen, index) => {
+    const quantity = screen.quantity ?? 1;
+    const sqFt = screen.widthFeet * screen.heightFeet;
+    const totalSqFt = sqFt * quantity;
+    
+    // Calculate pixel dimensions
+    const pitchFeet = screen.pitchMm / 304.8;
+    const heightPixels = Math.round(screen.heightFeet / pitchFeet);
+    const widthPixels = Math.round(screen.widthFeet / pitchFeet);
+
+    // Display Cost = Total SQ FT × Cost Per Sq Ft
+    const displayCost = roundToCents(totalSqFt * (screen.costPerSqFt ?? 120));
+
+    // Shipping (flat fee per location or configurable)
+    const shipping = roundToCents(screen.shipping ?? SHIPPING_FLAT);
+
+    // Total Cost = Display Cost + Shipping
+    const totalCost = roundToCents(displayCost + shipping);
+
+    // Apply margin
+    const margin = screen.margin ?? DEFAULT_MARGIN;
+    // Price = Total Cost ÷ (1 - margin) for margin-based pricing
+    const price = roundToCents(totalCost / (1 - margin));
+
+    // ANC Margin = Price - Total Cost
+    const ancMargin = roundToCents(price - totalCost);
+
+    // Bond = Price × Bond Rate (1.5%)
+    const bondCost = roundToCents(price * BOND_RATE);
+
+    // Total with Bond = Price + Bond Cost
+    const totalWithBond = roundToCents(price + bondCost);
+
+    // Selling Price per Sq Ft = Total with Bond ÷ Total SQ FT
+    const sellingSqFt = roundToCents(totalWithBond / totalSqFt);
+
+    // Shipping Sale Price (markup on shipping)
+    const shippingSalePrice = roundToCents(shipping * (1 + margin));
+
+    const row: ExcelPricingRow = {
+      option: `${index + 1}`,
+      issue: screen.name,
+      vendor: "ANC",
+      product: screen.product,
+      pitch: `${screen.pitchMm}mm`,
+      heightFeet: roundToCents(screen.heightFeet),
+      widthFeet: roundToCents(screen.widthFeet),
+      heightPixels,
+      widthPixels,
+      squareFeet: roundToCents(sqFt),
+      quantity,
+      totalSqFt: roundToCents(totalSqFt),
+      ledNitRequirement: 3500, // Default from Westfield RFP
+      ledServiceRequirement: "Front / Rear",
+      ledCostPerSqFt: screen.costPerSqFt ?? 120,
+      displayCost,
+      shipping,
+      totalCost,
+      margin: margin * 100, // Convert to percentage
+      price,
+      ancMargin,
+      bondCost,
+      totalWithBond,
+      sellingSqFt,
+      shippingSalePrice,
+    };
+
+    rows.push(row);
+
+    // Accumulate totals
+    totals.totalDisplayCost += displayCost;
+    totals.totalShipping += shipping;
+    totals.totalCost += totalCost;
+    totals.totalPrice += price;
+    totals.totalAncMargin += ancMargin;
+    totals.totalBond += bondCost;
+    totals.grandTotal += totalWithBond;
+    totals.totalSqFt += totalSqFt;
+  });
+
+  return {
+    rows,
+    totals,
+  };
+}
+
+/**
+ * Convert Excel pricing to CSV format for export
+ */
+export function exportExcelPricingToCSV(pricing: ExcelPricingSheet): string {
+  const headers = [
+    'OPTION',
+    'Issue',
+    'VENDOR',
+    'PRODUCT',
+    'PITCH',
+    'H (ft)',
+    'W (ft)',
+    'H (pixels)',
+    'W (pixels)',
+    'SQ FT',
+    'Quantity',
+    'Total SQ FT',
+    'LED NIT Req',
+    'LED Service Req',
+    'LED Cost/Sq Ft',
+    'Display Cost',
+    'Shipping',
+    'Total Cost',
+    'Margin %',
+    'Price',
+    'ANC Margin',
+    'Bond Cost',
+    'Total with Bond',
+    'Selling/Sq Ft',
+    'Shipping Sale Price',
+  ];
+
+  const rows = pricing.rows.map(row => [
+    row.option,
+    row.issue,
+    row.vendor,
+    row.product,
+    row.pitch,
+    row.heightFeet,
+    row.widthFeet,
+    row.heightPixels,
+    row.widthPixels,
+    row.squareFeet,
+    row.quantity,
+    row.totalSqFt,
+    row.ledNitRequirement,
+    row.ledServiceRequirement,
+    row.ledCostPerSqFt.toFixed(2),
+    row.displayCost.toFixed(2),
+    row.shipping.toFixed(2),
+    row.totalCost.toFixed(2),
+    row.margin.toFixed(2),
+    row.price.toFixed(2),
+    row.ancMargin.toFixed(2),
+    row.bondCost.toFixed(2),
+    row.totalWithBond.toFixed(2),
+    row.sellingSqFt.toFixed(2),
+    row.shippingSalePrice.toFixed(2),
+  ]);
+
+  // Add totals row
+  rows.push([
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    pricing.rows.length,
+    pricing.totals.totalSqFt.toFixed(2),
+    '',
+    '',
+    '',
+    pricing.totals.totalDisplayCost.toFixed(2),
+    pricing.totals.totalShipping.toFixed(2),
+    pricing.totals.totalCost.toFixed(2),
+    '',
+    pricing.totals.totalPrice.toFixed(2),
+    pricing.totals.totalAncMargin.toFixed(2),
+    pricing.totals.totalBond.toFixed(2),
+    pricing.totals.grandTotal.toFixed(2),
+    pricing.totals.grandTotal.toFixed(2) / pricing.totals.totalSqFt,
+    '',
+  ]);
+
+  return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+}
+
 function roundToCents(value: number) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }

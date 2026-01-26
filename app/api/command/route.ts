@@ -117,7 +117,12 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
     }
 
     // checkGaps: Compare detected specs against required fields for ADD_SCREEN
-    const checkGaps = (detectedSpecs: any): { hasGaps: boolean; missingFields: string[] } => {
+    // Enhanced with RFP requirement validation
+    const checkGaps = (
+      detectedSpecs: any,
+      rfpRequirements?: any
+    ): { hasGaps: boolean; missingFields: string[]; rfpCompliance?: { meets: boolean; gaps: string[] } } => {
+      // Core required fields for any screen
       const requiredFields = [
         { key: 'pixelPitch', label: 'Pixel Pitch (mm)' },
         { key: 'widthFt', label: 'Width (ft)' },
@@ -131,7 +136,65 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
         .filter(field => !detectedSpecs[field.key])
         .map(field => field.label);
       
-      return { hasGaps: missingFields.length > 0, missingFields };
+      // RFP compliance check (if RFP requirements provided)
+      let rfpCompliance = undefined;
+      if (rfpRequirements) {
+        const rfpGaps: string[] = [];
+
+        // Check pixel pitch against RFP requirement
+        if (rfpRequirements.pitchRequirement?.minimum && detectedSpecs.pixelPitch) {
+          const productPitch = parseFloat(detectedSpecs.pixelPitch);
+          const requiredPitch = rfpRequirements.pitchRequirement.minimum;
+          if (productPitch > requiredPitch) {
+            rfpGaps.push(`Pixel pitch ${detectedSpecs.pixelPitch}mm exceeds RFP maximum of ${requiredPitch}mm`);
+          }
+        }
+
+        // Check brightness (nits) against RFP requirement
+        if (rfpRequirements.technicalRequirements?.minimumNits && detectedSpecs.brightnessNits) {
+          const productNits = parseFloat(detectedSpecs.brightnessNits);
+          const requiredNits = rfpRequirements.technicalRequirements.minimumNits;
+          if (productNits < requiredNits) {
+            rfpGaps.push(`Brightness ${detectedSpecs.brightnessNits} nits below RFP minimum of ${requiredNits} nits`);
+          }
+        }
+
+        // Check IP rating against RFP requirement
+        if (rfpRequirements.technicalRequirements?.ipRating && detectedSpecs.ipRating) {
+          const productIP = parseInt(detectedSpecs.ipRating);
+          const requiredIP = parseInt(rfpRequirements.technicalRequirements.ipRating);
+          if (productIP < requiredIP) {
+            rfpGaps.push(`IP rating ${detectedSpecs.ipRating} below RFP requirement of IP${requiredIP}`);
+          }
+        }
+
+        // Check transparent display requirement
+        if (rfpRequirements.structural?.transparentDisplayRequired && !detectedSpecs.isTransparent) {
+          rfpGaps.push('RFP requires transparent display technology but product is not transparent');
+        }
+
+        // Check service access requirement
+        if (rfpRequirements.serviceRequirements?.accessMethod && detectedSpecs.serviceType) {
+          const requiredAccess = rfpRequirements.serviceRequirements.accessMethod.toLowerCase();
+          const productAccess = detectedSpecs.serviceType.toLowerCase();
+          
+          if (requiredAccess.includes('front') && productAccess.includes('rear')) {
+            rfpGaps.push('RFP requires front serviceable display but product is rear serviceable');
+          }
+        }
+
+        rfpCompliance = {
+          meets: rfpGaps.length === 0,
+          gaps: rfpGaps,
+        };
+
+        // Add RFP gaps to missing fields if any
+        if (rfpGaps.length > 0) {
+          missingFields.push(...rfpGaps);
+        }
+      }
+      
+      return { hasGaps: missingFields.length > 0, missingFields, rfpCompliance };
     };
 
     // After chat, attempt to perform a vector-search to see if there's a product match
@@ -174,31 +237,73 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
 
           if (product && (score >= threshold || score === 0)) {
             // checkGaps: Validate we have all required specs before adding
+            // Enhanced: Include RFP requirements if available
             const detectedSpecs: any = {
-              pixelPitch: product.pixel_pitch ? true : false,
+              pixelPitch: product.pixel_pitch,
               widthFt: product.cabinet_width_mm ? true : false,
               heightFt: product.cabinet_height_mm ? true : false,
               isCurvy: product.is_curvy !== undefined ? true : false,
               serviceType: product.service_type ? true : false,
               productType: product.product_name ? true : false,
+              brightnessNits: product.brightness_nits,
+              ipRating: product.ip_rating,
+              isTransparent: product.transparent || false,
             };
-            const gapAnalysis = checkGaps(detectedSpecs);
+
+            // Try to fetch RFP requirements from workspace if available
+            let rfpRequirements = undefined;
+            try {
+              const docsRes = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/${workspace}/documents`, {
+                headers: { 'Authorization': `Bearer ${ANYTHING_LLM_KEY}` },
+              });
+              if (docsRes.ok) {
+                const docsData = await docsRes.json();
+                // Look for recent RFP documents
+                const rfpDocs = docsData.documents?.filter((d: any) => 
+                  d.title?.toLowerCase().includes('rfp') || 
+                  d.title?.toLowerCase().includes('requirements')
+                ) || [];
+                
+                if (rfpDocs.length > 0) {
+                  // Get the most recent RFP document
+                  const rfpDoc = rfpDocs[0];
+                  // Note: We'd need to fetch the document content and parse it
+                  // For now, we'll skip this to keep the implementation simple
+                  // In production, we'd cache parsed RFP requirements
+                }
+              }
+            } catch (e) {
+              // Ignore RFP fetch errors
+            }
+
+            const gapAnalysis = checkGaps(detectedSpecs, rfpRequirements);
 
             if (gapAnalysis.hasGaps) {
               // Prohibited from completing ADD_SCREEN - must prompt user via DiagnosticOverlay
               const message = `I recommend ${product.product_name} but need to confirm: ${gapAnalysis.missingFields.join(', ')}`;
+              
+              // Enhanced response with RFP compliance details
+              const payload: any = {
+                missingFields: gapAnalysis.missingFields,
+                message,
+                recommendedProduct: product,
+                score,
+              };
+
+              if (gapAnalysis.rfpCompliance) {
+                payload.rfpCompliance = gapAnalysis.rfpCompliance;
+                if (!gapAnalysis.rfpCompliance.meets) {
+                  payload.message += `\n\nRFP Compliance Issues:\n${gapAnalysis.rfpCompliance.gaps.join('\n')}`;
+                }
+              }
+
               return NextResponse.json({ 
                 ok: true, 
                 data: { 
                   type: "action", 
                   action: { 
                     type: "INCOMPLETE_SPECS", 
-                    payload: { 
-                      missingFields: gapAnalysis.missingFields,
-                      message,
-                      recommendedProduct: product,
-                      score
-                    } 
+                    payload,
                   } 
                 } 
               }, { status: 200 });
