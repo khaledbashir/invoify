@@ -11,6 +11,7 @@ import SingleScreen from "../SingleScreen";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
+import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Icons
 import { Plus } from "lucide-react";
@@ -50,6 +51,8 @@ const Screens = () => {
         if (index < fields.length - 1) move(index, index + 1);
     };
 
+    const { duplicateScreen } = useProposalContext();
+
     return (
         <section className="flex flex-col gap-2 w-full">
             <Subheading>{_t("form.steps.screens.heading")}:</Subheading>
@@ -65,6 +68,7 @@ const Screens = () => {
                         moveFieldUp={moveScreenUp}
                         moveFieldDown={moveScreenDown}
                         removeField={removeScreen}
+                        duplicateField={duplicateScreen}
                     />
                 ))}
             </div>

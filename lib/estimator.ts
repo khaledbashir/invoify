@@ -97,19 +97,23 @@ export function calculateProposalTotal(
    - Exposes a dual-layer API: clientSummary (clean) and internalAudit (full math)
    ====================================================== */
 
-export type ScreenInput = {
+export interface ScreenInput {
   name: string;
   productType?: string;
-  heightFt: number; // feet
-  widthFt: number; // feet
+  widthFt?: number;
+  heightFt?: number;
   quantity?: number;
-  pitchMm?: number; // pixel pitch in mm
-  costPerSqFt?: number; // override cost per sqft
-  desiredMargin?: number; // e.g., 0.25 for 25%
-  serviceType?: string; // "Top" (Ribbons) or "Front/Rear" (Scoreboards)
+  pitchMm?: number;
+  costPerSqFt?: number;
+  desiredMargin?: number;
+  serviceType?: string;
   formFactor?: string; // "Straight" or "Curved"
-  outletDistance?: number; // Distance from nearest outlet in feet
-};
+  outletDistance?: number;
+  isReplacement?: boolean;
+  useExistingStructure?: boolean;
+  includeSpareParts?: boolean;
+  aiSource?: any;
+}
 
 export type LineItemBreakdown = {
   name: string;
@@ -273,10 +277,9 @@ export function calculatePerScreenAudit(
   const POWER_PCT = options?.powerPct ?? 0.15;
   const SHIPPING_PER_SQFT = options?.shippingPerSqFt ?? 0.14;
   const PM_PER_SQFT = options?.pmPerSqFt ?? 0.5;
-  const GENERAL_CONDITIONS_PCT = options?.generalConditionsPct ?? 0.03;
-  const TRAVEL_PCT = options?.travelPct ?? 0.01;
+  const GENERAL_CONDITIONS_PCT = options?.generalConditionsPct ?? 0.02;
+  const TRAVEL_PCT = options?.travelPct ?? 0.03;
   const SUBMITTALS_PCT = options?.submittalsPct ?? 0.01;
-  const ENGINEERING_PCT = options?.engineeringPct ?? 0.02;
   const PERMITS_FIXED = options?.permitsFixed ?? 500;
   const CMS_PCT = options?.cmsPct ?? 0.02;
   const BOND_PCT = options?.bondPct ?? 0.015;
@@ -295,23 +298,35 @@ export function calculatePerScreenAudit(
 
   const costPerSqFt = s.costPerSqFt ?? catalogEntry.cost_per_sqft ?? DEFAULT_COST_PER_SQFT;
 
-  // Service Type Branch: Top (Ribbons) = 10%, Front/Rear (Scoreboards) = 20%
-  const STRUCTURE_PCT = serviceType.toLowerCase() === "top" ? 0.10 : 0.20;
-
-  const area = s.heightFt * s.widthFt;
-  const areaTotal = area * qty;
-
   // Pixel Matrix Math: (H_mm / Pitch) × (W_mm / Pitch)
-  const heightMm = s.heightFt * 304.8; // Convert feet to mm
-  const widthMm = s.widthFt * 304.8;
+  const heightMm = (s.heightFt ?? 0) * 304.8; // Convert feet to mm
+  const widthMm = (s.widthFt ?? 0) * 304.8;
   const pitchMeters = pitch / 1000;
   const pixelsH = Math.round(heightMm / pitch);
   const pixelsW = Math.round(widthMm / pitch);
   const pixelResolution = pixelsH * pixelsW;
   const pixelMatrix = `${pixelsH} x ${pixelsW} @ ${pitch}mm`;
 
-  // Base cost calculations
-  const hardware = roundToCents(areaTotal * costPerSqFt);
+  // Service Type Branch: Top (Ribbons) = 10%, Front/Rear (Scoreboards) = 20%
+  let STRUCTURE_PCT = serviceType.toLowerCase() === "top" ? 0.10 : 0.20;
+  let ENGINEERING_PCT = options?.engineeringPct ?? 0.02;
+
+  // Ferrari Logic 2: Infrastructure Credit (RFP Exhibit A, Page 11)
+  if (s.isReplacement && s.useExistingStructure) {
+    STRUCTURE_PCT = 0.05; // Drop to 5%
+    ENGINEERING_PCT = 0.05; // Increase to 5% for site audit/Electrical review
+  }
+
+  const height = s.heightFt ?? 0;
+  const width = s.widthFt ?? 0;
+  const area = roundToCents(height * width);
+  const totalArea = roundToCents(area * qty); // Total project area
+
+  // Ferrari Logic 1: Spare Parts (RFP Exhibit A, Page 11) - 5% hardware bake-in
+  const hardwareBase = roundToCents(area * costPerSqFt);
+  const sparePartsCost = s.includeSpareParts ? roundToCents(hardwareBase * 0.05) : 0;
+  const hardwareUnit = roundToCents(hardwareBase + sparePartsCost);
+  const hardware = roundToCents(hardwareUnit * qty);
 
   // Curved Screen Multipliers
   const isCurved = formFactor.toLowerCase() === "curved";
@@ -322,8 +337,8 @@ export function calculatePerScreenAudit(
   const install = roundToCents(INSTALL_FLAT * laborMultiplier);
   const labor = roundToCents(hardware * LABOR_PCT * laborMultiplier);
   const power = roundToCents(hardware * POWER_PCT);
-  const shipping = roundToCents(areaTotal * SHIPPING_PER_SQFT);
-  const pm = roundToCents(areaTotal * PM_PER_SQFT);
+  const shipping = roundToCents(totalArea * SHIPPING_PER_SQFT);
+  const pm = roundToCents(totalArea * PM_PER_SQFT);
   const generalConditions = roundToCents(hardware * GENERAL_CONDITIONS_PCT);
   const travel = roundToCents(hardware * TRAVEL_PCT);
   const submittals = roundToCents(hardware * SUBMITTALS_PCT);
@@ -366,13 +381,13 @@ export function calculatePerScreenAudit(
   const finalClientTotal = roundToCents(sellPrice + bondCost);
 
   // Selling SqFt: Final Client Total / Total Sq Ft
-  const sellingPricePerSqFt = roundToCents(finalClientTotal / areaTotal);
+  const sellingPricePerSqFt = roundToCents(finalClientTotal / totalArea);
 
   return {
     name: s.name,
     productType: s.productType ?? "",
     quantity: qty,
-    areaSqFt: roundToCents(areaTotal),
+    areaSqFt: roundToCents(totalArea),
     pixelResolution,
     pixelMatrix,
     serviceType,

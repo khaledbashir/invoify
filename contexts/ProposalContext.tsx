@@ -74,6 +74,7 @@ const defaultProposalContext = {
   answerRfpQuestion: (questionId: string, answer: string) => Promise.resolve(),
   // Command execution
   applyCommand: (command: any) => { },
+  duplicateScreen: (index: number) => { },
   proposal: null as any,
 };
 
@@ -500,6 +501,9 @@ export const ProposalContextProvider = ({
             pitchMm: Number(payload.pitch ?? payload.pitchMm ?? payload.pitchMm ?? 10),
             costPerSqFt: Number(payload.costPerSqFt ?? payload.cost_per_sqft ?? 120),
             desiredMargin: payload.desiredMargin ?? undefined,
+            isReplacement: payload.isReplacement ?? false,
+            useExistingStructure: payload.useExistingStructure ?? false,
+            includeSpareParts: payload.includeSpareParts ?? true,
           };
 
           // Push new screen
@@ -516,6 +520,9 @@ export const ProposalContextProvider = ({
             pitchMm: Number(s.pitchMm || s.pitch || 10),
             costPerSqFt: Number(s.costPerSqFt || s.cost_per_sqft || 120),
             desiredMargin: s.desiredMargin,
+            isReplacement: !!s.isReplacement,
+            useExistingStructure: !!s.useExistingStructure,
+            includeSpareParts: s.includeSpareParts !== false,
           }));
 
           // Recalculate audit and persist into form for live audit view
@@ -774,6 +781,26 @@ export const ProposalContextProvider = ({
         },
         // command execution
         applyCommand,
+        duplicateScreen: (index: number) => {
+          const values = getValues();
+          const screens = values.details.screens ?? [];
+          if (index >= 0 && index < screens.length) {
+            const screenToCopy = screens[index];
+            const newScreen = {
+              ...screenToCopy,
+              name: `${screenToCopy.name} (Copy)`,
+            };
+            const updatedScreens = [...screens, newScreen];
+            setValue("details.screens", updatedScreens);
+
+            // Recalculate audit
+            try {
+              const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens);
+              setValue("details.internalAudit", internalAudit);
+              setValue("details.clientSummary", clientSummary);
+            } catch (e) { }
+          }
+        },
         proposal: watch(),
       }}
     >

@@ -83,7 +83,8 @@ export async function generateFormulaicExcel(
 
     // Register Named Ranges for human-readable formulas with project-unique suffix
     const proposalId = options?.proposalName || 'Prop';
-    const sanitizedId = proposalId.replace(/[^a-zA-Z0-9]/g, '_');
+    const uniqueHash = Date.now().toString(36).slice(-5);
+    const sanitizedId = `${proposalId.replace(/[^a-zA-Z0-9]/g, '_')}_${uniqueHash}`;
     registerNamedRanges(workbook, screens.length, sanitizedId);
 
     return workbook;
@@ -232,36 +233,45 @@ function buildAuditSheet(
         // Input values (green background - editable)
         setCellValue(sheet, `A${row}`, screen.name, 'input');
         setCellValue(sheet, `B${row}`, screen.productType || '', 'input');
-        setCellValue(sheet, `C${row}`, screen.widthFt, 'input');
-        setCellValue(sheet, `D${row}`, screen.heightFt, 'input');
-        setCellValue(sheet, `E${row}`, screen.quantity || 1, 'input');
-        setCellValue(sheet, `F${row}`, screen.pitchMm || 10, 'input');
-        setCellValue(sheet, `H${row}`, screen.costPerSqFt || 120, 'input');
+        setCellValue(sheet, `C${row}`, screen.widthFt ?? 0, 'input');
+        setCellValue(sheet, `D${row}`, screen.heightFt ?? 0, 'input');
+        setCellValue(sheet, `E${row}`, screen.quantity ?? 1, 'input');
+        setCellValue(sheet, `F${row}`, screen.pitchMm ?? 10, 'input');
+        setCellValue(sheet, `H${row}`, screen.costPerSqFt ?? 120, 'input');
         setCellValue(sheet, `K${row}`, 5000 * laborMult, 'input'); // Install flat fee
         setCellValue(sheet, `T${row}`, 500, 'input'); // Permits fixed
-        setCellValue(sheet, `W${row}`, screen.desiredMargin || 0.25, 'input');
+        setCellValue(sheet, `W${row}`, screen.desiredMargin ?? 0.25, 'input');
+
+        // Ferrari Formula Logic
+        const engineeringPct = (screen.isReplacement && screen.useExistingStructure) ? 0.05 : 0.02;
+        const structurePctEffective = (screen.isReplacement && screen.useExistingStructure) ? 0.05 : structurePct;
+        const sparePartsMultiplier = screen.includeSpareParts ? 1.05 : 1.0;
 
         // Formula cells (blue background - calculated)
         // Area = Width * Height * Qty
         setCellFormula(sheet, `G${row}`, `=C${row}*D${row}*E${row}`);
 
-        // Hardware = Area * CostPerSqFt
-        setCellFormula(sheet, `I${row}`, `=G${row}*H${row}`);
+        // Hardware = (AreaBase * PriceMultiplier)
+        // Bake Spare Parts (5%) directly into Hardware Formula for expert compliance
+        setCellFormula(sheet, `I${row}`, `=(G${row}*H${row})*${sparePartsMultiplier}`);
 
-        // Structure = Hardware * structure_pct * curved_multiplier
-        setCellFormula(sheet, `J${row}`, `=I${row}*${structurePct * structureMult}`);
+        // Structure = Hardware * EffectiveStructurePct * CurveMultiplier
+        setCellFormula(sheet, `J${row}`, `=I${row}*${structurePctEffective * structureMult}`);
 
-        // Labor = Hardware * 0.15 * curved_multiplier
+        // Engineering = Hardware * EngineeringPct
+        setCellFormula(sheet, `S${row}`, `=I${row}*${engineeringPct}`);
+
+        // Labor = Hardware * 15% * CurveMultiplier
         setCellFormula(sheet, `L${row}`, `=I${row}*${0.15 * laborMult}`);
 
-        // Power = Hardware * 0.15 (+ surcharge logic can be added)
+        // Power = Hardware * 15%
         setCellFormula(sheet, `M${row}`, `=I${row}*0.15`);
 
         // Shipping = Area * 0.14
         setCellFormula(sheet, `N${row}`, `=G${row}*0.14`);
 
-        // PM = Area * 0.5
-        setCellFormula(sheet, `O${row}`, `=G${row}*0.5`);
+        // PM = Area * 0.50
+        setCellFormula(sheet, `O${row}`, `=G${row}*0.50`);
 
         // General Conditions = Hardware * 0.03
         setCellFormula(sheet, `P${row}`, `=I${row}*0.03`);

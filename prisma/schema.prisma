@@ -24,6 +24,7 @@ model Proposal {
   id           String         @id @default(cuid())
   workspaceId  String
   clientName   String
+  proposalName String?        // Professional name for client-facing exports
   status       String         @default("DRAFT")
   screens      ScreenConfig[]
   internalAudit Json?          // Detailed per-screen audit (internal use)
@@ -44,14 +45,20 @@ model RfpQuestion {
   proposal    Proposal     @relation(fields: [proposalId], references: [id])
 }
 model ScreenConfig {
-  id         String         @id @default(cuid())
-  proposalId String
-  name       String
-  pixelPitch Float
-  width      Float
-  height     Float
-  lineItems  CostLineItem[]
-  proposal   Proposal       @relation(fields: [proposalId], references: [id])
+  id           String         @id @default(cuid())
+  proposalId   String
+  name         String         // Internal reference name
+  externalName String?        // Client-facing name (falls back to name)
+  pixelPitch   Float
+  width        Float
+  height       Float
+  quantity     Int            @default(1)
+  isReplacement Boolean       @default(false)
+  useExistingStructure Boolean @default(false)
+  includeSpareParts Boolean    @default(true)
+  aiSource      Json?          // Metadata: { field: { page, text, confidence } }
+  lineItems    CostLineItem[]
+  proposal     Proposal       @relation(fields: [proposalId], references: [id])
 }
 model CostLineItem {
   id             String       @id @default(cuid())

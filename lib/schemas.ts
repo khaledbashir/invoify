@@ -218,6 +218,7 @@ const InvoiceDetailsSchema = z.object({
     // Proposal-specific aliases (backwards compatible with invoice fields)
     proposalLogo: fieldValidators.stringOptional,
     proposalId: fieldValidators.stringOptional,
+    proposalName: fieldValidators.stringOptional, // Professional project name
     proposalDate: fieldValidators.date.optional(),
     invoiceNumber: fieldValidators.stringMin1,
     invoiceDate: fieldValidators.date,
@@ -228,7 +229,8 @@ const InvoiceDetailsSchema = z.object({
     items: z.array(ItemSchema),
     // Screens (ANC-specific estimator inputs)
     screens: z.array(z.object({
-        name: fieldValidators.stringMin1,
+        name: fieldValidators.stringMin1, // Changed to "Internal Shorthand"
+        externalName: fieldValidators.stringOptional, // Professional Client Name
         productType: fieldValidators.string.optional(),
         widthFt: z.coerce.number().nonnegative().optional(),
         heightFt: z.coerce.number().nonnegative().optional(),
@@ -238,7 +240,15 @@ const InvoiceDetailsSchema = z.object({
         desiredMargin: z.coerce.number().min(0).max(1).optional(),
         serviceType: z.string().optional(), // "Top" or "Front/Rear"
         formFactor: z.string().optional(), // "Straight" or "Curved"
-        outletDistance: z.coerce.number().nonnegative().optional(), // Distance from outlet in feet
+        outletDistance: z.coerce.number().nonnegative().optional(),
+        isReplacement: z.boolean().default(false),
+        useExistingStructure: z.boolean().default(false),
+        includeSpareParts: z.boolean().default(true),
+        aiSource: z.record(z.object({
+            page: z.number().optional(),
+            text: z.string().optional(),
+            confidence: z.number().optional(),
+        })).optional(),
     })).optional(),
     // Audit snapshots
     internalAudit: InternalAuditSchema.optional(),

@@ -16,7 +16,8 @@ import { BaseButton, FormInput } from "@/app/components";
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
 // Icons
-import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, Copy, ShieldCheck, Zap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 type SingleScreenProps = {
     name: string;
@@ -26,6 +27,7 @@ type SingleScreenProps = {
     moveFieldUp: (index: number) => void;
     moveFieldDown: (index: number) => void;
     removeField: (index: number) => void;
+    duplicateField?: (index: number) => void;
 };
 
 const SingleScreen = ({
@@ -36,6 +38,7 @@ const SingleScreen = ({
     moveFieldUp,
     moveFieldDown,
     removeField,
+    duplicateField,
 }: SingleScreenProps) => {
     const { control, setValue, register } = useFormContext();
     const { _t } = useTranslationContext();
@@ -75,6 +78,9 @@ const SingleScreen = ({
                     <BaseButton size={"icon"} onClick={() => moveFieldDown(index)} disabled={index === fields.length - 1}>
                         <ChevronDown />
                     </BaseButton>
+                    <BaseButton size={"icon"} variant="outline" onClick={() => duplicateField?.(index)}>
+                        <Copy className="w-4 h-4" />
+                    </BaseButton>
                     <BaseButton variant="destructive" onClick={() => removeField(index)}>
                         <Trash2 />
                         {_t("form.steps.screens.removeScreen")}
@@ -100,13 +106,13 @@ const SingleScreen = ({
                 <FormInput name={`${name}[${index}].desiredMargin`} label={_t("form.steps.screens.desiredMargin")} type="number" className="w-[8rem]" vertical />
 
                 <div className="flex flex-col gap-1">
-                    <Label>Service Type</Label>
+                    <Label className="text-xs uppercase text-gray-500 font-bold">Service Type</Label>
                     <select
                         {...register(`${name}[${index}].serviceType`)}
-                        className="h-9 px-3 text-sm border border-input rounded-md bg-transparent w-[8rem]"
+                        className="h-9 px-3 text-sm border border-input rounded-md bg-white dark:bg-slate-900 w-[10rem]"
                     >
-                        <option value="Front/Rear">Front/Rear</option>
-                        <option value="Top">Top (Ribbons)</option>
+                        <option value="Front/Rear">Front/Rear (Scoreboard)</option>
+                        <option value="Top">Top (Ribbon)</option>
                     </select>
                 </div>
 
@@ -121,7 +127,40 @@ const SingleScreen = ({
                     </select>
                 </div>
 
-                <FormInput name={`${name}[${index}].outletDistance`} label="Outlet Distance (ft)" type="number" className="w-[10rem]" vertical />
+                <FormInput name={`${name}[${index}].outletDistance`} label="Outlet Dist (ft)" type="number" className="w-[8rem]" vertical />
+
+                {/* Ferrari Logic Toggles */}
+                <div className="flex gap-4 items-end bg-blue-100/30 dark:bg-blue-900/20 p-2 rounded-lg border border-blue-200/50">
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-[10px] uppercase text-blue-700 dark:text-blue-400 font-bold flex items-center gap-1">
+                            <Zap className="w-3 h-3" /> Replacement?
+                        </Label>
+                        <Switch
+                            checked={useWatch({ name: `${name}[${index}].isReplacement`, control })}
+                            onCheckedChange={(checked) => setValue(`${name}[${index}].isReplacement`, checked)}
+                        />
+                    </div>
+
+                    {useWatch({ name: `${name}[${index}].isReplacement`, control }) && (
+                        <div className="flex flex-col gap-2 animate-in slide-in-from-left-2 duration-300">
+                            <Label className="text-[10px] uppercase text-blue-700 dark:text-blue-400 font-bold">Use Existing Structure?</Label>
+                            <Switch
+                                checked={useWatch({ name: `${name}[${index}].useExistingStructure`, control })}
+                                onCheckedChange={(checked) => setValue(`${name}[${index}].useExistingStructure`, checked)}
+                            />
+                        </div>
+                    )}
+
+                    <div className="flex flex-col gap-2">
+                        <Label className="text-[10px] uppercase text-green-700 dark:text-green-400 font-bold flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3" /> Include 5% Spares
+                        </Label>
+                        <Switch
+                            checked={useWatch({ name: `${name}[${index}].includeSpareParts`, control })}
+                            onCheckedChange={(checked) => setValue(`${name}[${index}].includeSpareParts`, checked)}
+                        />
+                    </div>
+                </div>
 
                 <div className="flex gap-3 items-center">
                     <div>
@@ -131,7 +170,7 @@ const SingleScreen = ({
 
                     <div>
                         <Label>Pixel Resolution</Label>
-                        <Input value={`${Number((screenName && pitch) ? (Math.round((Number(height || 0) / (Number(pitch || 10)/304.8)) * (Number(width || 0) / (Number(pitch || 10)/304.8)))) : 0)}` } readOnly className="bg-transparent border-none" />
+                        <Input value={`${Number((screenName && pitch) ? (Math.round((Number(height || 0) / (Number(pitch || 10) / 304.8)) * (Number(width || 0) / (Number(pitch || 10) / 304.8)))) : 0)}`} readOnly className="bg-transparent border-none" />
                     </div>
                 </div>
             </div>
