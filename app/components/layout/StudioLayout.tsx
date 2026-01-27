@@ -2,36 +2,33 @@
 
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
-import ModeToggle from "@/app/components/reusables/ModeToggle";
 import { BrandSlashes } from "@/app/components/reusables/BrandGraphics";
+import AiCommandBar from "@/app/components/invoice/AiCommandBar";
 
 interface StudioLayoutProps {
     /** Header content (Logo | Stepper | Actions) */
     header: React.ReactNode;
-    /** Content for Drafting Form mode */
+    /** Content for the Form */
     formContent: React.ReactNode;
-    /** Content for Intelligence Engine mode */
-    aiContent: React.ReactNode;
     /** Content for the PDF Anchor (right pane) */
     pdfContent: React.ReactNode;
 }
 
 /**
- * StudioLayout - ANC Studio 2-Pane Anchor System
+ * StudioLayout - ANC Command Center
  * 
  * Features:
  * - Fixed 100vh viewport with no body scroll
- * - Left 50%: The Hub (switchable Form/AI)
- * - Right 50%: The Anchor (PDF Preview, always visible)
- * - Zero-lag toggle via CSS opacity/pointer-events
+ * - Left: Form content (top) + AI Command Bar (bottom)
+ * - Right: PDF Preview (always visible)
+ * - AI bar is persistent with 17/20 Gap Analysis
  */
 export function StudioLayout({
     header,
     formContent,
-    aiContent,
     pdfContent,
 }: StudioLayoutProps) {
-    const [mode, setMode] = useState<"form" | "ai">("form");
+    const [isAiExpanded, setIsAiExpanded] = useState(false);
 
     return (
         <div className="h-screen w-screen overflow-hidden flex flex-col bg-zinc-950">
@@ -44,30 +41,27 @@ export function StudioLayout({
             <main className="flex-1 overflow-hidden grid grid-cols-2">
                 {/* THE HUB (Left Pane) */}
                 <section className="flex flex-col overflow-hidden bg-zinc-950 border-r border-zinc-800">
-                    {/* Mode Toggle */}
-                    <ModeToggle mode={mode} onChange={setMode} />
+                    {/* Form Content Area - Takes remaining space */}
+                    <div 
+                        className={cn(
+                            "flex-1 overflow-y-auto transition-all duration-300",
+                            isAiExpanded ? "max-h-[40%]" : "max-h-[calc(100%-48px)]"
+                        )}
+                    >
+                        {formContent}
+                    </div>
 
-                    {/* Hub Content - Stacked Panels for Zero-Lag */}
-                    <div className="flex-1 relative overflow-hidden">
-                        {/* Form Panel */}
-                        <div
-                            className={cn(
-                                "absolute inset-0 overflow-y-auto transition-opacity duration-150",
-                                mode === "form" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                            )}
-                        >
-                            {formContent}
-                        </div>
-
-                        {/* AI Panel */}
-                        <div
-                            className={cn(
-                                "absolute inset-0 overflow-y-auto transition-opacity duration-150",
-                                mode === "ai" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-                            )}
-                        >
-                            {aiContent}
-                        </div>
+                    {/* AI Command Bar - Persistent with Gap Analysis */}
+                    <div 
+                        className={cn(
+                            "border-t border-zinc-800 bg-zinc-950 transition-all duration-300 flex flex-col shrink-0",
+                            isAiExpanded ? "flex-1 min-h-[300px]" : "h-auto"
+                        )}
+                    >
+                        <AiCommandBar 
+                            isExpanded={isAiExpanded}
+                            onToggle={() => setIsAiExpanded(!isAiExpanded)}
+                        />
                     </div>
                 </section>
 

@@ -82,6 +82,9 @@ const defaultProposalContext = {
   aiLoading: false,
   duplicateScreen: (index: number) => { },
   aiFields: [] as string[],
+  aiFieldTimestamps: {} as Record<string, number>,
+  trackAiFieldModification: (fieldNames: string[]) => {},
+  isFieldGhostActive: (fieldName: string) => false,
   proposal: null as any,
 };
 
@@ -133,8 +136,36 @@ export const ProposalContextProvider = ({
   const [rfpDocumentUrl, setRfpDocumentUrl] = useState<string | null>(null);
   const [rfpQuestions, setRfpQuestions] = useState<Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>>([]);
   const [aiFields, setAiFields] = useState<string[]>([]);
+  const [aiFieldTimestamps, setAiFieldTimestamps] = useState<Record<string, number>>({});
   const [aiMessages, setAiMessages] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+
+  // AI Ghost Effect - Track recently modified fields with timestamps
+  const trackAiFieldModification = useCallback((fieldNames: string[]) => {
+    const now = Date.now();
+    const timestamps: Record<string, number> = {};
+    fieldNames.forEach(field => {
+      timestamps[field] = now;
+    });
+    setAiFieldTimestamps(prev => ({ ...prev, ...timestamps }));
+    setAiFields(prev => Array.from(new Set([...prev, ...fieldNames])));
+    
+    // Clear timestamps after 3 seconds (ghost effect duration)
+    setTimeout(() => {
+      setAiFieldTimestamps(prev => {
+        const next = { ...prev };
+        fieldNames.forEach(field => delete next[field]);
+        return next;
+      });
+    }, 3000);
+  }, []);
+
+  // Check if field should show ghost effect (within 3 seconds of AI modification)
+  const isFieldGhostActive = useCallback((fieldName: string): boolean => {
+    const timestamp = aiFieldTimestamps[fieldName];
+    if (!timestamp) return false;
+    return Date.now() - timestamp < 3000;
+  }, [aiFieldTimestamps]);
 
   // Sync isolated AI workspace from form state (set via reset(initialData))
   const aiWorkspaceSlug = watch("details.aiWorkspaceSlug") || null;
@@ -1241,6 +1272,9 @@ export const ProposalContextProvider = ({
         aiLoading,
         duplicateScreen,
         aiFields,
+        aiFieldTimestamps,
+        trackAiFieldModification,
+        isFieldGhostActive,
         proposal: watch(),
       }}
     >
