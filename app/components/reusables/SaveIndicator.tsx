@@ -7,6 +7,7 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface SaveIndicatorProps {
     status: SaveStatus;
+    lastSavedAt?: Date;
     className?: string;
 }
 
@@ -19,7 +20,7 @@ interface SaveIndicatorProps {
  * - saved: "Saved to Vault ✓" with checkmark
  * - error: "Sync failed" with error icon
  */
-export function SaveIndicator({ status, className = "" }: SaveIndicatorProps) {
+export function SaveIndicator({ status, lastSavedAt, className = "" }: SaveIndicatorProps) {
     const [displayStatus, setDisplayStatus] = useState<SaveStatus>(status);
 
     // Sync external status changes

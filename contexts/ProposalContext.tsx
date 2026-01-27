@@ -77,6 +77,9 @@ const defaultProposalContext = {
   answerRfpQuestion: (questionId: string, answer: string) => Promise.resolve(),
   // Command execution
   applyCommand: (command: any) => { },
+  executeAiCommand: async (message: string) => { },
+  aiMessages: [] as any[],
+  aiLoading: false,
   duplicateScreen: (index: number) => { },
   aiFields: [] as string[],
   proposal: null as any,
@@ -124,9 +127,13 @@ export const ProposalContextProvider = ({
 
   // RFP state
   const [rfpDocumentUrl, setRfpDocumentUrl] = useState<string | null>(null);
-  const [aiWorkspaceSlug, setAiWorkspaceSlug] = useState<string | null>(null);
   const [rfpQuestions, setRfpQuestions] = useState<Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>>([]);
   const [aiFields, setAiFields] = useState<string[]>([]);
+  const [aiMessages, setAiMessages] = useState<any[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // Sync isolated AI workspace from form state (set via reset(initialData))
+  const aiWorkspaceSlug = watch("details.aiWorkspaceSlug") || null;
 
   // Saved proposals
   const [savedProposals, setSavedProposals] = useState<ProposalType[]>([]);
@@ -583,6 +590,45 @@ export const ProposalContextProvider = ({
         ]
       };
     });
+  };
+
+  const executeAiCommand = async (message: string) => {
+    if (!message.trim()) return;
+
+    const userMsg = { id: `u-${Date.now()}`, role: "user", content: message };
+    setAiMessages((h) => [...h, userMsg]);
+    setAiLoading(true);
+
+    try {
+      const formValues = getValues();
+      const currentProposalId = formValues?.details?.proposalId || "new";
+
+      const res = await fetch("/api/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message,
+          history: aiMessages.map((m) => ({ role: m.role, content: m.content })),
+          proposalId: currentProposalId,
+          workspace: aiWorkspaceSlug || localStorage.getItem("aiWorkspaceSlug") || "anc-estimator",
+        }),
+      });
+
+      const data = await res.json();
+      let responseText = data?.data?.textResponse || data?.text || "";
+
+      if (data?.data?.action) {
+        applyCommand(data.data.action);
+      }
+
+      if (responseText) {
+        setAiMessages((h) => [...h, { id: `a-${Date.now()}`, role: "assistant", content: responseText }]);
+      }
+    } catch (err) {
+      console.error("AI Command error:", err);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const applyCommand = (command: any) => {
@@ -1050,6 +1096,9 @@ export const ProposalContextProvider = ({
         },
         // command execution
         applyCommand,
+        executeAiCommand,
+        aiMessages,
+        aiLoading,
         duplicateScreen,
         aiFields,
         proposal: watch(),

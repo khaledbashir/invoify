@@ -28,21 +28,11 @@ import { Send, Sparkles, Download, Share2, Upload, Loader2, BrainCircuit } from 
 // Types
 import { ProposalType } from "@/types";
 
-
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
-
-
 // Hooks
 import useAutoSave from "@/lib/useAutoSave";
 
 // Components
 import SaveIndicator from "@/app/components/reusables/SaveIndicator";
-
-// ... imports
 
 interface ProposalPageProps {
   initialData?: Partial<ProposalType>;
@@ -52,7 +42,7 @@ interface ProposalPageProps {
 const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
   const { handleSubmit, setValue, reset, control } = useFormContext<ProposalType>();
   const { _t } = useTranslationContext();
-  const { onFormSubmit, applyCommand, activeTab, setActiveTab, aiWorkspaceSlug, importANCExcel, excelImportLoading } = useProposalContext();
+  const { onFormSubmit, activeTab, setActiveTab, importANCExcel, excelImportLoading } = useProposalContext();
 
   // Initialize form with server data if available
   useState(() => {
@@ -60,7 +50,7 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
       reset(initialData);
     }
     if (projectId) {
-      setValue("proposalId", projectId);
+      setValue("details.proposalId" as any, projectId);
     }
   });
 
@@ -71,69 +61,14 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
   });
 
   const projectName = useWatch({
-    name: "proposalName",
+    name: "details.proposalName" as any,
     control: control,
-  }) || "Untitled Project";
+  }) as any || "Untitled Project";
 
-  // Watch proposalId so command submit has access to it
-  const proposalId = useWatch({
-    name: "proposalId",
-    control: control,
-  });
-
-  const [commandInput, setCommandInput] = useState("");
-  const [commandLoading, setCommandLoading] = useState(false);
-  const [commandHistory, setCommandHistory] = useState<ChatMessage[]>([]);
-  const [showCommandHistory, setShowCommandHistory] = useState(false);
   const [isIntelligenceEngineOpen, setIsIntelligenceEngineOpen] = useState(false);
 
-  const handleCommandSubmit = async () => {
-    if (!commandInput.trim()) return;
-
-    const userMsg: ChatMessage = { id: `u-${Date.now()}`, role: "user", content: commandInput };
-    setCommandHistory((h) => [...h, userMsg]);
-    setCommandInput("");
-    setCommandLoading(true);
-
-    try {
-      const currentProposalId = proposalId || projectId || "new";
-
-      const res = await fetch("/api/command", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMsg.content,
-          history: commandHistory.map((m) => ({ role: m.role, content: m.content })),
-          proposalId: currentProposalId,
-          workspace: aiWorkspaceSlug || localStorage.getItem("aiWorkspaceSlug") || "anc-estimator",
-        }),
-      });
-
-      const data = await res.json();
-      let responseText = data?.data?.textResponse || data?.text || "";
-
-      if (data?.data?.action) {
-        applyCommand(data.data.action);
-        // Switch tab based on command type
-        if (data.data.action.type === "ADD_SCREEN" || data.data.action.type === "SET_MARGIN") {
-          setActiveTab("audit");
-        } else if (data.data.action.type === "UPDATE_CLIENT") {
-          setActiveTab("client");
-        }
-      }
-
-      if (responseText) {
-        setCommandHistory((h) => [...h, { id: `a-${Date.now()}`, role: "assistant", content: responseText }]);
-      }
-    } catch (err) {
-      console.error("Command error:", err);
-    } finally {
-      setCommandLoading(false);
-    }
-  };
-
   const handleExport = () => {
-    // Trigger standard form submit which leads to PDF generation or call specific export APIs
+    // Trigger standard form submit which leads to PDF generation 
     handleSubmit(onFormSubmit)();
   };
 
@@ -157,7 +92,7 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
           {/* Editable Project Name */}
           <div className="flex-1 max-w-md mx-8">
             <Input
-              value={projectName}
+              value={String(projectName)}
               readOnly
               className="bg-transparent border-none text-center text-zinc-100 font-medium text-lg focus:ring-0 px-4 cursor-default"
             />
@@ -165,7 +100,7 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
-            <SaveIndicator status={saveStatus} lastSavedAt={initialData?.lastSavedAt ? new Date(initialData.lastSavedAt) : undefined} />
+            <SaveIndicator status={saveStatus} lastSavedAt={(initialData as any)?.lastSavedAt ? new Date((initialData as any).lastSavedAt) : undefined} />
 
             <Button
               variant="outline"
@@ -174,8 +109,8 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
               className={cn(
                 "transition-all",
                 isIntelligenceEngineOpen
-                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-700"
-                  : "text-zinc-400 border-zinc-700 hover:text-blue-500 hover:border-blue-500"
+                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-700 font-bold"
+                  : "text-zinc-400 border-zinc-700 hover:text-blue-500 hover:border-blue-500 font-medium"
               )}
             >
               <BrainCircuit className="w-4 h-4 mr-2" />
@@ -245,12 +180,12 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
             {/* Right: Live PDF Preview (40%) / RfpSidebar Toggle */}
             <div className={cn(
               "transition-all duration-300 flex gap-4",
-              isIntelligenceEngineOpen ? "w-[55%] min-w-[800px]" : "w-[40%] min-w-[500px]"
+              isIntelligenceEngineOpen ? "w-[60%] min-w-[900px]" : "w-[40%] min-w-[500px]"
             )}>
               <div className="flex-1 sticky top-24">
                 <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
                   <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/30 flex justify-between items-center">
-                    <span className="text-zinc-400 text-sm font-medium">Live Preview</span>
+                    <span className="text-zinc-400 text-sm font-medium">Live Proposal Preview</span>
                   </div>
                   <div className="p-4 bg-zinc-950/50 relative aspect-[1/1.4] overflow-hidden">
                     <PdfViewer />
@@ -259,7 +194,7 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
               </div>
 
               {isIntelligenceEngineOpen && (
-                <div className="w-80 lg:w-96 shrink-0 sticky top-24 h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-300">
+                <div className="w-96 shrink-0 sticky top-24 h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-300">
                   <RfpSidebar />
                 </div>
               )}
@@ -267,73 +202,7 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
           </form>
         </Form>
       </div>
-
-      {/* Floating Command Bar */}
-      < div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4" >
-        {/* Command History Popover */}
-        {
-          showCommandHistory && commandHistory.length > 0 && (
-            <div className="mb-4 bg-zinc-900/95 border border-zinc-800 rounded-2xl backdrop-blur-xl shadow-2xl max-h-64 overflow-y-auto">
-              <div className="p-4 space-y-3">
-                {commandHistory.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`p-3 rounded-xl ${msg.role === "user"
-                      ? "bg-[#003366]/20 text-zinc-200"
-                      : "bg-zinc-800/50 text-zinc-400"
-                      }`}
-                  >
-                    <div className="text-xs text-zinc-500 mb-1">
-                      {msg.role === "user" ? "You" : "AI Assistant"}
-                    </div>
-                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        }
-
-        {/* Command Input */}
-        <div className="bg-zinc-900/80 border border-zinc-800 rounded-full backdrop-blur-xl shadow-2xl">
-          <div className="flex items-center px-6 py-3 gap-4">
-            <Sparkles className="w-5 h-5 text-zinc-500 flex-shrink-0" />
-            <input
-              type="text"
-              value={commandInput}
-              onChange={(e) => {
-                setCommandInput(e.target.value);
-                if (e.target.value && commandHistory.length > 0 && !showCommandHistory) {
-                  setShowCommandHistory(true);
-                } else if (!e.target.value && showCommandHistory) {
-                  setShowCommandHistory(false);
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleCommandSubmit();
-                }
-              }}
-              onFocus={() => commandHistory.length > 0 && setShowCommandHistory(true)}
-              placeholder="Ask questions or add screens (e.g., 'Add two 100x50 10mm screens')..."
-              className="flex-1 bg-transparent border-none text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:ring-0 text-base"
-            />
-            <Button
-              onClick={handleCommandSubmit}
-              disabled={commandLoading || !commandInput.trim()}
-              className="bg-[#003366] hover:bg-[#004080] text-white rounded-full p-2 h-10 w-10 flex items-center justify-center flex-shrink-0"
-            >
-              {commandLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </div >
-    </div >
+    </div>
   );
 };
 

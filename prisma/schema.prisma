@@ -116,16 +116,35 @@ model ScreenConfig {
   proposalId   String
   name         String         // Internal reference name
   externalName String?        // Client-facing name (falls back to name)
-  pixelPitch   Float
-  width        Float
-  height       Float
+  productType  String?        // product category (e.g. "Outdoor LED")
+  
+  // Dimensions and Specs (using Ft/Mm suffix for precision)
+  widthFt      Float?
+  heightFt     Float?
+  pitchMm      Float?
+  
+  // Weights (Legacy support)
+  width        Float?         // legacy field
+  height       Float?         // legacy field
+  pixelPitch   Float?         // legacy field
+  
   quantity     Int            @default(1)
+  
+  // Costing
+  costPerSqFt   Float?
+  desiredMargin Float?
+  
+  // Form/Installation
+  serviceType  String?        // Top | Front/Rear
+  formFactor   String?        // Straight | Curved
+  
   isReplacement Boolean       @default(false)
   useExistingStructure Boolean @default(false)
   includeSpareParts Boolean    @default(true)
+  
   aiSource      Json?          // Metadata: { field: { page, text, confidence } }
   lineItems    CostLineItem[]
-  proposal     Proposal       @relation(fields: [proposalId], references: [id])
+  proposal     Proposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 }
 
 model CostLineItem {

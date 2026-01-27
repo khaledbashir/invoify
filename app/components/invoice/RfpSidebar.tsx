@@ -19,50 +19,22 @@ const QUICK_PROMPTS = [
 ];
 
 const RfpSidebar = () => {
-    const { aiWorkspaceSlug } = useProposalContext();
-    const [messages, setMessages] = useState<Message[]>([]);
+    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand } = useProposalContext();
     const [input, setInput] = useState("");
-    const [loading, setLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages]);
+    }, [aiMessages]);
 
     const handleSendMessage = async (msg?: string) => {
         const messageText = msg || input;
         if (!messageText.trim() || !aiWorkspaceSlug) return;
 
-        const newMessages: Message[] = [...messages, { role: "user", content: messageText }];
-        setMessages(newMessages);
         setInput("");
-        setLoading(true);
-
-        try {
-            const res = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/${aiWorkspaceSlug}/chat`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${ANYTHING_LLM_KEY}`,
-                },
-                body: JSON.stringify({
-                    message: messageText,
-                    mode: "chat",
-                }),
-            });
-
-            if (!res.ok) throw new Error("AI failed to respond");
-
-            const data = await res.json();
-            setMessages([...newMessages, { role: "ai", content: data.textResponse || "No response received." }]);
-        } catch (error) {
-            console.error("Chat error:", error);
-            setMessages([...newMessages, { role: "ai", content: "Error: Could not connect to the AnythingLLM brain." }]);
-        } finally {
-            setLoading(false);
-        }
+        await executeAiCommand(messageText);
     };
 
     return (
@@ -83,19 +55,19 @@ const RfpSidebar = () => {
                 ref={scrollRef}
                 className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
             >
-                {messages.length === 0 && (
+                {aiMessages.length === 0 && (
                     <div className="text-center py-10 space-y-4">
                         <div className="bg-blue-100 dark:bg-blue-900/30 w-12 h-12 rounded-full flex items-center justify-center mx-auto">
                             <MessageSquare className="w-6 h-6 text-blue-600" />
                         </div>
                         <div className="space-y-1">
                             <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">ANC Document Brain</p>
-                            <p className="text-xs text-zinc-500 max-w-[200px] mx-auto">Ask anything about the uploaded RFP documents. I have full context.</p>
+                            <p className="text-xs text-zinc-500 max-w-[200px] mx-auto">Ask anything about the uploaded RFP documents or add screens directly via chat.</p>
                         </div>
                     </div>
                 )}
 
-                {messages.map((m, i) => (
+                {aiMessages.map((m, i) => (
                     <div
                         key={i}
                         className={cn(
@@ -114,7 +86,7 @@ const RfpSidebar = () => {
                     </div>
                 ))}
 
-                {loading && (
+                {aiLoading && (
                     <div className="flex items-start gap-2 max-w-[90%]">
                         <div className="bg-zinc-100 dark:bg-zinc-900 px-3 py-2 rounded-2xl rounded-tl-none text-xs text-zinc-500 italic animate-pulse">
                             Processing document context...
@@ -135,7 +107,7 @@ const RfpSidebar = () => {
                             <button
                                 key={i}
                                 onClick={() => handleSendMessage(qp.prompt)}
-                                disabled={loading || !aiWorkspaceSlug}
+                                disabled={aiLoading || !aiWorkspaceSlug}
                                 className="text-[10px] bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-1.5 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-zinc-700 dark:text-zinc-300 shadow-sm"
                             >
                                 {qp.label}
@@ -156,7 +128,7 @@ const RfpSidebar = () => {
                     />
                     <button
                         onClick={() => handleSendMessage()}
-                        disabled={loading || !input.trim() || !aiWorkspaceSlug}
+                        disabled={aiLoading || !input.trim() || !aiWorkspaceSlug}
                         className="absolute right-2 top-2 p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all disabled:opacity-30"
                     >
                         <Send className="w-4 h-4" />

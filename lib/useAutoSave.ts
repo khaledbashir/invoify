@@ -56,8 +56,8 @@ export function useAutoSave({
                 body: JSON.stringify({
                     senderData: formData.sender,
                     receiverData: formData.receiver,
-                    // Note: screens are saved separately via ScreenConfig model
-                    // This just syncs the sender/receiver metadata
+                    proposalName: formData.details?.proposalName,
+                    screens: formData.details?.screens, // Deep sync screens
                 }),
             });
 

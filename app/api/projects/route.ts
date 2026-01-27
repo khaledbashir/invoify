@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { ANYTHING_LLM_BASE_URL, ANYTHING_LLM_KEY } from "@/lib/variables";
 
 const prisma = new PrismaClient();
 
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
         const [projects, total] = await Promise.all([
             prisma.proposal.findMany({
                 where,
-                orderBy: { updatedAt: "desc" },
+                orderBy: { updatedAt: "desc" } as any,
                 take: limit,
                 skip: offset,
                 select: {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
                     updatedAt: true,
                     lastSavedAt: true,
                     aiWorkspaceSlug: true,
-                },
+                } as any,
             }),
             prisma.proposal.count({ where }),
         ]);
@@ -88,17 +89,17 @@ export async function POST(req: NextRequest) {
 
         // Create a dedicated AnythingLLM workspace for this project
         let aiWorkspaceSlug: string | null = null;
-        const anythingLlmUrl = process.env.ANYTHING_LLM_BASE_URL;
-        const anythingLlmKey = process.env.ANYTHING_LLM_KEY;
 
-        if (anythingLlmUrl && anythingLlmKey) {
+        if (ANYTHING_LLM_BASE_URL && ANYTHING_LLM_KEY) {
             try {
-                const slugName = `project-${clientName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`;
-                const workspaceRes = await fetch(`${anythingLlmUrl}/v1/admin/workspaces/new`, {
+                const slugName = `project-${clientName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+
+                // Endpoint: /api/v1/workspace/new
+                const workspaceRes = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/new`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${anythingLlmKey}`,
+                        Authorization: `Bearer ${ANYTHING_LLM_KEY}`,
                     },
                     body: JSON.stringify({ name: slugName }),
                 });
@@ -106,12 +107,19 @@ export async function POST(req: NextRequest) {
                 if (workspaceRes.ok) {
                     const workspaceData = await workspaceRes.json();
                     aiWorkspaceSlug = workspaceData.workspace?.slug || slugName;
+                    console.log(`Created isolated AnythingLLM workspace: ${aiWorkspaceSlug}`);
+                } else {
+                    const errText = await workspaceRes.text();
+                    console.warn(`AnythingLLM workspace creation returned ${workspaceRes.status}: ${errText}`);
                 }
             } catch (aiError) {
                 console.error("Failed to create AnythingLLM workspace:", aiError);
                 // Continue without AI workspace
             }
+        } else {
+            console.warn("AnythingLLM config missing, skipping isolated workspace creation.");
         }
+
 
         // Create the project in the database
         const project = await prisma.proposal.create({
@@ -125,11 +133,11 @@ export async function POST(req: NextRequest) {
                 aiWorkspaceSlug,
                 marginFormula: "P = C / (1 - M)",
                 bondFormula: "B = P * 0.015",
-            },
+            } as any,
         });
 
         // Create initial audit log
-        await prisma.auditLog.create({
+        await (prisma as any).auditLog.create({
             data: {
                 proposalId: project.id,
                 action: "CREATED",

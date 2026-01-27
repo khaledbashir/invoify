@@ -13,7 +13,7 @@ export async function GET(
 ) {
     const { id } = await params;
     try {
-        const project = await prisma.proposal.findUnique({
+        const project = await (prisma.proposal as any).findUnique({
             where: { id },
             include: {
                 screens: {
@@ -73,14 +73,55 @@ export async function PATCH(
             updateData.clientName = receiverData.name;
         }
 
-        const project = await prisma.proposal.update({
-            where: { id },
-            data: updateData,
-            select: { lastSavedAt: true, id: true },
+        const project = await prisma.$transaction(async (tx) => {
+            // Update the main proposal record
+            const updated = await tx.proposal.update({
+                where: { id },
+                data: updateData,
+                select: { lastSavedAt: true, id: true },
+            });
+
+            // If screens are provided, sync them (destructive sync for screens)
+            if (body.screens && Array.isArray(body.screens)) {
+                // Delete existing screens and line items (Cascade should handle lineItems if set in schema)
+                await tx.screenConfig.deleteMany({
+                    where: { proposalId: id }
+                });
+
+                // Create new screens
+                for (const screen of body.screens) {
+                    await tx.screenConfig.create({
+                        data: {
+                            proposalId: id,
+                            name: screen.name || "Unnamed Screen",
+                            productType: screen.productType || "Unknown",
+                            widthFt: Number(screen.widthFt || 0),
+                            heightFt: Number(screen.heightFt || 0),
+                            quantity: Number(screen.quantity || 1),
+                            pitchMm: Number(screen.pitchMm || 10),
+                            costPerSqFt: Number(screen.costPerSqFt || 0),
+                            desiredMargin: Number(screen.desiredMargin || 0),
+                            serviceType: screen.serviceType || "Top",
+                            formFactor: screen.formFactor || "Straight",
+                            isReplacement: !!screen.isReplacement,
+                            useExistingStructure: !!screen.useExistingStructure,
+                            includeSpareParts: screen.includeSpareParts !== false,
+                            lineItems: {
+                                create: (screen.lineItems || []).map((li: any) => ({
+                                    category: li.category,
+                                    price: Number(li.price || 0),
+                                }))
+                            }
+                        }
+                    });
+                }
+            }
+
+            return updated;
         });
 
         // Create audit log for save with change source
-        await prisma.auditLog.create({
+        await (prisma as any).auditLog.create({
             data: {
                 proposalId: id,
                 action: "SAVED",
@@ -91,7 +132,7 @@ export async function PATCH(
 
         return NextResponse.json({
             success: true,
-            lastSavedAt: project.lastSavedAt,
+            lastSavedAt: (project as any).lastSavedAt,
         });
 
     } catch (error) {
