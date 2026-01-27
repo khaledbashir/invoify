@@ -29,7 +29,7 @@ const LanguageSelector = () => {
     };
     return (
         <Select
-            value={params.locale!.toLocaleString()}
+            value={params?.locale ? params.locale.toLocaleString() : "en"}
             onValueChange={(lang) => handleLanguageChange(lang)}
         >
             <SelectTrigger

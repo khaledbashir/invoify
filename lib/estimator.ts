@@ -393,11 +393,12 @@ export function calculatePerScreenAudit(
   );
 
   // Sell Price (P): Total Cost / (1 - DesiredMargin)
-  // Ferrari Edition Divisor Model
-  const results = calculateTotalWithBond(totalCost, desiredMargin * 100);
-  const sellPrice = results.sellPrice;
-  const bondCost = results.bond;
-  const finalClientTotal = results.total;
+  // Ferrari Edition Divisor Model: P = C / (1 - M)
+  const sellPrice = roundToCents(totalCost / (1 - desiredMargin));
+
+  // Bond Fee: 1.5% applied AFTER the divisor margin calculation
+  const bondCost = roundToCents(sellPrice * 0.015);
+  const finalClientTotal = roundToCents(sellPrice + bondCost);
 
   // ANC Margin (Profit): Sell Price - Total Cost
   const ancMargin = roundToCents(sellPrice - totalCost);

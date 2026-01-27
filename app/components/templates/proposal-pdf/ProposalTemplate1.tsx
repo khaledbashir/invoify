@@ -1,7 +1,7 @@
 import React from "react";
 
 // Components
-import { ProposalLayout } from "@/app/components";
+import { ProposalLayout, LogoSelector } from "@/app/components";
 
 // Helpers
 import { formatNumberWithCommas, isDataUrl } from "@/lib/helpers";
@@ -19,26 +19,16 @@ const ProposalTemplate1 = (data: ProposalType) => {
 	const docLabel = isLOI ? "SALES QUOTATION" : pricingType === "Hard Quoted" ? "PROPOSAL" : "BUDGET";
 
 	const headerText = isLOI
-		? `This Sales Quotation will set forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at 2 Manhattanville Road, Suite 402, Purchase, NY 10577 (collectively, the “Parties”) agree that ANC will provide the following LED Display and services (the “Display System”) described below.`
+		? `This Sales Quotation sets forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at 2 Manhattanville Road, Suite 402, Purchase, NY 10577 agree that ANC will provide the following Display System.`
 		: pricingType === "Hard Quoted"
 			? `ANC is pleased to present the following LED Display proposal to ${details.proposalName || 'your project'} per the specifications and pricing below.`
 			: `ANC is pleased to present the following LED Display budget to ${details.proposalName || 'your project'} per the specifications and pricing below.`;
-
-	// Logo Hierarchy: Use White Logo if the header is French Blue, Blue Logo if White.
-	// For Template 1, we use a White background header, so we use the Blue Logo.
-	const logoPath = "/anc-logo-blue-2023.png";
 
 	return (
 		<ProposalLayout data={data}>
 			<div className='flex justify-between items-start'>
 				<div className="flex flex-col gap-2">
-					<img
-						src={logoPath}
-						width={160}
-						height={80}
-						className="object-contain"
-						alt="ANC Logo"
-					/>
+					<LogoSelector theme="light" width={160} height={80} />
 				</div>
 				<div className='text-right'>
 					<h2 className='text-3xl md:text-3xl font-bold text-[#0A52EF]' style={{ fontFamily: "Work Sans, sans-serif" }}>{docLabel}</h2>
@@ -126,7 +116,7 @@ const ProposalTemplate1 = (data: ProposalType) => {
 										<span className='font-bold text-zinc-800'>{screen.pixelsH}h x {screen.pixelsW}w</span>
 									</div>
 								)}
-								{(screen.brightness && screen.brightness !== "0" && screen.brightness !== "") && (
+								{(screen.brightness && screen.brightness !== "0" && screen.brightness !== "" && String(screen.brightness).toUpperCase() !== 'N/A') && (
 									<div className='flex justify-between text-xs'>
 										<span className='text-zinc-500'>Brightness:</span>
 										<span className='font-bold text-zinc-800'>{screen.brightness} nits</span>
@@ -201,9 +191,8 @@ const ProposalTemplate1 = (data: ProposalType) => {
 			{isLOI && (
 				<div className='mt-12'>
 					<div className='p-6 bg-zinc-50 rounded-xl border border-zinc-100'>
-						<p className='text-xs font-bold text-[#0A52EF] uppercase tracking-widest mb-4' style={{ fontFamily: "Work Sans, sans-serif" }}>Agreement Terms</p>
 						<p className='text-[11px] text-zinc-600 leading-relaxed mb-6' style={{ fontFamily: "Helvetica Condensed, Arial, sans-serif" }}>
-							Please sign below to indicate Purchaser's agreement to purchase the Work as described herein and to authorize ANC to commence production.
+							Please sign below to indicate Purchaser's agreement to purchase the Work as described herein.
 							<br /><br />
 							If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties; however, it will be followed by a formal agreement containing standard contract language, including terms of liability, indemnification, and warranty. Additional sales tax will be included in ANC’s invoice. Payment is due within thirty (30) days of ANC’s invoice(s).
 						</p>
@@ -214,7 +203,8 @@ const ProposalTemplate1 = (data: ProposalType) => {
 									<p className='text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1'>Provider</p>
 									<p className='text-sm font-bold text-zinc-900'>ANC Sports Enterprises, LLC</p>
 								</div>
-								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Signature:</div>
+								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic font-medium'>By:</div>
+								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Title:</div>
 								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Date:</div>
 							</div>
 							<div className='space-y-6'>
@@ -222,7 +212,8 @@ const ProposalTemplate1 = (data: ProposalType) => {
 									<p className='text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1'>Purchaser</p>
 									<p className='text-sm font-bold text-zinc-900'>{receiver.name}</p>
 								</div>
-								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Signature:</div>
+								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic font-medium'>By:</div>
+								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Title:</div>
 								<div className='border-b border-zinc-300 h-10 flex items-end pb-1 text-xs text-zinc-400 italic'>Date:</div>
 							</div>
 						</div>

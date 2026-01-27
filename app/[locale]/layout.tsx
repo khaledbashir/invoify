@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "ANC Proposal Engine | Professional Sports Technology Proposals",
     description:
         "Create professional proposals for LED screens, sports technology, and digital signage projects with ANC Proposal Engine.",
-    icons: [{ rel: "icon", url: Favicon.src }],
+    icons: [{ rel: "icon", url: "/anc-logo-blue.png" }],
     keywords: ROOTKEYWORDS,
     robots: {
         index: true,

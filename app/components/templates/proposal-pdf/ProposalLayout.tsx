@@ -39,9 +39,19 @@ export default function ProposalLayout({ data, children }: ProposalLayoutProps) 
     return (
         <>
             {head}
-            <section style={{ fontFamily: "'Work Sans', 'Helvetica Condensed', sans-serif" }}>
-                <div className="flex flex-col p-4 sm:p-10 bg-white rounded-xl min-h-[60rem] text-[#1a1a1a]">
-                    {children}
+            <section style={{ fontFamily: "'Work Sans', 'Helvetica Condensed', sans-serif", position: 'relative' }}>
+                <div className="flex flex-col p-4 sm:p-10 bg-white rounded-xl min-h-[60rem] text-[#1a1a1a] relative overflow-hidden">
+                    {/* Draft Watermark Safeguard */}
+                    {details.status === 'DRAFT' && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] rotate-[-45deg] z-0">
+                            <span className="text-[120px] font-black whitespace-nowrap border-[20px] border-zinc-900 px-10 rounded-3xl">
+                                DRAFT - INTERNAL VALIDATION ONLY
+                            </span>
+                        </div>
+                    )}
+                    <div className="relative z-10">
+                        {children}
+                    </div>
                 </div>
             </section>
         </>

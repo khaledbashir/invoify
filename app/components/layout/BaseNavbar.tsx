@@ -34,7 +34,7 @@ const BaseNavbar = () => {
           {/* Left: ANC Logo */}
           <Link href="/" className="flex items-center">
             <img
-              src="/anc-logo.svg"
+              src="/anc-logo-blue.png"
               alt="ANC Proposal Engine"
               className="h-10 w-auto"
             />

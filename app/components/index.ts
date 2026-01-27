@@ -58,6 +58,7 @@ import ThemeSwitcher from "./reusables/ThemeSwitcher";
 import LanguageSelector from "./reusables/LanguageSelector";
 import Subheading from "./reusables/Subheading";
 import AiWand from "./reusables/AiWand";
+import LogoSelector from "./reusables/LogoSelector";
 
 /* =========================
    * Modals & Alerts
@@ -155,4 +156,6 @@ export {
    ProposalTemplate2,
    ProposalTemplate3,
    SendPdfEmail,
+   FormSelect,
+   LogoSelector,
 };

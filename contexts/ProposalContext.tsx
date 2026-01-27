@@ -78,6 +78,7 @@ const defaultProposalContext = {
   // Command execution
   applyCommand: (command: any) => { },
   duplicateScreen: (index: number) => { },
+  aiFields: [] as string[],
   proposal: null as any,
 };
 
@@ -125,6 +126,7 @@ export const ProposalContextProvider = ({
   const [rfpDocumentUrl, setRfpDocumentUrl] = useState<string | null>(null);
   const [aiWorkspaceSlug, setAiWorkspaceSlug] = useState<string | null>(null);
   const [rfpQuestions, setRfpQuestions] = useState<Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>>([]);
+  const [aiFields, setAiFields] = useState<string[]>([]);
 
   // Saved proposals
   const [savedProposals, setSavedProposals] = useState<ProposalType[]>([]);
@@ -196,6 +198,27 @@ export const ProposalContextProvider = ({
       console.warn("Real-time calculation failed:", e);
     }
   }, [screens, setValue, getValues]);
+
+  const duplicateScreen = useCallback((index: number) => {
+    const values = getValues();
+    const screens = values.details.screens ?? [];
+    if (index >= 0 && index < screens.length) {
+      const screenToCopy = screens[index];
+      const newScreen = {
+        ...screenToCopy,
+        name: `${screenToCopy.name} (Copy)`,
+      };
+      const updatedScreens = [...screens, newScreen];
+      setValue("details.screens", updatedScreens);
+
+      // Recalculate audit
+      try {
+        const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens);
+        setValue("details.internalAudit", internalAudit);
+        setValue("details.clientSummary", clientSummary);
+      } catch (e) { }
+    }
+  }, [getValues, setValue]);
 
   // Get pdf url from blob
   const pdfUrl = useMemo(() => {
@@ -589,6 +612,10 @@ export const ProposalContextProvider = ({
             includeSpareParts: payload.includeSpareParts ?? true,
           };
 
+          // Track which fields were AI-populated for the blue glow
+          const aiPopulated = Object.keys(payload).map(k => `details.screens.${screens.length}.${k}`);
+          setAiFields(prev => Array.from(new Set([...prev, ...aiPopulated])));
+
           // Push new screen
           const updatedScreens = [...screens, newScreen];
 
@@ -674,8 +701,14 @@ export const ProposalContextProvider = ({
         }
         case "UPDATE_CLIENT": {
           const payload = command.payload || {};
-          if (payload.name) setValue("receiver.name", payload.name);
-          if (payload.address) setValue("receiver.address", payload.address);
+          if (payload.name) {
+            setValue("receiver.name", payload.name);
+            setAiFields(prev => Array.from(new Set([...prev, "receiver.name"])));
+          }
+          if (payload.address) {
+            setValue("receiver.address", payload.address);
+            setAiFields(prev => Array.from(new Set([...prev, "receiver.address"])));
+          }
           break;
         }
         case "SET_MARGIN":
@@ -945,19 +978,44 @@ export const ProposalContextProvider = ({
                 if (ext.details?.proposalName) setValue("details.proposalName", ext.details.proposalName);
 
                 if (ext.details?.screens && Array.isArray(ext.details.screens)) {
-                  const normalized = ext.details.screens.map((s: any) => ({
-                    name: s.name || "New Screen",
-                    externalName: s.externalName || s.name,
-                    widthFt: Number(s.widthFt || 0),
-                    heightFt: Number(s.heightFt || 0),
-                    quantity: Number(s.quantity || 1),
-                    pitchMm: Number(s.pitchMm || 10),
-                    serviceType: s.serviceType || "Front/Rear",
-                    isReplacement: !!s.isReplacement,
-                    useExistingStructure: !!s.useExistingStructure,
-                    includeSpareParts: s.includeSpareParts !== false,
-                  }));
+                  const aiPopulated: string[] = [];
+                  const normalized = ext.details.screens.map((s: any, idx: number) => {
+                    const prefix = `details.screens[${idx}]`;
+                    if (s.name) aiPopulated.push(`${prefix}.name`);
+                    if (s.widthFt) aiPopulated.push(`${prefix}.widthFt`);
+                    if (s.heightFt) aiPopulated.push(`${prefix}.heightFt`);
+                    if (s.pitchMm) aiPopulated.push(`${prefix}.pitchMm`);
+                    if (s.pixelsH) aiPopulated.push(`${prefix}.pixelsH`);
+                    if (s.pixelsW) aiPopulated.push(`${prefix}.pixelsW`);
+                    if (s.brightness) aiPopulated.push(`${prefix}.brightness`);
+                    if (s.isReplacement !== undefined) aiPopulated.push(`${prefix}.isReplacement`);
+
+                    return {
+                      name: s.name || "New Screen",
+                      externalName: s.externalName || s.name,
+                      widthFt: Number(s.widthFt || 0),
+                      heightFt: Number(s.heightFt || 0),
+                      quantity: Number(s.quantity || 1),
+                      pitchMm: Number(s.pitchMm || 10),
+                      pixelsH: Number(s.pixelsH || 0),
+                      pixelsW: Number(s.pixelsW || 0),
+                      brightness: s.brightness || "",
+                      serviceType: s.serviceType || "Front/Rear",
+                      isReplacement: !!s.isReplacement,
+                      useExistingStructure: !!s.useExistingStructure,
+                      includeSpareParts: s.includeSpareParts !== false,
+                    };
+                  });
                   setValue("details.screens", normalized);
+                  if (ext.receiver?.name) {
+                    setValue("receiver.name", ext.receiver.name);
+                    aiPopulated.push("receiver.name");
+                  }
+                  if (ext.details?.proposalName) {
+                    setValue("details.proposalName", ext.details.proposalName);
+                    aiPopulated.push("details.proposalName");
+                  }
+                  setAiFields(aiPopulated);
 
                   // Immediately recalculate audit for the new screens
                   try {
@@ -994,26 +1052,8 @@ export const ProposalContextProvider = ({
         },
         // command execution
         applyCommand,
-        duplicateScreen: (index: number) => {
-          const values = getValues();
-          const screens = values.details.screens ?? [];
-          if (index >= 0 && index < screens.length) {
-            const screenToCopy = screens[index];
-            const newScreen = {
-              ...screenToCopy,
-              name: `${screenToCopy.name} (Copy)`,
-            };
-            const updatedScreens = [...screens, newScreen];
-            setValue("details.screens", updatedScreens);
-
-            // Recalculate audit
-            try {
-              const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens);
-              setValue("details.internalAudit", internalAudit);
-              setValue("details.clientSummary", clientSummary);
-            } catch (e) { }
-          }
-        },
+        duplicateScreen,
+        aiFields,
         proposal: watch(),
       }}
     >

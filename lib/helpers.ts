@@ -15,6 +15,7 @@ import { CurrencyDetails } from "@/types";
  * @returns {string} A styled number to be displayed on the invoice
  */
 const formatNumberWithCommas = (number: number) => {
+    if (number == null || isNaN(number)) return "0.00";
     return number.toLocaleString("en-US", {
         style: "decimal",
         minimumFractionDigits: 2,

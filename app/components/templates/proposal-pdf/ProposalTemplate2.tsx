@@ -1,7 +1,7 @@
 import React from "react";
 
 // Components
-import { ProposalLayout } from "@/app/components";
+import { ProposalLayout, LogoSelector } from "@/app/components";
 
 // Helpers
 import { formatNumberWithCommas, isDataUrl } from "@/lib/helpers";
@@ -24,14 +24,7 @@ const ProposalTemplate2 = (data: ProposalType) => {
                     <span className="mt-1 block text-gray-500">
                         {details.proposalId ?? details.invoiceNumber}
                     </span>
-                    {(details.proposalLogo || details.invoiceLogo) && (
-                        <img
-                            src={details.proposalLogo || details.invoiceLogo}
-                            width={140}
-                            height={100}
-                            alt={`Logo of ${sender.name}`}
-                        />
-                    )}
+                    <LogoSelector theme="light" width={140} height={100} />
 
                     <h1 className="mt-2 text-lg md:text-xl font-semibold text-blue-600">
                         {sender.name}
@@ -161,7 +154,7 @@ const ProposalTemplate2 = (data: ProposalType) => {
                                     </dt>
                                     <dd className="col-span-2 text-gray-500">
                                         {details.discountDetails.amountType ===
-                                        "amount"
+                                            "amount"
                                             ? `- ${details.discountDetails.amount} ${details.currency}`
                                             : `- ${details.discountDetails.amount}%`}
                                     </dd>
@@ -175,7 +168,7 @@ const ProposalTemplate2 = (data: ProposalType) => {
                                     </dt>
                                     <dd className="col-span-2 text-gray-500">
                                         {details.taxDetails.amountType ===
-                                        "amount"
+                                            "amount"
                                             ? `+ ${details.taxDetails.amount} ${details.currency}`
                                             : `+ ${details.taxDetails.amount}%`}
                                     </dd>
@@ -189,7 +182,7 @@ const ProposalTemplate2 = (data: ProposalType) => {
                                     </dt>
                                     <dd className="col-span-2 text-gray-500">
                                         {details.shippingDetails.costType ===
-                                        "amount"
+                                            "amount"
                                             ? `+ ${details.shippingDetails.cost} ${details.currency}`
                                             : `+ ${details.shippingDetails.cost}%`}
                                     </dd>

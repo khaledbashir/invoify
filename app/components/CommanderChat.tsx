@@ -18,8 +18,8 @@ export function CommanderChat() {
   const [input, setInput] = useState("")
 
   // Local state for messages (replacing complex hook for now)
-  const [messages, setMessages] = useState<{role: 'user'|'assistant', content: string}[]>([
-    { role: "assistant", content: "Commander ready. Type commands like: 'Add two 100x50 10mm outdoor screens for Dallas Cowboys'." }
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string, gaps?: string[] }[]>([
+    { role: "assistant", content: "Commander ready. I'm your Senior Estimator partner. Drop an RFP or tell me what we're building today." }
   ])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -48,7 +48,7 @@ export function CommanderChat() {
           threadSlug: aiThreadSlug ?? undefined,
         }),
       })
-      
+
       if (!res.ok) {
         const errorText = await res.text()
         let errorMsg = `API Error ${res.status}: ${errorText}`
@@ -62,46 +62,25 @@ export function CommanderChat() {
         setIsLoading(false)
         return
       }
-      
+
       const data = await res.json()
 
-      // Handle different response formats from AnythingLLM
-      if (data?.data) {
-        const resp = data.data
+      if (data?.data?.action?.type === "INCOMPLETE_SPECS") {
+        const payload = data.data.action.payload;
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: payload.message || "I need a few more details to finalize this configuration.",
+          gaps: payload.missingFields
+        }])
+        return
+      }
 
-        // If model gave a textResponse
-        if (resp.type === "textResponse" && resp.textResponse) {
-          const text = resp.textResponse
-          setMessages(prev => [...prev, { role: "assistant", content: text }])
-
-          // text might itself be JSON action
-          try {
-            const parsed = JSON.parse(text)
-            if (parsed && parsed.type) {
-              applyCommand(parsed)
-            }
-          } catch (e) {
-            // not JSON
-          }
-          return
-        }
-
-        // If model returned a direct JSON object with an action
-        if (resp.type === "action" && resp.action) {
-          setMessages(prev => [...prev, { role: "assistant", content: `✅ Executed: ${resp.action.type}` }])
-          applyCommand(resp.action)
-          return
-        }
-
-        // If resp itself is an action-like object
-        if (resp.type && resp.type.startsWith && resp.type.startsWith("ADD_") || (resp.type === "action" && resp.payload)) {
-          setMessages(prev => [...prev, { role: "assistant", content: `✅ Executed: ${resp.type}` }])
-          if (resp.type && resp.type !== "textResponse") applyCommand(resp)
-          return
-        }
-
-        // Fallback: show raw JSON
-        setMessages(prev => [...prev, { role: "assistant", content: JSON.stringify(resp) }])
+      // Handle direct actions
+      if (data?.data?.type === "action" && data.data.action) {
+        const action = data.data.action;
+        applyCommand(action);
+        setMessages(prev => [...prev, { role: "assistant", content: `✅ I've updated the proposal: ${action.type}. The "Ferrari" math is applied.` }])
+        return
       }
 
       // Plain text fallback
@@ -112,7 +91,7 @@ export function CommanderChat() {
           if (parsed && parsed.type) {
             applyCommand(parsed)
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       // Fallback to raw object
@@ -163,13 +142,30 @@ export function CommanderChat() {
                       {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={cn(
-                    "rounded-lg px-3 py-2 text-sm max-w-[85%]",
-                    m.role === "user"
-                      ? "bg-[#003366] text-white"
-                      : "bg-zinc-900 text-zinc-300"
-                  )}>
-                    {m.content}
+                  <div className="flex flex-col gap-2 max-w-[85%]">
+                    <div className={cn(
+                      "rounded-lg px-3 py-2 text-sm shadow-sm",
+                      m.role === "user"
+                        ? "bg-[#0A52EF] text-white self-end"
+                        : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                    )}>
+                      {m.content}
+                    </div>
+                    {m.gaps && m.gaps.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {m.gaps.map(gap => (
+                          <Button
+                            key={gap}
+                            variant="outline"
+                            size="sm"
+                            className="text-[10px] h-6 bg-blue-900/20 border-blue-800 text-blue-300 hover:bg-blue-800/40"
+                            onClick={() => setInput(`The ${gap} is `)}
+                          >
+                            Set {gap}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

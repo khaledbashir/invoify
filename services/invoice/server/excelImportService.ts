@@ -47,7 +47,13 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
             const widthFt = row[6];
             const pixelsH = row[7];
             const pixelsW = row[9];
-            const brightness = row[12];
+
+            // Brightness Row-Hide Logic (Surgical Note): 
+            // If null, 0, or 'N/A', do not show to client.
+            let brightness = row[12];
+            if (!brightness || brightness === 0 || brightness === '0' || String(brightness).toUpperCase() === 'N/A') {
+                brightness = null;
+            }
 
             // Financial fields on LED Sheet (fallbacks if Margin Analysis fails)
             const hardwareCost = row[16] || 0;
@@ -125,7 +131,7 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
                     bondCost: bondCost,
                     totalCost: totalCostBeforeMargin,
                     finalClientTotal: finalClientTotal,
-                    sellingPricePerSqFt: finalClientTotal / (heightFt * widthFt || 1),
+                    sellingPricePerSqFt: heightFt && widthFt ? finalClientTotal / (heightFt * widthFt) : 0,
                     marginAmount: ancMargin // back compat
                 }
             };

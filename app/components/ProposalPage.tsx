@@ -7,6 +7,8 @@ import { useFormContext, useWatch } from "react-hook-form";
 import ProposalForm from "@/app/components/invoice/ProposalForm";
 import PdfViewer from "@/app/components/invoice/actions/PdfViewer";
 import ActionToolbar from "@/app/components/ActionToolbar";
+import RfpSidebar from "@/app/components/invoice/RfpSidebar";
+import LogoSelector from "@/app/components/reusables/LogoSelector";
 
 // ShadCn
 import { Form } from "@/components/ui/form";
@@ -17,8 +19,11 @@ import { Button } from "@/components/ui/button";
 import { useProposalContext } from "@/contexts/ProposalContext";
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
+// Utils
+import { cn } from "@/lib/utils";
+
 // Icons
-import { Send, Sparkles, Download, Share2, Upload, Loader2 } from "lucide-react";
+import { Send, Sparkles, Download, Share2, Upload, Loader2, BrainCircuit } from "lucide-react";
 
 // Types
 import { ProposalType } from "@/types";
@@ -48,6 +53,7 @@ const ProposalPage = () => {
   const [commandLoading, setCommandLoading] = useState(false);
   const [commandHistory, setCommandHistory] = useState<ChatMessage[]>([]);
   const [showCommandHistory, setShowCommandHistory] = useState(false);
+  const [isGodModeOpen, setIsGodModeOpen] = useState(false);
 
   const handleCommandSubmit = async () => {
     if (!commandInput.trim()) return;
@@ -111,10 +117,7 @@ const ProposalPage = () => {
         <div className="h-full max-w-[1920px] mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[#003366] flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-zinc-100 font-semibold text-lg">ANC</span>
+            <LogoSelector theme="dark" width={100} height={40} />
           </div>
 
           {/* Editable Project Name */}
@@ -128,6 +131,20 @@ const ProposalPage = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsGodModeOpen(!isGodModeOpen)}
+              className={cn(
+                "transition-all",
+                isGodModeOpen
+                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-700"
+                  : "text-zinc-400 border-zinc-700 hover:text-blue-500 hover:border-blue-500"
+              )}
+            >
+              <BrainCircuit className="w-4 h-4 mr-2" />
+              God Mode
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -179,28 +196,37 @@ const ProposalPage = () => {
         <Form {...useFormContext<ProposalType>()}>
           <form
             onSubmit={handleSubmit(onFormSubmit, (err) => console.log(err))}
-            className="flex gap-6 h-full"
+            className="flex gap-6 h-full relative"
           >
             {/* Left: Proposal Editor (60%) */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 transition-all duration-300">
               <div className="max-w-3xl mx-auto space-y-4">
                 <ActionToolbar />
                 <ProposalForm />
               </div>
             </div>
 
-            {/* Right: Live PDF Preview (40%) */}
-            <div className="w-[40%] min-w-[500px]">
-              <div className="sticky top-24">
+            {/* Right: Live PDF Preview (40%) / RfpSidebar Toggle */}
+            <div className={cn(
+              "transition-all duration-300 flex gap-4",
+              isGodModeOpen ? "w-[55%] min-w-[800px]" : "w-[40%] min-w-[500px]"
+            )}>
+              <div className="flex-1 sticky top-24">
                 <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden shadow-2xl">
-                  <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/30">
+                  <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/30 flex justify-between items-center">
                     <span className="text-zinc-400 text-sm font-medium">Live Preview</span>
                   </div>
-                  <div className="p-4 bg-zinc-950/50">
+                  <div className="p-4 bg-zinc-950/50 relative aspect-[1/1.4] overflow-hidden">
                     <PdfViewer />
                   </div>
                 </div>
               </div>
+
+              {isGodModeOpen && (
+                <div className="w-80 lg:w-96 shrink-0 sticky top-24 h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-300">
+                  <RfpSidebar />
+                </div>
+              )}
             </div>
           </form>
         </Form>

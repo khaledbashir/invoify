@@ -14,6 +14,7 @@ import { BaseButton, FormInput } from "@/app/components";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
+import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Icons
 import { ChevronDown, ChevronUp, Trash2, Copy, ShieldCheck, Zap } from "lucide-react";
@@ -42,6 +43,7 @@ const SingleScreen = ({
 }: SingleScreenProps) => {
     const { control, setValue, register } = useFormContext();
     const { _t } = useTranslationContext();
+    const { aiFields } = useProposalContext();
 
     const screenName = useWatch({ name: `${name}[${index}].name`, control });
     const width = useWatch({ name: `${name}[${index}].widthFt`, control });
@@ -113,7 +115,8 @@ const SingleScreen = ({
                     <Label className="text-xs uppercase text-gray-500 font-bold">Service Type</Label>
                     <select
                         {...register(`${name}[${index}].serviceType`)}
-                        className="h-9 px-3 text-sm border border-input rounded-md bg-white dark:bg-slate-900 w-[10rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all"
+                        className={`h-9 px-3 text-sm border rounded-md bg-white dark:bg-slate-900 w-[10rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all ${aiFields?.includes(`${name}[${index}].serviceType`) ? "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-input"
+                            }`}
                     >
                         <option value="Front/Rear">Front/Rear (Scoreboard)</option>
                         <option value="Top">Top (Ribbon)</option>
@@ -124,7 +127,8 @@ const SingleScreen = ({
                     <Label className="text-xs uppercase text-gray-500 font-bold">Form Factor</Label>
                     <select
                         {...register(`${name}[${index}].formFactor`)}
-                        className="h-9 px-3 text-sm border border-input rounded-md bg-white dark:bg-slate-900 w-[8rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all"
+                        className={`h-9 px-3 text-sm border rounded-md bg-white dark:bg-slate-900 w-[8rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all ${aiFields?.includes(`${name}[${index}].formFactor`) ? "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-input"
+                            }`}
                     >
                         <option value="Straight">Straight</option>
                         <option value="Curved">Curved</option>
@@ -137,7 +141,8 @@ const SingleScreen = ({
             {/* Strategic Calculator Section (Ferrari Logic) */}
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Margin Slider */}
-                <div className="bg-zinc-100 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-3">
+                <div className={`bg-zinc-100 dark:bg-zinc-900/50 p-4 rounded-xl border transition-all ${aiFields?.includes(`${name}[${index}].desiredMargin`) ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border-zinc-200 dark:border-zinc-800"
+                    } space-y-3`}>
                     <div className="flex justify-between items-center">
                         <Label className="text-xs uppercase text-zinc-500 font-bold flex items-center gap-1">
                             <Zap className="w-3 h-3 text-yellow-500" /> Desired Margin
@@ -151,7 +156,7 @@ const SingleScreen = ({
                         min="0"
                         max="0.8"
                         step="0.01"
-                        {...register(`${name}[index].desiredMargin`, {
+                        {...register(`${name}[${index}].desiredMargin`, {
                             valueAsNumber: true,
                             onChange: (e) => setValue(`${name}[${index}].desiredMargin`, parseFloat(e.target.value))
                         })}
@@ -205,6 +210,16 @@ const SingleScreen = ({
                     <Label className="text-[10px] uppercase text-zinc-400 font-medium">Resolution</Label>
                     <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
                         {Number((screenName && pitch) ? (Math.round((Number(height || 0) / (Number(pitch || 10) / 304.8)) * (Number(width || 0) / (Number(pitch || 10) / 304.8)))) : 0)} pixels
+                    </span>
+                </div>
+
+                <div className="flex flex-col">
+                    <Label className="text-[10px] uppercase text-zinc-400 font-medium">Price / SqFt</Label>
+                    <span className="text-sm font-semibold text-blue-600/80">
+                        {audit?.breakdown?.sellingPricePerSqFt > 0
+                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(audit.breakdown.sellingPricePerSqFt)
+                            : "$0.00"
+                        }
                     </span>
                 </div>
 

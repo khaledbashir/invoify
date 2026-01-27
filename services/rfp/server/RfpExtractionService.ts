@@ -18,12 +18,13 @@ export class RfpExtractionService {
 
         const prompt = `
       You are the ANC Digital Signage Expert AI. 
-      Analyze the RFP document(s) in this workspace and extract a complete set of technical specifications.
+      Analyze the RFP document(s) in this workspace and extract a complete set of technical specifications and project metadata.
       
-      CRITICAL: You must detect specific site rules:
-      1. UNION LABOR: Does the RFP require Union Labor (e.g. New York, Chicago, specific venues)?
-      2. WTC LOCATION: Is this project at the World Trade Center (highly complex)?
-      3. SPARE PARTS: Is there a "Minimum 5% Spare Parts" requirement?
+      CRITICAL: You must detect specific ANC "Ferrari Level" site rules:
+      1. UNION LABOR: Does the RFP require IBEW/Union Labor?
+      2. WTC LOCATION: Is this project at the World Trade Center (Complexity level 10)?
+      3. SPARE PARTS: Is there a "Minimum 5% Spare Parts" requirement? (Mapped to includeSpareParts)
+      4. REPLACEMENT: Is this a replacement project? (Mapped to isReplacement)
       
       OUTPUT FORMAT: Return ONLY a valid JSON object. No markdown, no conversational text.
       
@@ -37,6 +38,9 @@ export class RfpExtractionService {
             "widthFt": 0.0,
             "heightFt": 0.0,
             "pitchMm": 0.0,
+            "pixelsH": 0,
+            "pixelsW": 0,
+            "brightness": "...",
             "quantity": 1,
             "serviceType": "Top" | "Front/Rear",
             "isReplacement": boolean,

@@ -14,13 +14,13 @@
         --popover: 0 0% 100%;
         --popover-foreground: 240 10% 3.9%;
 
-        /* Primary: ANC Deep Navy #003366 */
-        --primary: 210 100% 20%;
+        /* Primary: ANC French Blue #0A52EF */
+        --primary: 221 92% 49%;
         --primary-foreground: 0 0% 98%;
 
         /* Accent: ANC Lime Green #C4D600 */
         --accent: 75 82% 44%;
-        --accent-foreground: 210 100% 20%;
+        --accent-foreground: 221 92% 49%;
 
         --muted: 240 4.8% 95.9%;
         --muted-foreground: 240 3.8% 46.1%;
@@ -30,28 +30,28 @@
 
         --border: 240 5.9% 90%;
         --input: 240 5.9% 90%;
-        --ring: 210 100% 20%;
+        --ring: 221 92% 49%;
 
         --radius: 0.75rem;
     }
 
     .dark {
-        --background: 240 10% 3.9%;
+        --background: 240 10% 4%;
         --foreground: 0 0% 98%;
 
-        --card: 240 10% 3.9%;
+        --card: 240 10% 4%;
         --card-foreground: 0 0% 98%;
 
-        --popover: 240 10% 3.9%;
+        --popover: 240 10% 4%;
         --popover-foreground: 0 0% 98%;
 
-        /* Primary: ANC Deep Navy (lighter in dark mode) */
-        --primary: 210 100% 25%;
+        /* Primary: ANC French Blue */
+        --primary: 221 92% 55%;
         --primary-foreground: 0 0% 98%;
 
         /* Accent: ANC Lime Green */
         --accent: 75 82% 44%;
-        --accent-foreground: 210 100% 20%;
+        --accent-foreground: 221 92% 49%;
 
         --muted: 240 3.7% 15.9%;
         --muted-foreground: 240 5% 64.9%;
@@ -61,7 +61,7 @@
 
         --border: 240 3.7% 15.9%;
         --input: 240 3.7% 15.9%;
-        --ring: 210 100% 25%;
+        --ring: 221 92% 55%;
     }
 }
 

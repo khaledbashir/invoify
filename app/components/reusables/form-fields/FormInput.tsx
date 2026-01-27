@@ -12,6 +12,8 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input, InputProps } from "@/components/ui/input";
+import { useProposalContext } from "@/contexts/ProposalContext";
+import { cn } from "@/lib/utils";
 
 type FormInputProps = {
     name: string;
@@ -32,6 +34,8 @@ const FormInput = ({
     ...props
 }: FormInputProps) => {
     const { control } = useFormContext();
+    const { aiFields } = useProposalContext();
+    const isAiFilled = aiFields?.includes(name);
 
     const verticalInput = (
         <FormField
@@ -50,7 +54,11 @@ const FormInput = ({
                             <Input
                                 {...field}
                                 placeholder={placeholder}
-                                className="w-full bg-zinc-950/50 border-zinc-800"
+                                className={cn(
+                                    "w-full bg-zinc-950/50 border-zinc-800 transition-all duration-300",
+                                    isAiFilled && "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+                                    props.className
+                                )}
                                 {...props}
                             />
                         </FormControl>
@@ -79,7 +87,11 @@ const FormInput = ({
                                 <Input
                                     {...field}
                                     placeholder={placeholder}
-                                    className="w-full bg-zinc-950/50 border-zinc-800"
+                                    className={cn(
+                                        "w-full bg-zinc-950/50 border-zinc-800 transition-all duration-300",
+                                        isAiFilled && "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+                                        props.className
+                                    )}
                                     {...props}
                                 />
                             </FormControl>

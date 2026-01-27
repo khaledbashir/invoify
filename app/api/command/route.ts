@@ -56,12 +56,20 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
       const qtyMatch = docLower.match(/(qty|quantity|\d+\s*units?|\d+\s*displays)/i);
       if (!qtyMatch) missingFields.push('quantity');
 
+      // Check for Spare Parts (Ferrari Requirement)
+      const spareMatch = docLower.includes("spare parts") || docLower.includes("5% spares");
+
+      // Check for Brightness
+      const brightMatch = docLower.match(/(\d+)\s*nits|brightness/i);
+
       return {
         hasGaps: missingFields.length > 0,
         missingFields,
         detectedSpecs: {
           pitch: pitchMatch ? pitchMatch[1] || pitchMatch[2] : null,
           environment: envMatch ? envMatch[1] : null,
+          includeSpareParts: spareMatch,
+          brightness: brightMatch ? (brightMatch[1] || null) : null,
         }
       };
     };
@@ -338,6 +346,7 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
               quantity: 1,
               serviceType: product.service_type,
               isCurvy: product.is_curvy,
+              includeSpareParts: detectedSpecs.includeSpareParts,
             };
 
             // Also run a quick DB benchmark to provide context (read-only)
