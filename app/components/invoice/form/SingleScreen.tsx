@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // RHF
 import { FieldArrayWithId, useFormContext, useWatch } from "react-hook-form";
@@ -17,8 +17,10 @@ import { useTranslationContext } from "@/contexts/TranslationContext";
 import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Icons
-import { ChevronDown, ChevronUp, Trash2, Copy, ShieldCheck, Zap } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, Copy, ShieldCheck, Zap, AlertTriangle, CheckCircle2, ChevronRight, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type SingleScreenProps = {
     name: string;
@@ -41,22 +43,34 @@ const SingleScreen = ({
     removeField,
     duplicateField,
 }: SingleScreenProps) => {
-    const { control, setValue, register } = useFormContext();
+    const { control, setValue, register, formState: { errors } } = useFormContext();
     const { _t } = useTranslationContext();
     const { aiFields } = useProposalContext();
+    const [isExpanded, setIsExpanded] = useState(index === 0 && fields.length === 1);
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     const screenName = useWatch({ name: `${name}[${index}].name`, control });
     const width = useWatch({ name: `${name}[${index}].widthFt`, control });
     const height = useWatch({ name: `${name}[${index}].heightFt`, control });
     const quantity = useWatch({ name: `${name}[${index}].quantity`, control });
     const pitch = useWatch({ name: `${name}[${index}].pitchMm`, control });
+    const desiredMargin = useWatch({ name: `${name}[${index}].desiredMargin`, control });
 
-    // Watch the audit result for this screen (Mode B feedback)
+    // Watch the audit result for this screen
     const audit = useWatch({ name: `details.internalAudit.perScreen[${index}]`, control });
     const finalClientTotal = audit?.breakdown?.finalClientTotal || 0;
+    const sellingPricePerSqFt = audit?.breakdown?.sellingPricePerSqFt || 0;
+
+    // Check for validation errors
+    const screenErrors = errors?.details?.screens?.[index];
+    const hasErrors = screenErrors && Object.keys(screenErrors).length > 0;
+    
+    // Check for warnings
+    const hasLowMargin = desiredMargin < 0.15;
+    const isMissingDimensions = !width || !height || width === 0 || height === 0;
+    const hasWarning = hasLowMargin || isMissingDimensions;
 
     useEffect(() => {
-        // Could compute area or resolution here and set derived fields if desired
         if (width != undefined && height != undefined) {
             const area = (Number(width) * Number(height)).toFixed(2);
             setValue(`${name}[${index}].areaSqFt`, area);
@@ -68,171 +82,359 @@ const SingleScreen = ({
             const pixelResolution = Math.round(pixelsHeight * pixelsWidth);
             setValue(`${name}[${index}].pixelResolution`, pixelResolution);
         }
-    }, [width, height, pitch]);
+    }, [width, height, pitch, name, index, setValue]);
+
+    const area = (Number(width || 0) * Number(height || 0)).toFixed(2);
 
     return (
-        <div className="border rounded-xl p-3 bg-gray-50 dark:bg-slate-800">
-            <div className="flex justify-between items-center">
-                <p className="font-medium">
-                    #{index + 1} - {screenName ? screenName : "Untitled Screen"}
-                </p>
+        <div className={cn(
+            "border rounded-xl overflow-hidden transition-all duration-200",
+            hasErrors ? "border-red-500/50 bg-red-950/10" : 
+            hasWarning ? "border-yellow-500/50 bg-yellow-950/10" : 
+            "border-zinc-700 bg-zinc-900/30"
+        )}>
+            {/* Collapsed Header - Always Visible */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full p-4 flex items-center justify-between hover:bg-zinc-800/30 transition-colors"
+            >
+                <div className="flex items-center gap-3">
+                    {/* Status Indicator */}
+                    <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        hasErrors ? "bg-red-500" :
+                        hasWarning ? "bg-yellow-500" :
+                        "bg-emerald-500"
+                    )} />
+                    
+                    <div className="text-left">
+                        <p className="font-medium text-zinc-100">
+                            #{index + 1} - {screenName || "Untitled Screen"}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                            {width > 0 && height > 0 ? `${width}' × ${height}'` : "No dimensions"} 
+                            {quantity > 1 && ` × ${quantity}`}
+                            {pitch > 0 && ` • ${pitch}mm pitch`}
+                        </p>
+                    </div>
 
-                <div className="flex gap-2">
-                    <BaseButton size={"icon"} onClick={() => moveFieldUp(index)} disabled={index === 0}>
-                        <ChevronUp />
-                    </BaseButton>
-                    <BaseButton size={"icon"} onClick={() => moveFieldDown(index)} disabled={index === fields.length - 1}>
-                        <ChevronDown />
-                    </BaseButton>
-                    <BaseButton size={"icon"} variant="outline" onClick={() => duplicateField?.(index)}>
-                        <Copy className="w-4 h-4" />
-                    </BaseButton>
-                    <BaseButton variant="destructive" onClick={() => removeField(index)}>
-                        <Trash2 />
-                        {_t("form.steps.screens.removeScreen")}
-                    </BaseButton>
-                </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3 mt-3">
-                <FormInput name={`${name}[${index}].name`} label={_t("form.steps.screens.name")} placeholder="Screen name" vertical />
-
-                <FormInput name={`${name}[${index}].productType`} label={_t("form.steps.screens.productType")} placeholder="Product type" vertical />
-
-                <FormInput name={`${name}[${index}].widthFt`} label={_t("form.steps.screens.width")} type="number" className="w-[10rem]" vertical />
-
-                <FormInput name={`${name}[${index}].heightFt`} label={_t("form.steps.screens.height")} type="number" className="w-[10rem]" vertical />
-
-                <FormInput name={`${name}[${index}].quantity`} label={_t("form.steps.screens.quantity")} type="number" className="w-[8rem]" vertical />
-
-                <FormInput name={`${name}[${index}].pitchMm`} label={_t("form.steps.screens.pitch")} type="number" className="w-[8rem]" vertical />
-
-                <FormInput name={`${name}[${index}].costPerSqFt`} label={_t("form.steps.screens.costPerSqFt")} type="number" className="w-[8rem]" vertical />
-
-                <FormInput name={`${name}[${index}].desiredMargin`} label={_t("form.steps.screens.desiredMargin")} type="number" className="w-[8rem]" vertical />
-
-                <div className="flex flex-col gap-1">
-                    <Label className="text-xs uppercase text-gray-500 font-bold">Service Type</Label>
-                    <select
-                        {...register(`${name}[${index}].serviceType`)}
-                        className={`h-9 px-3 text-sm border rounded-md bg-white dark:bg-slate-900 w-[10rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all ${aiFields?.includes(`${name}[${index}].serviceType`) ? "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-input"
-                            }`}
-                    >
-                        <option value="Front/Rear">Front/Rear (Scoreboard)</option>
-                        <option value="Top">Top (Ribbon)</option>
-                    </select>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <Label className="text-xs uppercase text-gray-500 font-bold">Form Factor</Label>
-                    <select
-                        {...register(`${name}[${index}].formFactor`)}
-                        className={`h-9 px-3 text-sm border rounded-md bg-white dark:bg-slate-900 w-[8rem] focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all ${aiFields?.includes(`${name}[${index}].formFactor`) ? "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-input"
-                            }`}
-                    >
-                        <option value="Straight">Straight</option>
-                        <option value="Curved">Curved</option>
-                    </select>
-                </div>
-
-                <FormInput name={`${name}[${index}].outletDistance`} label="Outlet Dist (ft)" type="number" className="w-[8rem]" vertical />
-            </div>
-
-            {/* Strategic Calculator Section (Ferrari Logic) */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Margin Slider */}
-                <div className={`bg-zinc-100 dark:bg-zinc-900/50 p-4 rounded-xl border transition-all ${aiFields?.includes(`${name}[${index}].desiredMargin`) ? "border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]" : "border-zinc-200 dark:border-zinc-800"
-                    } space-y-3`}>
-                    <div className="flex justify-between items-center">
-                        <Label className="text-xs uppercase text-zinc-500 font-bold flex items-center gap-1">
-                            <Zap className="w-3 h-3 text-yellow-500" /> Desired Margin
-                        </Label>
-                        <span className="text-sm font-bold text-blue-600">
-                            {(useWatch({ name: `${name}[${index}].desiredMargin`, control }) * 100 || 0).toFixed(0)}%
+                    {/* Warning/Error Badges */}
+                    {hasErrors && (
+                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold rounded-full flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3" />
+                            Errors
                         </span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="0.8"
-                        step="0.01"
-                        {...register(`${name}[${index}].desiredMargin`, {
-                            valueAsNumber: true,
-                            onChange: (e) => setValue(`${name}[${index}].desiredMargin`, parseFloat(e.target.value))
-                        })}
-                        className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                    />
-                    <p className="text-[10px] text-zinc-500 italic">Adjust margin to see real-time price impact on the client PDF.</p>
-                </div>
-
-                {/* Ferrari Logic Toggles */}
-                <div className="flex gap-4 items-center bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-200/30">
-                    <div className="flex flex-col gap-2">
-                        <Label className="text-[10px] uppercase text-blue-700 dark:text-blue-400 font-bold flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3" /> Spares (5%)
-                        </Label>
-                        <Switch
-                            checked={useWatch({ name: `${name}[${index}].includeSpareParts`, control })}
-                            onCheckedChange={(checked) => setValue(`${name}[${index}].includeSpareParts`, checked)}
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label className="text-[10px] uppercase text-blue-700 dark:text-blue-400 font-bold">Replacement</Label>
-                        <Switch
-                            checked={useWatch({ name: `${name}[${index}].isReplacement`, control })}
-                            onCheckedChange={(checked) => setValue(`${name}[${index}].isReplacement`, checked)}
-                        />
-                    </div>
-
-                    {useWatch({ name: `${name}[${index}].isReplacement`, control }) && (
-                        <div className="flex flex-col gap-2 animate-in slide-in-from-left-2">
-                            <Label className="text-[10px] uppercase text-blue-700 dark:text-blue-400 font-bold">Use Exit. Steel</Label>
-                            <Switch
-                                checked={useWatch({ name: `${name}[${index}].useExistingStructure`, control })}
-                                onCheckedChange={(checked) => setValue(`${name}[${index}].useExistingStructure`, checked)}
-                            />
-                        </div>
+                    )}
+                    {hasLowMargin && !hasErrors && (
+                        <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold rounded-full">
+                            Low Margin
+                        </span>
+                    )}
+                    {aiFields?.includes(`${name}[${index}].name`) && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="px-2 py-0.5 bg-[#0A52EF]/20 text-[#0A52EF] text-[10px] font-bold rounded-full flex items-center gap-1 cursor-help">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        AI
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                    side="top" 
+                                    className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
+                                >
+                                    <p className="text-xs leading-relaxed">
+                                        <strong className="text-[#0A52EF]">AI Extracted:</strong> This value was pulled automatically from the RFP (e.g., Exhibit B). Please verify and lock this data.
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     )}
                 </div>
-            </div>
 
-            {/* Live Pricing Summary (Secondary Feedback) */}
-            <div className="mt-4 flex gap-6 items-center px-2 py-3 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="flex flex-col">
-                    <Label className="text-[10px] uppercase text-zinc-400 font-medium">Area</Label>
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                        {(Number(width || 0) * Number(height || 0)).toFixed(2)} sq ft
-                    </span>
-                </div>
+                <div className="flex items-center gap-4">
+                    {/* Price Preview */}
+                    <div className="text-right">
+                        <p className="text-lg font-bold text-blue-400">
+                            {finalClientTotal > 0
+                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(finalClientTotal)
+                                : "$0"
+                            }
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                            {(desiredMargin * 100 || 0).toFixed(0)}% margin
+                        </p>
+                    </div>
 
-                <div className="flex flex-col">
-                    <Label className="text-[10px] uppercase text-zinc-400 font-medium">Resolution</Label>
-                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                        {Number((screenName && pitch) ? (Math.round((Number(height || 0) / (Number(pitch || 10) / 304.8)) * (Number(width || 0) / (Number(pitch || 10) / 304.8)))) : 0)} pixels
-                    </span>
+                    <ChevronRight className={cn(
+                        "w-5 h-5 text-zinc-500 transition-transform duration-200",
+                        isExpanded && "rotate-90"
+                    )} />
                 </div>
+            </button>
 
-                <div className="flex flex-col">
-                    <Label className="text-[10px] uppercase text-zinc-400 font-medium">Price / SqFt</Label>
-                    <span className="text-sm font-semibold text-blue-600/80">
-                        {audit?.breakdown?.sellingPricePerSqFt > 0
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(audit.breakdown.sellingPricePerSqFt)
-                            : "$0.00"
-                        }
-                    </span>
-                </div>
+            {/* Expanded Content */}
+            {isExpanded && (
+                <div className="p-4 border-t border-zinc-700/50 space-y-4">
+                    {/* Quick Actions Bar */}
+                    <div className="flex items-center justify-between pb-3 border-b border-zinc-700/30">
+                        <div className="flex items-center gap-2">
+                            <BaseButton 
+                                size="icon" 
+                                variant="ghost" 
+                                onClick={() => moveFieldUp(index)} 
+                                disabled={index === 0}
+                                tooltipLabel="Move up"
+                            >
+                                <ChevronUp className="w-4 h-4" />
+                            </BaseButton>
+                            <BaseButton 
+                                size="icon" 
+                                variant="ghost" 
+                                onClick={() => moveFieldDown(index)} 
+                                disabled={index === fields.length - 1}
+                                tooltipLabel="Move down"
+                            >
+                                <ChevronDown className="w-4 h-4" />
+                            </BaseButton>
+                            <BaseButton 
+                                size="icon" 
+                                variant="outline" 
+                                onClick={() => duplicateField?.(index)}
+                                tooltipLabel="Duplicate"
+                            >
+                                <Copy className="w-4 h-4" />
+                            </BaseButton>
+                        </div>
+                        <BaseButton 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => removeField(index)}
+                        >
+                            <Trash2 className="w-4 h-4 mr-1" /
+                            Remove
+                        </BaseButton>
+                    </div>
 
-                <div className="ml-auto flex flex-col items-end">
-                    <Label className="text-[10px] uppercase text-zinc-400 font-medium">Est. Client Price</Label>
-                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {finalClientTotal > 0
-                            ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(finalClientTotal)
-                            : "Calculating..."
-                        }
-                    </span>
+                    {/* Primary Fields */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <FormInput 
+                            name={`${name}[${index}].name`} 
+                            label="Screen Name" 
+                            placeholder="e.g., Main Scoreboard"
+                            vertical 
+                        />
+                        <FormInput 
+                            name={`${name}[${index}].productType`} 
+                            label="Product Type" 
+                            placeholder="e.g., A Series"
+                            vertical 
+                        />
+                        
+                        <div className="flex flex-col gap-1">
+                            <Label className="text-xs uppercase text-zinc-500 font-bold">Service Type</Label>
+                            <select
+                                {...register(`${name}[${index}].serviceType`)}
+                                className={cn(
+                                    "h-9 px-3 text-sm border rounded-md bg-zinc-950 w-full focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all",
+                                    aiFields?.includes(`${name}[${index}].serviceType`) ? "border-blue-500 ring-1 ring-blue-500" : "border-zinc-700"
+                                )}
+                            >
+                                <option value="Front/Rear">Front/Rear (Scoreboard)</option>
+                                <option value="Top">Top (Ribbon)</option>
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <Label className="text-xs uppercase text-zinc-500 font-bold">Form Factor</Label>
+                            <select
+                                {...register(`${name}[${index}].formFactor`)}
+                                className={cn(
+                                    "h-9 px-3 text-sm border rounded-md bg-zinc-950 w-full focus:ring-1 focus:ring-blue-500 focus:outline-none transition-all",
+                                    aiFields?.includes(`${name}[${index}].formFactor`) ? "border-blue-500 ring-1 ring-blue-500" : "border-zinc-700"
+                                )}
+                            >
+                                <option value="Straight">Straight</option>
+                                <option value="Curved">Curved</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Dimensions Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <FormInput 
+                            name={`${name}[${index}].widthFt`} 
+                            label="Width (ft)" 
+                            type="number"
+                            vertical 
+                        />
+                        <FormInput 
+                            name={`${name}[${index}].heightFt`} 
+                            label="Height (ft)" 
+                            type="number"
+                            vertical 
+                        />
+                        
+                        <FormInput 
+                            name={`${name}[${index}].quantity`} 
+                            label="Quantity" 
+                            type="number"
+                            vertical 
+                        />
+                        
+                        <FormInput 
+                            name={`${name}[${index}].pitchMm`} 
+                            label="Pitch (mm)" 
+                            type="number"
+                            vertical 
+                        />
+                        
+                        <FormInput 
+                            name={`${name}[${index}].outletDistance`} 
+                            label="Outlet Dist (ft)" 
+                            type="number"
+                            vertical 
+                        />
+                    </div>
+
+                    {/* Margin Slider - With Natalia Math Tooltip */}
+                    <div className={cn(
+                        "p-4 rounded-xl border space-y-3",
+                        aiFields?.includes(`${name}[${index}].desiredMargin`) 
+                            ? "border-[#0A52EF]/50 bg-[#0A52EF]/10" 
+                            : "border-zinc-700 bg-zinc-800/30"
+                    )}>
+                        <div className="flex justify-between items-center">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Label className="text-xs uppercase text-zinc-500 font-bold flex items-center gap-1 cursor-help">
+                                            <Zap className="w-3 h-3 text-yellow-500" /> 
+                                            Desired Margin
+                                            <Info className="w-3 h-3 text-zinc-600 hover:text-[#0A52EF] transition-colors" />
+                                        </Label>
+                                    </TooltipTrigger>
+                                    <TooltipContent 
+                                        side="top" 
+                                        className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
+                                    >
+                                        <p className="text-xs leading-relaxed">
+                                            <strong className="text-[#0A52EF]">Using ANC Strategic Logic:</strong> We use the Divisor Model <code className="bg-zinc-700 px-1 rounded">[Cost / (1 - Margin)]</code> to ensure your P&L profit matches your target percentage exactly.
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            <span className={cn(
+                                "text-sm font-bold",
+                                hasLowMargin ? "text-yellow-500" : "text-blue-400"
+                            )}>
+                                {(desiredMargin * 100 || 0).toFixed(0)}%
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="0.8"
+                            step="0.01"
+                            {...register(`${name}[${index}].desiredMargin`, {
+                                valueAsNumber: true,
+                                onChange: (e) => setValue(`${name}[${index}].desiredMargin`, parseFloat(e.target.value))
+                            })}
+                            className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        />
+                        <p className="text-[10px] text-zinc-500">
+                            Adjust margin to see real-time price impact
+                        </p>
+                    </div>
+
+                    {/* Advanced Settings Toggle */}
+                    <button
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="flex items-center gap-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                    >
+                        <ChevronRight className={cn(
+                            "w-4 h-4 transition-transform",
+                            showAdvanced && "rotate-90"
+                        )} />
+                        Advanced Settings
+                    </button>
+
+                    {/* Advanced Settings */}
+                    {showAdvanced && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-zinc-800/30 rounded-xl border border-zinc-700/50">
+                            <FormInput 
+                                name={`${name}[${index}].costPerSqFt`} 
+                                label="Cost per Sq Ft ($)" 
+                                type="number"
+                                vertical 
+                            />
+
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-[10px] uppercase text-zinc-500 font-bold flex items-center gap-1">
+                                    <ShieldCheck className="w-3 h-3" /> 
+                                    Include Spares (5%)
+                                </Label>
+                                <Switch
+                                    checked={useWatch({ name: `${name}[${index}].includeSpareParts`, control })}
+                                    onCheckedChange={(checked) => setValue(`${name}[${index}].includeSpareParts`, checked)}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-[10px] uppercase text-zinc-500 font-bold">Replacement Project</Label>
+                                <Switch
+                                    checked={useWatch({ name: `${name}[${index}].isReplacement`, control })}
+                                    onCheckedChange={(checked) => setValue(`${name}[${index}].isReplacement`, checked)}
+                                />
+                            </div>
+
+                            {useWatch({ name: `${name}[${index}].isReplacement`, control }) && (
+                                <div className="flex flex-col gap-2">
+                                    <Label className="text-[10px] uppercase text-zinc-500 font-bold">Use Existing Steel</Label>
+                                    <Switch
+                                        checked={useWatch({ name: `${name}[${index}].useExistingStructure`, control })}
+                                        onCheckedChange={(checked) => setValue(`${name}[${index}].useExistingStructure`, checked)}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Live Stats Footer */}
+                    <div className="flex items-center gap-6 pt-3 border-t border-zinc-700/30 text-xs">
+                        <div className="flex items-center gap-2">
+                            <span className="text-zinc-500">Area:</span>
+                            <span className="font-medium text-zinc-300">{area} sq ft</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-zinc-500">Price/SqFt:</span>
+                            <span className="font-medium text-blue-400">
+                                {sellingPricePerSqFt > 0 
+                                    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(sellingPricePerSqFt)
+                                    : "$0.00"
+                                }
+                            </span>
+                        </div>
+                        <div className="ml-auto flex items-center gap-2">
+                            {hasErrors ? (
+                                <>
+                                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                                    <span className="text-red-400">Fix errors to calculate</span>
+                                </>
+                            ) : finalClientTotal > 0 ? (
+                                <>
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    <span className="text-emerald-400">Ready</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="text-zinc-500">Add dimensions to calculate</span>
+                                </>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 };

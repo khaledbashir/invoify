@@ -34,8 +34,16 @@ const FormInput = ({
     ...props
 }: FormInputProps) => {
     const { control } = useFormContext();
-    const { aiFields } = useProposalContext();
+    const { aiFields, isFieldGhostActive } = useProposalContext();
     const isAiFilled = aiFields?.includes(name);
+    const isGhostActive = isFieldGhostActive?.(name) || false;
+
+    // AI Ghost Effect Classes - French Blue (#0A52EF) flicker
+    const ghostClasses = isGhostActive 
+        ? "border-[#0A52EF] ring-2 ring-[#0A52EF] ring-offset-2 ring-offset-zinc-950 shadow-[0_0_25px_rgba(10,82,239,0.6)] bg-[#0A52EF]/10 animate-pulse"
+        : isAiFilled 
+            ? "border-blue-500/50 ring-1 ring-blue-500/30" 
+            : "";
 
     const verticalInput = (
         <FormField
@@ -56,7 +64,7 @@ const FormInput = ({
                                 placeholder={placeholder}
                                 className={cn(
                                     "w-full bg-zinc-950/50 border-zinc-800 transition-all duration-300",
-                                    isAiFilled && "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+                                    ghostClasses,
                                     props.className
                                 )}
                                 {...props}
@@ -89,7 +97,7 @@ const FormInput = ({
                                     placeholder={placeholder}
                                     className={cn(
                                         "w-full bg-zinc-950/50 border-zinc-800 transition-all duration-300",
-                                        isAiFilled && "border-blue-500 ring-1 ring-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]",
+                                        ghostClasses,
                                         props.className
                                     )}
                                     {...props}
