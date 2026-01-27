@@ -24,32 +24,32 @@ const PdfViewer = () => {
     const [debouncedWatch] = useDebounce(watch, 300);
     const formValues = debouncedWatch();
 
+    // Indiana Fever (Template 2) uses a Blue header, so we force the White Logo.
+    const forceWhiteLogo = formValues.details?.pdfTemplate === 2;
+
+    // Cast to any to accept the custom prop without TS errors
+    const Template = DynamicProposalTemplate as any;
+
     return (
         <div className="my-3">
             {proposalPdf.size == 0 ? (
                 <div className="w-full rounded-lg shadow-2xl bg-white min-h-[1000px] relative">
-                    {/* 
-                        LOGO GUARD:
-                        We hook into the styles of the template.
-                        Note: The template itself likely renders the logo.
-                        If we want to "Strictly use the White Logo if PDF header background is Blue",
-                        we need to pass this prop to `DynamicProposalTemplate` or ensure the template handles it.
-                        
-                        However, since PdfViewer is just the wrapper, we might need to intercept the props.
-                        If DynamicProposalTemplate doesn't support an explicit logo override prop, we should add one.
-                        
-                        Assuming DynamicProposalTemplate takes `senderData` or `logoUrl`. 
-                        We will inject the White Logo override if the template logic correlates to Blue.
-                        The "ProposalTemplate2" (Indiana) usually has a Blue header.
-                        
-                        Let's try to override the logo in `formValues.details` or `formValues.sender` if possible.
-                     */}
-                    <div className="origin-top transform scale-50 md:scale-50 lg:scale-75">
-                        {/* Force White Logo for Indiana (Template 2) */}
-                        <DynamicProposalTemplate
-                            {...formValues}
-                            forceWhiteLogo={true} // We'll add this prop support to the template or generic wrapper
-                        />
+                    <div
+                        className="h-full w-full overflow-y-auto rounded-xl bg-white shadow-xl ring-1 ring-gray-900/5"
+                        style={{
+                            aspectRatio: "210/297", // A4 aspect ratio
+                        }}
+                    >
+                        {Template ? (
+                            <Template
+                                {...formValues}
+                                forceWhiteLogo={forceWhiteLogo}
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-gray-400">
+                                Generator Loading...
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (

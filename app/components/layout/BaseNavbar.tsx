@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const BaseNavbar = () => {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
