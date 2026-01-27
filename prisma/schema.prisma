@@ -45,6 +45,7 @@ model Proposal {
   // Formulas & Calculations (stored, not just results)
   marginFormula   String?            @default("P = C / (1 - M)") // Divisor Model
   bondFormula     String?            @default("B = P * 0.015")   // 1.5% Bond
+  bondRate        Float              @default(1.5)               // Mutable bond rate override
 
   // Internal Audit Snapshots (computed, not editable)
   internalAudit   Json?              // Detailed per-screen audit (internal use)

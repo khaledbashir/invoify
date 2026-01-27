@@ -142,6 +142,50 @@ export class AnythingLLMService {
 
         return await res.json();
     }
+
+    /**
+     * Uploads a raw file (Blob/File/Buffer) to AnythingLLM and optionally adds it to a workspace.
+     */
+    async uploadFile(file: Blob | File, fileName: string, addToWorkspaceSlug?: string) {
+        if (!this.baseUrl || !this.apiKey) return null;
+
+        const endpoint = `${this.baseUrl}/document/upload`;
+
+        console.log(`[AnythingLLM] Uploading file '${fileName}'... addToWorkspace: ${addToWorkspaceSlug}`);
+
+        const formData = new FormData();
+        formData.append("file", file, fileName);
+        if (addToWorkspaceSlug) {
+            formData.append("addToWorkspaces", addToWorkspaceSlug);
+        }
+
+        // Note: Do not manually set Content-Type header when using FormData, 
+        // the browser/fetch will set the boundary.
+        const headers = {
+            "Authorization": `Bearer ${this.apiKey}`,
+            "Accept": "application/json"
+        };
+
+        try {
+            const res = await fetch(endpoint, {
+                method: "POST",
+                headers: headers,
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.text();
+                console.error(`[AnythingLLM] File Upload failed: ${err}`);
+                throw new Error(err);
+            }
+
+            const data = await res.json();
+            return data;
+        } catch (err) {
+            console.error("[AnythingLLM] File Upload Error:", err);
+            throw err;
+        }
+    }
 }
 
 export const anythingLLMService = new AnythingLLMService();

@@ -14,6 +14,7 @@ import { useTranslationContext } from "@/contexts/TranslationContext";
 
 // Types
 import { ProposalType, WizardStepType } from "@/types";
+import { useDebouncedSave } from "@/app/hooks/useDebouncedSave";
 
 type WizardProgressProps = {
     wizard: WizardValues;
@@ -77,30 +78,36 @@ const WizardProgress = ({ wizard }: WizardProgressProps) => {
     const steps: WizardStepType[] = [
         {
             id: 0,
-            label: _t("form.wizard.fromAndTo"),
+            label: "Ingestion & Parties",
             isValid: step1Valid,
         },
         {
             id: 1,
-            label: "Proposal Details",
+            label: "Intelligence & Specs",
             isValid: step2Valid,
         },
         {
             id: 2,
-            label: _t("form.wizard.lineItems"),
+            label: "The Natalia Math",
             isValid: step3Valid,
         },
         {
             id: 3,
-            label: _t("form.wizard.paymentInfo"),
+            label: "Ferrari Export",
             isValid: step4Valid,
         },
-        {
-            id: 4,
-            label: _t("form.wizard.summary"),
-            isValid: step5Valid,
-        },
     ];
+
+    const { saveToDb } = useDebouncedSave();
+
+    // Wrapper for navigation
+    const handleStepChange = async (stepId: number) => {
+        // Trigger Save (Fire and forget, or await?)
+        // User said "triggers a background PATCH", so fire and forget is fine, but maybe await to be safe?
+        // Let's fire and forget to keep UI snappy, valid for "background".
+        saveToDb();
+        wizard.goToStep(stepId);
+    };
 
     return (
         <div className="flex flex-wrap justify-around items-center gap-y-3">
@@ -109,9 +116,7 @@ const WizardProgress = ({ wizard }: WizardProgressProps) => {
                     <BaseButton
                         variant={returnButtonVariant(step)}
                         className="w-auto"
-                        onClick={() => {
-                            wizard.goToStep(step.id);
-                        }}
+                        onClick={() => handleStepChange(step.id)}
                     >
                         {step.id + 1}. {step.label}
                     </BaseButton>
