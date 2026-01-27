@@ -58,7 +58,8 @@
         "description": "Description",
         "quantity": "Qty",
         "rate": "Rate",
-        "total": "Total"
+        "total": "Total",
+        "removeItem": "Remove Item"
       },
       "paymentInfo": {
         "heading": "Payment Terms",
