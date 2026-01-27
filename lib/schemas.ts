@@ -221,6 +221,7 @@ const InvoiceDetailsSchema = z.object({
     proposalLogo: fieldValidators.stringOptional,
     proposalId: fieldValidators.stringOptional,
     proposalName: fieldValidators.stringOptional, // Professional project name
+    location: fieldValidators.stringOptional, // Project Location (e.g. "Dodger Stadium")
     clientName: fieldValidators.stringOptional,
     workspaceId: fieldValidators.stringOptional,
     proposalDate: fieldValidators.date.optional(),
@@ -274,6 +275,7 @@ const InvoiceDetailsSchema = z.object({
     updatedAt: fieldValidators.stringOptional,
     documentType: z.enum(["LOI", "First Round"]).default("First Round"),
     pricingType: z.enum(["Hard Quoted", "Budget"]).default("Budget"),
+    mirrorMode: z.boolean().default(false),
     status: fieldValidators.stringOptional,
     pdfTemplate: z.number(),
 });

@@ -51,8 +51,8 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
             // Brightness Row-Hide Logic (Surgical Note): 
             // If null, 0, or 'N/A', do not show to client.
             let brightness = row[12];
-            if (!brightness || brightness === 0 || brightness === '0' || String(brightness).toUpperCase() === 'N/A') {
-                brightness = null;
+            if (brightness === undefined || brightness === null || brightness === 0 || brightness === '0' || String(brightness).toUpperCase() === 'N/A' || String(brightness).trim() === '') {
+                brightness = undefined;
             }
 
             // Financial fields on LED Sheet (fallbacks if Margin Analysis fails)

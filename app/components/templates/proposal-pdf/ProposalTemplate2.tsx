@@ -26,7 +26,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const totals = internalAudit?.totals;
 
     // Filter out "summary" tables only? Or generic items?
-    // Indiana Fever has 3 Sections:
+    // Dynamic Template Mapping:
+    // This template binds to ProposalContext data.
     // 1. Specs (Screen Configs)
     // 2. Pricing Breakdown (Audit Table)
     // 3. Summary (Totals)
@@ -72,6 +73,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                         <td className="p-1 pl-2 text-gray-600">Pixel Resolution (W)</td>
                         <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.resolutionW ?? ((screen.widthFt ?? screen.width) * 12 * 25.4 / (screen.pitchMm ?? screen.pixelPitch)).toFixed(0)} p</td>
                     </tr>
+                    {screen.brightness && (
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1 pl-2 text-gray-600">Brightness (nits)</td>
+                            <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.brightness} nits</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>
@@ -160,10 +167,10 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             </div>
 
-            {/* Intro Paragraph (from ABCDE screenshot) */}
+            {/* Intro Paragraph (Dynamic Header Injection per Architect Directive) */}
             <div className="mb-10 text-xs text-gray-600 text-justify leading-relaxed mx-1">
                 <p>
-                    This Sales Quotation will set forth the terms by which {receiver.name} ("Purchaser") located at {receiver.address}, and ANC Sports Enterprises, LLC ("ANC") located at {sender.address} (collectively, the "Parties") agree that ANC will provide following LED Display and services ("the Display System") described below for the {data.details.proposalName || "Project"}, as described below.
+                    This Sales Quotation will set forth the terms by which {receiver.name} (“Purchaser”) located at {receiver.address} and ANC Sports Enterprises, LLC (“ANC”) located at {sender.address} (collectively, the “Parties”) agree that ANC will provide following Display System and services (“the Display System”) described below for the {details.location || details.proposalName || "Project"}.
                 </p>
             </div>
 
@@ -208,7 +215,55 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             </div>
 
-            {/* 5. SIGNATURE */}
+            {/* 6. STATEMENT OF WORK (DYNAMTIC HEADER) */}
+            <div className="break-before-page"></div>
+            <div className="pt-8">
+                <SectionHeader title={`STATEMENT OF WORK: ${details.proposalName || "PROJECT"}`} />
+
+                <div className="space-y-8 text-[11px] leading-relaxed text-gray-700">
+                    <section>
+                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 uppercase tracking-wide">1. PHYSICAL INSTALLATION</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>ANC will furnish and install necessary structural secondary steel/aluminum framing for LED display mounting.</li>
+                            <li>Installation includes mounting of all LED display cabinets, internal cabling, and module populating.</li>
+                            <li>Includes final alignment, seam adjustments, and physical cleaning of display surfaces.</li>
+                            <li>Assumes standard union/non-union labor rates as defined in the project scope document.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 uppercase tracking-wide">2. ELECTRICAL & DATA INSTALLATION</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>ANC will provide internal DC power and data distribution within the LED display system.</li>
+                            <li>Client/Purchaser to provide primary AC power (breakers/panels) and permanent data conduit to the ANC head-end.</li>
+                            <li>Includes installation of ANC-specified fiber/CAT6 data backhaul from control room to display location.</li>
+                            <li>Integration of all display processors, switchers, and monitoring hardware in the centralized rack.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 uppercase tracking-wide">3. CONTROL SYSTEM</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Installation and commissioning of the ANC vSOFT™ Control System or specified CMS platform.</li>
+                            <li>Configuration of screen layouts, zones, and content mapping per project specifications.</li>
+                            <li>System on-site training for two (2) client operators (approx. 4 hours total).</li>
+                            <li>Network configuration for remote monitoring and diagnostics support via ANC Proactive.</li>
+                        </ul>
+                    </section>
+
+                    <section>
+                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 uppercase tracking-wide">4. GENERAL CONDITIONS</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Price includes one (1) round of submittals and engineering shop drawings.</li>
+                            <li>ANC to maintain standard Liability and Workers Comp insurance during on-site performance.</li>
+                            <li>Site access, lift equipment, and storage staging areas to be provided by Purchaser unless specifically cited as an ANC line item.</li>
+                            <li>Final acceptance based on "No-Fault" commissioning of 99.9% pixel integrity.</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+
+            {/* 7. SIGNATURE (Moved below SOW for finality) */}
             <div className="mt-12 break-inside-avoid">
                 <div className="border-t-2 border-gray-300 pt-8 flex justify-between gap-12">
                     <div className="flex-1">

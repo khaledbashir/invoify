@@ -53,7 +53,7 @@ export default function ProposalLayout({ data, children }: ProposalLayoutProps) 
                         {children}
                     </div>
 
-                    {/* FIXED FOOTER - Indiana Fever Style */}
+                    {/* FIXED FOOTER - ANC Enterprise Style */}
                     <div className="absolute bottom-8 right-10 flex items-center gap-4 opacity-80">
                         <div className="text-right">
                             <p className="text-[9px] font-bold text-[#0A52EF] uppercase tracking-wide">www.anc.com/contact</p>

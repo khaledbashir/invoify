@@ -97,10 +97,16 @@ export default function FinalPdf() {
                 </SendPdfToEmailModal>
             </div>
             <AspectRatio ratio={8.5 / 11}>
-                <iframe
-                    className="h-full w-full rounded-xl"
-                    src={`${pdfUrl}#toolbar=0`}
-                />
+                {pdfUrl ? (
+                    <iframe
+                        className="h-full w-full rounded-xl"
+                        src={`${pdfUrl}#toolbar=0`}
+                    />
+                ) : (
+                    <div className="flex items-center justify-center h-full bg-zinc-900 rounded-xl text-zinc-500">
+                        Generating PDF Document...
+                    </div>
+                )}
             </AspectRatio>
         </>
     );

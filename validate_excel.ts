@@ -4,7 +4,7 @@ import * as path from 'path';
 import { parseANCExcel } from './services/invoice/server/excelImportService';
 
 async function run() {
-    const filePath = '/root/invo/Cost Analysis - Indiana Fever - 2026-01-22 (2).xlsx';
+    const filePath = '/root/invo/Cost Analysis - Sample Proposal - 2026-01-22.xlsx';
 
     if (!fs.existsSync(filePath)) {
         console.error(`File not found: ${filePath}`);

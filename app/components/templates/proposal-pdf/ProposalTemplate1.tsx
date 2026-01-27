@@ -21,10 +21,8 @@ const ProposalTemplate1 = (data: ProposalType) => {
 	const pricingType = (details as any).pricingType;
 	const docLabel = isLOI ? "SALES QUOTATION" : pricingType === "Hard Quoted" ? "SALES QUOTATION" : "BUDGET ESTIMATE";
 
-	// Indiana Fever Style Intro Text
-	const headerText = isLOI
-		? `This Sales Quotation will set forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at 2 Manhattanville Road, Suite 402, Purchase, NY 10577 (collectively, the “Parties”) agree that ANC will provide following LED Display and services (“the “Display System”) described below for ${details.proposalName || 'the project'}.`
-		: `This document sets forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at 2 Manhattanville Road, Suite 402, Purchase, NY 10577 (collectively, the “Parties”) agree that ANC will provide following LED Display and services (“the “Display System”) described below for ${details.proposalName || 'the project'}.`;
+	// Dynamic Intro Text (SAAS Platform Directive)
+	const headerText = `This Sales Quotation will set forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at ${sender.address || '2 Manhattanville Road, Suite 402, Purchase, NY 10577'} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (“the “Display System”) described below for ${details.location || details.proposalName || 'the project'}.`;
 
 	// Group items logic
 	const screensForGrouping: ScreenItem[] = (details.screens || []).map((s: any) => ({

@@ -2,7 +2,7 @@
  * Grouped Pricing Logic for PDF
  * 
  * Combines multiple screens into grouped line items for client-facing PDFs.
- * Based on Indiana Fever Gold Standard document structure.
+ * Based on Standard Enterprise document structure.
  */
 
 export interface ScreenItem {

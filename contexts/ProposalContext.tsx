@@ -248,6 +248,7 @@ export const ProposalContextProvider = ({
 
   // Reactive Watcher for ANC Logic Brain (Real-time Math)
   const screens = watch("details.screens");
+  const mirrorMode = watch("details.mirrorMode") || false;
 
   // AUTO-SAVE LOGIC (Debounced)
   useEffect(() => {
@@ -300,6 +301,7 @@ export const ProposalContextProvider = ({
 
   useEffect(() => {
     if (!screens || !Array.isArray(screens) || screens.length === 0) return;
+    if (mirrorMode) return; // PROXIED DATA GUARD: Do not recalc if in Mirror Mode
 
     try {
       // Normalize for estimator

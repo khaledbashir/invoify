@@ -28,22 +28,47 @@ const Step3Math = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Header / Context */}
-            <div className="flex flex-col gap-2">
-                <h2 className="text-2xl font-bold text-zinc-100 font-montserrat">Step 3: The Natalia Math</h2>
-                <div className="flex items-center justify-between">
-                    <p className="text-zinc-400 text-sm">Finalize margins and review the P&L breakdown.</p>
-
-                    {/* Global Metric: Gut Check */}
-                    {totals && (
-                        <div className="flex items-center gap-4 bg-zinc-900/80 border border-zinc-800 px-4 py-2 rounded-lg shadow-sm">
-                            <div className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Selling Price / SqFt</div>
-                            <div className="text-xl font-mono text-blue-400 font-bold">
-                                {formatCurrency(sellPricePerSqFt)}
+            {/* KPI Cards: The Natalia Gut Check */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-blue-600 border-none text-white shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-blue-100/80 text-xs font-bold uppercase tracking-widest mb-1">Project Average</p>
+                                <h3 className="text-3xl font-bold font-mono">
+                                    {formatCurrency(sellPricePerSqFt)} <span className="text-sm font-normal">/ SqFt</span>
+                                </h3>
+                            </div>
+                            <div className="p-3 bg-white/10 rounded-xl">
+                                <DollarSign className="w-8 h-8 text-white" />
                             </div>
                         </div>
-                    )}
-                </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-zinc-900 border-zinc-800">
+                    <CardContent className="p-6 flex items-center justify-between">
+                        <div>
+                            <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest mb-1">Mirror Mode</p>
+                            <h3 className="text-xl font-bold text-zinc-200">
+                                {useWatch({ name: "details.mirrorMode", control }) ? "Excel Pass-Through" : "Active Natalia Math"}
+                            </h3>
+                            <p className="text-zinc-500 text-[10px] mt-1 italic">
+                                {useWatch({ name: "details.mirrorMode", control })
+                                    ? "Bypassing internal formulas with Excel values."
+                                    : "Using ANC Strategic Estimator logic."}
+                            </p>
+                        </div>
+                        <div className="flex items-center h-full">
+                            <input
+                                type="checkbox"
+                                className="toggle toggle-primary toggle-lg scale-125 cursor-pointer"
+                                checked={useWatch({ name: "details.mirrorMode", control })}
+                                onChange={(e) => setValue("details.mirrorMode", e.target.checked)}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Controls */}

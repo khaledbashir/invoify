@@ -24,7 +24,7 @@ const PdfViewer = () => {
     const [debouncedWatch] = useDebounce(watch, 300);
     const formValues = debouncedWatch();
 
-    // Indiana Fever (Template 2) uses a Blue header, so we force the White Logo.
+    // Enterprise Template 2 uses a Blue header, so we force the White Logo.
     const forceWhiteLogo = formValues.details?.pdfTemplate === 2;
 
     // Cast to any to accept the custom prop without TS errors

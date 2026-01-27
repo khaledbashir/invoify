@@ -2,7 +2,7 @@
  * SOW (Statement of Work) Template - Page 7
  * 
  * Standard legal language for ANC proposals.
- * Based on Indiana Fever Gold Standard document.
+ * Based on Standard Enterprise Gold Standard document.
  */
 
 export const SOW_SECTIONS = {

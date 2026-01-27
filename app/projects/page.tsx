@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Clock, DollarSign, User, ChevronRight, Loader2 } from "lucide-react";
+import { Plus, Search, Clock, DollarSign, User, ChevronRight, Loader2, Upload } from "lucide-react";
 import LogoSelector from "@/app/components/reusables/LogoSelector";
 
 interface Project {
@@ -82,6 +82,23 @@ export default function ProjectsPage() {
 
     const openProject = (projectId: string) => {
         router.push(`/?projectId=${projectId}`);
+    };
+
+    const handleImportQuickAction = (e: React.MouseEvent, projectId: string) => {
+        e.stopPropagation();
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.xlsx,.xls';
+        input.onchange = (ev: any) => {
+            const file = ev.target.files?.[0];
+            if (file) {
+                // Redirect to editor with auto-import flag or just projectId
+                // The ProposalPage handles the rest.
+                router.push(`/?projectId=${projectId}&autoImport=true`);
+                // Note: We'll need to handle the autoImport flag in ProposalPage
+            }
+        };
+        input.click();
     };
 
     const formatDate = (dateString: string) => {
@@ -193,7 +210,16 @@ export default function ProjectsPage() {
                                             </span>
                                         </div>
                                     </div>
-                                    <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-[#0A52EF] transition-colors" />
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={(e) => handleImportQuickAction(e, project.id)}
+                                            className="p-2 text-zinc-400 hover:text-[#0A52EF] hover:bg-zinc-100 rounded-lg transition-all"
+                                            title="Quick Import Excel"
+                                        >
+                                            <Upload className="w-4 h-4" />
+                                        </button>
+                                        <ChevronRight className="w-5 h-5 text-zinc-300 group-hover:text-[#0A52EF] transition-colors" />
+                                    </div>
                                 </div>
                             </div>
                         ))}

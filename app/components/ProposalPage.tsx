@@ -72,6 +72,23 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
     handleSubmit(onFormSubmit)();
   };
 
+  // Handle auto-import from dashboard
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autoImport') === 'true') {
+      // Trigger file picker or instructions? 
+      // Requirement: "allows Natalia to update... without having to enter the Project Room first"
+      // Since we can't easily pass the File object through search params, 
+      // we'll trigger the file picker immediately upon landing if autoImport is true.
+      document.getElementById("excel-import-input")?.click();
+
+      // Clean up URL
+      const newUrl = window.location.pathname + (projectId ? `?projectId=${projectId}` : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [projectId]);
+
   const handleExcelImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -172,7 +189,6 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
             {/* Left: Proposal Editor (60%) */}
             <div className="flex-1 min-w-0 transition-all duration-300">
               <div className="max-w-3xl mx-auto space-y-4">
-                <ActionToolbar />
                 <ProposalForm />
               </div>
             </div>

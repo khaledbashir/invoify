@@ -4,7 +4,7 @@
  * Generates a "Formulaic" audit report for Finance.
  * Senior estimators can change inputs in Excel and see recalcs instantly.
  * 
- * Based on Indiana Fever Gold Standard P&L Breakdown format.
+ * Based on Standard Enterprise P&L Breakdown format.
  */
 
 import ExcelJS from 'exceljs';
@@ -17,7 +17,7 @@ export interface AuditExcelOptions {
     status?: 'DRAFT' | 'FINAL';
 }
 
-// Standard P&L Categories (Indiana Fever Gold Standard)
+// Standard P&L Categories (Standard Enterprise Gold Standard)
 const PL_CATEGORIES = [
     { key: 'led', label: 'LED Display Hardware' },
     { key: 'install', label: 'Installation Labor' },
@@ -48,7 +48,7 @@ export async function generateAuditExcel(
     });
     buildFormulaicAudit(auditSheet, screens, options);
 
-    // Sheet 2: P&L Breakdown (Indiana Fever Format)
+    // Sheet 2: P&L Breakdown (Standard Format)
     const plSheet = workbook.addWorksheet('P&L Breakdown', {
         properties: { tabColor: { argb: 'FF28A745' } } // Green for finance
     });
@@ -204,7 +204,7 @@ export async function generateAuditExcelBuffer(screens: any[], options?: AuditEx
 }
 
 /**
- * P&L Breakdown Sheet (Indiana Fever Gold Standard Format)
+ * P&L Breakdown Sheet (Standard Enterprise Format)
  * 
  * Columns: Cost Category | Revenue | Budget | Committed POs | Budget Remaining
  */

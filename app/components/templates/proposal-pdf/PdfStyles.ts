@@ -1,9 +1,9 @@
 export const PDF_COLORS = {
-    // Indiana Fever Colors (and ANC Brand)
+    // Brand Colors (ANC Standard)
     FRENCH_BLUE: "#0A52EF", // ANC/Enterprise Blue
-    INDIANA_BLUE: "#003366", // Deep Navy (Fever)
-    INDIANA_RED: "#C8102E",  // Fever Red
-    INDIANA_YELLOW: "#FFCD00", // Fever Yellow
+    NAVY_BLUE: "#003366",   // Deep Navy
+    ACCENT_RED: "#C8102E",  // Brand Red
+    ACCENT_YELLOW: "#FFCD00", // Brand Yellow
 
     // UI Neutrals
     TABLE_HEADER_BG: "#E5E7EB", // Gray-200 for zebra headers
