@@ -1,31 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { User, LogOut, Settings } from "lucide-react";
-import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 const BaseNavbar = () => {
   const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const pathname = usePathname();
+
+  // Hide Navbar on:
+  // 1. Root ("/") - The main editor
+  // 2. Project Editor ("/projects/[id]") - NOT "/projects" dashboard
+  // Logic: if pathname is "/" OR (starts with "/projects/" AND isn't just "/projects" or "/projects/new" if that existed)
+  // Actually, checking if segments > 2 for projects is safe if strictly /projects/[id].
+  const isEditor = pathname === "/" || (pathname.startsWith("/projects/") && pathname.split("/").filter(Boolean).length > 1);
+
+  if (isEditor) return null;
 
   return (
     <header className="lg:container z-[99] py-4">
