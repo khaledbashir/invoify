@@ -236,6 +236,7 @@ export const ProposalContextProvider = ({
           clientSummary: details.clientSummary || null,
           documentType: d.documentType || "First Round",
           pricingType: d.pricingType || "Budget",
+          mirrorMode: d.mirrorMode ?? false,
         },
       };
 
