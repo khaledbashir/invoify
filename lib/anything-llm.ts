@@ -31,7 +31,7 @@ export async function uploadDocument(
     const formData = new FormData();
 
     if (file instanceof Buffer) {
-        const blob = new Blob([file]);
+        const blob = new Blob([new Uint8Array(file)]);
         formData.append("file", blob, filename);
     } else {
         formData.append("file", file);
