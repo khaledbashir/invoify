@@ -211,6 +211,12 @@ const ProposalTemplate1 = (data: ProposalType) => {
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>MM Pitch</span>
 										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pitchMm || screen.pixelPitch || 0}mm</span>
 									</div>
+									{screen.brightness && (
+										<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
+											<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Brightness</span>
+											<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.brightness}</span>
+										</div>
+									)}
 									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Quantity</span>
 										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.quantity || 1}</span>

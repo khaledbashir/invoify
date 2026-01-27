@@ -23,6 +23,13 @@ const formatNumberWithCommas = (number: number) => {
     });
 };
 
+export const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+    }).format(amount);
+};
+
 /**
  * @param {string} currency - The currency that is currently selected 
  * @returns {Object} - An object containing the currency details as
