@@ -15,12 +15,16 @@ const config: Config = {
       },
       colors: {
         primary: {
-          DEFAULT: '#003366',
+          DEFAULT: '#0A52EF', // ANC French Blue
+          foreground: '#ffffff',
+        },
+        navy: {
+          DEFAULT: '#003366', // ANC Deep Navy
           foreground: '#ffffff',
         },
         accent: {
-          DEFAULT: '#C4D600',
-          foreground: '#003366',
+          DEFAULT: '#C4D600', // ANC Lime Green
+          foreground: '#0A52EF',
         },
       },
       borderRadius: {
