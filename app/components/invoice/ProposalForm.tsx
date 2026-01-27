@@ -109,21 +109,8 @@ const useProposalLabel = () => {
 };
 
 const ProposalForm = () => {
-    const { proposalIdLabel } = useProposalLabel();
-
-    // Header component
-    const Header = () => (
-        <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-xl font-bold text-white">Proposal Engine</h1>
-            <div className="bg-zinc-800/50 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded text-xs font-mono">
-                {proposalIdLabel}
-            </div>
-        </div>
-    );
-
     return (
         <div className="w-full space-y-4">
-            <Header />
             <Wizard>
                 <WizardContent />
             </Wizard>

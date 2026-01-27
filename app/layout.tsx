@@ -18,6 +18,9 @@ import type { Metadata } from "next";
 // Next Intl
 import { NextIntlClientProvider } from "next-intl";
 
+// Styles
+import "./globals.css";
+
 // Import English messages directly
 import enMessages from "@/i18n/locales/en.json";
 
