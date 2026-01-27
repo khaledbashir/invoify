@@ -1,29 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
+import { Wizard, useWizard } from "react-use-wizard";
 
 // Components
+import StudioLayout from "@/app/components/layout/StudioLayout";
 import ProposalForm from "@/app/components/invoice/ProposalForm";
 import PdfViewer from "@/app/components/invoice/actions/PdfViewer";
-import ActionToolbar from "@/app/components/ActionToolbar";
 import RfpSidebar from "@/app/components/invoice/RfpSidebar";
 import LogoSelector from "@/app/components/reusables/LogoSelector";
+import SaveIndicator from "@/app/components/reusables/SaveIndicator";
+import WizardStepper from "@/app/components/invoice/form/wizard/WizardProgress";
+import { WizardStep } from "@/app/components";
+import {
+  Step1Ingestion,
+  Step2Intelligence,
+  Step3Math,
+  Step4Export
+} from "@/app/components/invoice/form/wizard/steps";
 
 // ShadCn
 import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 // Context
 import { useProposalContext } from "@/contexts/ProposalContext";
-import { useTranslationContext } from "@/contexts/TranslationContext";
-
-// Utils
-import { cn } from "@/lib/utils";
 
 // Icons
-import { Send, Sparkles, Download, Share2, Upload, Loader2, BrainCircuit } from "lucide-react";
+import { Download, Share2, Upload, Loader2 } from "lucide-react";
 
 // Types
 import { ProposalType } from "@/types";
@@ -31,30 +36,30 @@ import { ProposalType } from "@/types";
 // Hooks
 import useAutoSave from "@/lib/useAutoSave";
 
-// Components
-import SaveIndicator from "@/app/components/reusables/SaveIndicator";
-
 interface ProposalPageProps {
   initialData?: Partial<ProposalType>;
   projectId?: string;
 }
 
-const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
+/**
+ * WizardWrapper - Provides wizard context to both stepper and form
+ */
+const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
   const { handleSubmit, setValue, reset, control } = useFormContext<ProposalType>();
-  const { _t } = useTranslationContext();
-  const { onFormSubmit, activeTab, setActiveTab, importANCExcel, excelImportLoading } = useProposalContext();
+  const { onFormSubmit, importANCExcel, excelImportLoading } = useProposalContext();
+  const wizard = useWizard();
 
-  // Initialize form with server data if available
-  useState(() => {
+  // Initialize form with server data
+  useEffect(() => {
     if (initialData) {
       reset(initialData);
     }
     if (projectId) {
       setValue("details.proposalId" as any, projectId);
     }
-  });
+  }, [initialData, projectId, reset, setValue]);
 
-  // Enterprise Auto-Save Hook (Heartbeat)
+  // Auto-Save
   const { status: saveStatus } = useAutoSave({
     projectId: projectId || null,
     debounceMs: 2000
@@ -65,25 +70,12 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
     control: control,
   }) as any || "Untitled Project";
 
-  const [isIntelligenceEngineOpen, setIsIntelligenceEngineOpen] = useState(false);
-
-  const handleExport = () => {
-    // Trigger standard form submit which leads to PDF generation 
-    handleSubmit(onFormSubmit)();
-  };
-
   // Handle auto-import from dashboard
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('autoImport') === 'true') {
-      // Trigger file picker or instructions? 
-      // Requirement: "allows Natalia to update... without having to enter the Project Room first"
-      // Since we can't easily pass the File object through search params, 
-      // we'll trigger the file picker immediately upon landing if autoImport is true.
       document.getElementById("excel-import-input")?.click();
-
-      // Clean up URL
       const newUrl = window.location.pathname + (projectId ? `?projectId=${projectId}` : '');
       window.history.replaceState({}, '', newUrl);
     }
@@ -96,129 +88,118 @@ const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
-      {/* Top Navigation */}
-      <nav className="h-16 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="h-full max-w-[1920px] mx-auto px-6 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <LogoSelector theme="dark" width={100} height={40} />
-          </div>
+  const handleExport = () => {
+    handleSubmit(onFormSubmit)();
+  };
 
-          {/* Editable Project Name */}
-          <div className="flex-1 max-w-md mx-8">
-            <Input
-              value={String(projectName)}
-              readOnly
-              className="bg-transparent border-none text-center text-zinc-100 font-medium text-lg focus:ring-0 px-4 cursor-default"
-            />
-          </div>
+  // Header: Logo | Stepper (center) | Actions
+  const HeaderContent = (
+    <div className="h-full max-w-[1920px] mx-auto px-4 flex items-center justify-between">
+      {/* Logo with clear space */}
+      <div className="flex items-center shrink-0 pl-2 w-40">
+        <LogoSelector theme="dark" width={80} height={32} />
+      </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3">
-            <SaveIndicator status={saveStatus} lastSavedAt={(initialData as any)?.lastSavedAt ? new Date((initialData as any).lastSavedAt) : undefined} />
+      {/* Wizard Stepper (centered) */}
+      <div className="flex-1 flex justify-center">
+        <WizardStepper wizard={wizard} />
+      </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsIntelligenceEngineOpen(!isIntelligenceEngineOpen)}
-              className={cn(
-                "transition-all",
-                isIntelligenceEngineOpen
-                  ? "bg-blue-600 border-blue-500 text-white hover:bg-blue-700 font-bold"
-                  : "text-zinc-400 border-zinc-700 hover:text-blue-500 hover:border-blue-500 font-medium"
-              )}
-            >
-              <BrainCircuit className="w-4 h-4 mr-2" />
-              Intelligence Engine
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
-              onClick={() => document.getElementById("excel-import-input")?.click()}
-              disabled={excelImportLoading}
-            >
-              {excelImportLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Import Excel
-                </>
-              )}
-            </Button>
-            <input
-              id="excel-import-input"
-              type="file"
-              accept=".xlsx,.xls"
-              className="hidden"
-              onChange={handleExcelImport}
-            />
-            <Button
-              size="sm"
-              onClick={handleExport}
-              className="bg-[#003366] hover:bg-[#004080] text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Proposal PDF
-            </Button>
-          </div>
-        </div>
-      </nav>
+      {/* Right Actions */}
+      <div className="flex items-center gap-2 shrink-0 w-40 justify-end">
+        <SaveIndicator
+          status={saveStatus}
+          lastSavedAt={(initialData as any)?.lastSavedAt ? new Date((initialData as any).lastSavedAt) : undefined}
+        />
 
-      {/* Main Canvas */}
-      <div className="flex-1 max-w-[1920px] mx-auto w-full p-6">
-        <Form {...useFormContext<ProposalType>()}>
-          <form
-            onSubmit={handleSubmit(onFormSubmit, (err) => console.log(err))}
-            className="flex gap-6 h-full relative"
-          >
-            {/* Left: Proposal Editor (60%) */}
-            <div className="flex-1 min-w-0 transition-all duration-300">
-              <div className="max-w-3xl mx-auto space-y-4">
-                <ProposalForm />
-              </div>
-            </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-zinc-400 hover:text-zinc-100"
+          onClick={() => document.getElementById("excel-import-input")?.click()}
+          disabled={excelImportLoading}
+        >
+          {excelImportLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4" />
+          )}
+        </Button>
 
-            {/* Right: Live PDF Preview (40%) / RfpSidebar Toggle */}
-            <div className={cn(
-              "transition-all duration-300 flex gap-4",
-              isIntelligenceEngineOpen ? "w-[60%] min-w-[900px]" : "w-[40%] min-w-[500px]"
-            )}>
-              <div className="flex-1 sticky top-24 h-[calc(100vh-120px)]">
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl shadow-2xl h-full flex flex-col">
-                  <div className="px-4 py-3 border-b border-zinc-800 bg-zinc-900/30 flex justify-between items-center shrink-0">
-                    <span className="text-zinc-400 text-sm font-medium">Live Proposal Preview</span>
-                  </div>
-                  <div className="p-4 bg-zinc-950/50 relative flex-1 overflow-y-auto custom-scrollbar">
-                    <PdfViewer />
-                  </div>
-                </div>
-              </div>
+        <input
+          id="excel-import-input"
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={handleExcelImport}
+        />
 
-              {isIntelligenceEngineOpen && (
-                <div className="w-96 shrink-0 sticky top-24 h-[calc(100vh-120px)] overflow-hidden rounded-2xl border border-zinc-800 shadow-2xl animate-in slide-in-from-right duration-300">
-                  <RfpSidebar />
-                </div>
-              )}
-            </div>
-          </form>
-        </Form>
+        <Button
+          size="sm"
+          onClick={handleExport}
+          className="bg-[#0A52EF] hover:bg-[#0A52EF]/90 text-white"
+        >
+          <Download className="w-4 h-4 mr-1" />
+          Export
+        </Button>
       </div>
     </div>
+  );
+
+  // Form Content (Drafting Mode)
+  const FormContent = (
+    <Form {...useFormContext<ProposalType>()}>
+      <form onSubmit={handleSubmit(onFormSubmit, (err) => console.log(err))}>
+        <div className="p-6">
+          <WizardStep>
+            <Step1Ingestion />
+          </WizardStep>
+          <WizardStep>
+            <Step2Intelligence />
+          </WizardStep>
+          <WizardStep>
+            <Step3Math />
+          </WizardStep>
+          <WizardStep>
+            <Step4Export />
+          </WizardStep>
+        </div>
+      </form>
+    </Form>
+  );
+
+  // AI Content (Intelligence Mode)
+  const AIContent = (
+    <div className="h-full">
+      <RfpSidebar />
+    </div>
+  );
+
+  // PDF Content (The Anchor)
+  const PDFContent = (
+    <div className="p-4">
+      <PdfViewer />
+    </div>
+  );
+
+  return (
+    <StudioLayout
+      header={HeaderContent}
+      formContent={FormContent}
+      aiContent={AIContent}
+      pdfContent={PDFContent}
+    />
+  );
+};
+
+/**
+ * ProposalPage - Main workspace with Wizard context provider
+ */
+const ProposalPage = ({ initialData, projectId }: ProposalPageProps) => {
+  return (
+    <Wizard>
+      <WizardWrapper initialData={initialData} projectId={projectId} />
+    </Wizard>
   );
 };
 

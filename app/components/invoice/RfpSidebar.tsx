@@ -38,14 +38,14 @@ const RfpSidebar = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 w-80 lg:w-96 shadow-xl animate-in slide-in-from-right duration-300">
+        <div className="flex flex-col h-full bg-zinc-950">
             {/* Header */}
-            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-blue-600 text-white flex items-center justify-between">
+            <div className="p-4 border-b border-zinc-800 bg-[#0A52EF] text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 fill-white animate-pulse" />
-                    <h3 className="font-bold tracking-tight text-sm uppercase">Advanced: RFP Intel</h3>
+                    <h3 className="font-bold tracking-tight text-sm uppercase">ANC Intelligence Engine</h3>
                 </div>
-                <div className="px-2 py-0.5 bg-blue-500 rounded text-[10px] font-bold border border-blue-400">
+                <div className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-bold border border-white/30">
                     RAG-ACTIVE
                 </div>
             </div>
