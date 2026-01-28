@@ -16,7 +16,16 @@ const Step1Ingestion = () => {
     const { importANCExcel, excelImportLoading } = useProposalContext();
     const [loading, setLoading] = useState(false);
     const [creationStep, setCreationStep] = useState(0);
+    const [clientNameInput, setClientNameInput] = useState("");
     const router = useRouter();
+
+    const steps = [
+        "Provisioning Project Vault...",
+        "Establishing Strategic Context...",
+        "Activating Intelligence Engine...",
+        "Mirroring Success Protocols...",
+        "Redirecting to Command Center..."
+    ];
 
     // Watch for proposal ID to determine mode
     const proposalId = useWatch({
@@ -110,8 +119,8 @@ const Step1Ingestion = () => {
                             <div
                                 onClick={() => setSelectedPath("STRATEGIC")}
                                 className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPath === "STRATEGIC"
-                                        ? "bg-blue-600/10 border-blue-600 shadow-2xl shadow-blue-500/10"
-                                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
+                                    ? "bg-blue-600/10 border-blue-600 shadow-2xl shadow-blue-500/10"
+                                    : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
                                     }`}
                             >
                                 <div className="flex items-center gap-4 mb-3">
@@ -128,8 +137,8 @@ const Step1Ingestion = () => {
                             <div
                                 onClick={() => setSelectedPath("MIRROR")}
                                 className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPath === "MIRROR"
-                                        ? "bg-emerald-600/10 border-emerald-600 shadow-2xl shadow-emerald-500/10"
-                                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
+                                    ? "bg-emerald-600/10 border-emerald-600 shadow-2xl shadow-emerald-500/10"
+                                    : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
                                     }`}
                             >
                                 <div className="flex items-center gap-4 mb-3">

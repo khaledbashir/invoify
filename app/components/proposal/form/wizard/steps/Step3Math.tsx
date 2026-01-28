@@ -94,9 +94,8 @@ const Step3Math = () => {
                                         </TooltipContent>
                                     </Tooltip>
                                     <h3 className="text-3xl font-bold">
-                                        <h3 className="text-3xl font-bold">
-                                            {formatCurrency(sellPricePerSqFt)} <span className="text-sm font-normal">/ SqFt</span>
-                                        </h3>
+                                        {formatCurrency(sellPricePerSqFt)} <span className="text-sm font-normal">/ SqFt</span>
+                                    </h3>
                                 </div>
                                 <div className="p-3 bg-white/10 rounded-xl">
                                     <DollarSign className="w-8 h-8 text-white" />
