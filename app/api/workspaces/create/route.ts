@@ -37,8 +37,9 @@ export async function POST(request: NextRequest) {
       data: {
         name: body.name,
         users: {
-          create: {
-            email: body.userEmail,
+          connectOrCreate: {
+            where: { email: body.userEmail },
+            create: { email: body.userEmail },
           },
         },
       },

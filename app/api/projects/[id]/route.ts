@@ -103,8 +103,17 @@ export async function PATCH(
             id: project.id,
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("PATCH /api/projects/[id] error:", error);
+
+        // Handle "Record not found" error codes
+        if (error.code === 'P2025') {
+            return NextResponse.json(
+                { error: "Project not found (it may have been deleted or you are using a stale link)" },
+                { status: 404 }
+            );
+        }
+
         return NextResponse.json(
             { error: "Failed to save project" },
             { status: 500 }
@@ -127,8 +136,13 @@ export async function DELETE(
         });
 
         return NextResponse.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
         console.error("DELETE /api/projects/[id] error:", error);
+
+        if (error.code === 'P2025') {
+            return NextResponse.json({ success: true, message: "Project already deleted or not found" });
+        }
+
         return NextResponse.json(
             { error: "Failed to delete project" },
             { status: 500 }
