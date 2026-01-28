@@ -30,26 +30,20 @@ export async function GET(req: NextRequest) {
         if (search) {
             where.OR = [
                 { clientName: { contains: search, mode: "insensitive" } },
-                { proposalName: { contains: search, mode: "insensitive" } },
             ];
         }
 
         const [projects, total] = await Promise.all([
             prisma.proposal.findMany({
                 where,
-                orderBy: { updatedAt: "desc" } as any,
+                orderBy: { id: "desc" },
                 take: limit,
                 skip: offset,
                 select: {
                     id: true,
                     clientName: true,
-                    proposalName: true,
                     status: true,
-                    documentType: true,
-                    pricingType: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    lastSavedAt: true,
+                    calculationMode: true,
                     aiWorkspaceSlug: true,
                 } as any,
             }),
@@ -78,7 +72,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { workspaceId, clientName, proposalName, documentType, pricingType } = body;
+        const { workspaceId, clientName } = body;
 
         if (!workspaceId || !clientName) {
             return NextResponse.json(
@@ -126,22 +120,8 @@ export async function POST(req: NextRequest) {
             data: {
                 workspaceId,
                 clientName,
-                proposalName: proposalName || clientName,
-                documentType: documentType || "First Round",
-                pricingType: pricingType || "Budget",
                 status: "DRAFT",
                 aiWorkspaceSlug,
-                marginFormula: "P = C / (1 - M)",
-                bondFormula: "B = P * 0.015",
-            } as any,
-        });
-
-        // Create initial audit log
-        await (prisma as any).auditLog.create({
-            data: {
-                proposalId: project.id,
-                action: "CREATED",
-                metadata: { clientName, proposalName },
             },
         });
 
