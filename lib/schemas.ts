@@ -276,6 +276,7 @@ const InvoiceDetailsSchema = z.object({
     documentType: z.enum(["LOI", "First Round"]).default("First Round"),
     pricingType: z.enum(["Hard Quoted", "Budget"]).default("Budget"),
     mirrorMode: z.boolean().default(false),
+    calculationMode: z.enum(["MIRROR", "INTELLIGENCE"]).default("INTELLIGENCE"),
     status: fieldValidators.stringOptional,
     pdfTemplate: z.number(),
 });

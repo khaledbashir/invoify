@@ -83,12 +83,12 @@ const defaultProposalContext = {
   duplicateScreen: (index: number) => { },
   aiFields: [] as string[],
   aiFieldTimestamps: {} as Record<string, number>,
-  trackAiFieldModification: (fieldNames: string[]) => {},
+  trackAiFieldModification: (fieldNames: string[]) => { },
   isFieldGhostActive: (fieldName: string) => false,
   proposal: null as any,
   // Calculation Mode
   calculationMode: "INTELLIGENCE" as "MIRROR" | "INTELLIGENCE",
-  setCalculationMode: (mode: "MIRROR" | "INTELLIGENCE") => {},
+  setCalculationMode: (mode: "MIRROR" | "INTELLIGENCE") => { },
 };
 
 export const ProposalContext = createContext(defaultProposalContext);
@@ -142,7 +142,7 @@ export const ProposalContextProvider = ({
   const [aiFieldTimestamps, setAiFieldTimestamps] = useState<Record<string, number>>({});
   const [aiMessages, setAiMessages] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-  
+
   // Calculation Mode - THE PRIMARY BRANCH DECISION GATE
   const [calculationMode, setCalculationMode] = useState<"MIRROR" | "INTELLIGENCE">("INTELLIGENCE");
 
@@ -155,7 +155,7 @@ export const ProposalContextProvider = ({
     });
     setAiFieldTimestamps(prev => ({ ...prev, ...timestamps }));
     setAiFields(prev => Array.from(new Set([...prev, ...fieldNames])));
-    
+
     // Clear timestamps after 3 seconds (ghost effect duration)
     setTimeout(() => {
       setAiFieldTimestamps(prev => {
@@ -292,6 +292,32 @@ export const ProposalContextProvider = ({
     }
   }, [initialData, reset, setValue]);
 
+  // SAVE CALCULATION MODE TO DATABASE
+  useEffect(() => {
+    if (!calculationMode || typeof window === 'undefined') return;
+
+    const handler = setTimeout(async () => {
+      const currentValues = getValues();
+      const pid = currentValues.details?.proposalId;
+
+      // Only save if we have a valid database ID (not "new")
+      if (pid && pid !== 'new' && projectId) {
+        try {
+          await fetch(`/api/projects/${projectId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ calculationMode })
+          });
+          console.log("✓ Calculation mode saved:", calculationMode);
+        } catch (e) {
+          console.warn("Failed to save calculation mode:", e);
+        }
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(handler);
+  }, [calculationMode, getValues, projectId]);
+
 
   // Reactive Watcher for ANC Logic Brain (Real-time Math)
   const screens = watch("details.screens");
@@ -321,7 +347,8 @@ export const ProposalContextProvider = ({
               // but for now keeping it redundant for safety is fine or just minimal
             },
             screens: currentValues.details.screens, // This might need special handling endpoint side
-            aiWorkspaceSlug: currentValues.details.aiWorkspaceSlug
+            aiWorkspaceSlug: currentValues.details.aiWorkspaceSlug,
+            calculationMode: calculationMode, // Sync calculation mode to database
           };
 
           // Using specific endpoint for auto-save
@@ -1106,27 +1133,28 @@ export const ProposalContextProvider = ({
 
       const data = await res.json();
 
-      // Update form values with imported data
-      if (data.clientName) setValue("receiver.name", data.clientName);
-      if (data.proposalName) setValue("details.proposalName", data.proposalName);
+      if (data.formData) {
+        const { formData, internalAudit } = data;
 
-      if (data.screens && data.screens.length > 0) {
-        setValue("details.screens", data.screens);
-      }
+        // 1. Batch update main form fields
+        if (formData.receiver?.name) setValue("receiver.name", formData.receiver.name);
+        if (formData.details?.proposalName) setValue("details.proposalName", formData.details.proposalName);
+        if (formData.details?.mirrorMode !== undefined) setValue("details.mirrorMode", formData.details.mirrorMode);
 
-      if (data.internalAudit) {
-        setValue("details.internalAudit", data.internalAudit);
-        setValue("details.clientSummary", data.clientSummary || data.internalAudit.totals); // Fallback
+        // 2. Handle Screens & Line Items
+        if (formData.details?.screens && internalAudit) {
+          const screens = formData.details.screens;
 
-        // Sync line items for PDF template
-        if (data.screens) {
-          const screensWithLineItems = syncLineItemsFromAudit(data.screens, data.internalAudit);
+          // Sync line items for PDF template (Injecting pricing from Audit into Screen Objects)
+          const screensWithLineItems = syncLineItemsFromAudit(screens, internalAudit);
           setValue("details.screens", screensWithLineItems);
+          setValue("details.internalAudit", internalAudit);
+          setValue("details.clientSummary", internalAudit.totals);
 
-          // Flatten for PDF item table
+          // 3. CRITICAL: Update the PDF Item Table (The "Items" array used by templates)
           const allItems = screensWithLineItems.flatMap(s => (s.lineItems || []).map((li: any) => ({
             name: li.category,
-            description: s.description || "Standard specification.",
+            description: s.description || "Standard LED specification.",
             quantity: 1,
             unitPrice: li.price,
             total: li.price
