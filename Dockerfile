@@ -19,9 +19,12 @@ COPY --from=build --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=build --chown=nextjs:nodejs /app/public ./public
 COPY --from=build --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=build --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN npx prisma migrate deploy
+RUN chmod +x /app/docker-entrypoint.sh
+
+USER nextjs
 
 EXPOSE 3000
-CMD npm start
+CMD ["./docker-entrypoint.sh"]
 
