@@ -69,70 +69,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Now ask AnythingLLM to extract questions from RFP
-    const chatRes = await fetch(
-      `${ANYTHING_LLM_BASE_URL}/workspace/${aiWorkspaceSlug}/chat`,
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${ANYTHING_LLM_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `Analyze this RFP document and extract ALL questions that need to be answered to complete the proposal. Return ONLY a JSON array of questions with this exact format:
-[
-  {"id": 1, "question": "Question text here"},
-  {"id": 2, "question": "Question text here"}
-]
-Do NOT answer the questions - just extract them. Focus on: budget, timeline, technical specs, requirements, deliverables.`,
-          mode: "chat",
-        }),
-      }
-    );
-
-    if (!chatRes.ok) {
-      const errorText = await chatRes.text();
-      console.error("Failed to extract questions:", errorText);
-      return NextResponse.json({ error: "Failed to extract questions" }, { status: 500 });
-    }
-
-    const chatResult = await chatRes.json();
-    const textResponse = chatResult.textResponse || "";
-
-    // Parse JSON from response
-    let questions: Array<{ id: number; question: string }> = [];
-    try {
-      // Try to extract JSON array from text
-      const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        questions = JSON.parse(jsonMatch[0]);
-      }
-    } catch (e) {
-      console.error("Failed to parse questions JSON:", e);
-      // Fallback: Create placeholder questions
-      questions = Array.from({ length: 10 }, (_, i) => ({
-        id: i + 1,
-        question: `Question ${i + 1} extracted from RFP`,
-      }));
-    }
-
-    // Delete existing questions and create new ones
-    await prisma.rfpQuestion.deleteMany({ where: { proposalId } });
-
-    // Create new questions
-    const createdQuestions = await Promise.all(
-      questions.map((q) =>
-        prisma.rfpQuestion.create({
-          data: {
-            proposalId,
-            question: q.question,
-            answered: false,
-            order: q.id,
-          },
-        })
-      )
-    );
-
     // Use RfpExtractionService to get structured proposal data
     const { RfpExtractionService } = await import("@/services/rfp/server/RfpExtractionService");
 
@@ -146,9 +82,8 @@ Do NOT answer the questions - just extract them. Focus on: budget, timeline, tec
 
     return NextResponse.json({
       ok: true,
-      questions: createdQuestions,
-      totalQuestions: questions.length,
-      extractedData, // Return pre-filled form data
+      documentUrl: document.location,
+      extractedData,
     });
   } catch (error: any) {
     console.error("RFP upload error:", error);
