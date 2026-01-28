@@ -23,15 +23,16 @@ model User {
 }
 
 model Proposal {
-  id            String         @id @default(cuid())
-  workspaceId   String
-  clientName    String
-  status        String         @default("DRAFT")
-  internalAudit Json?
-  clientSummary Json?
-  aiThreadId    String?
-  workspace     Workspace      @relation(fields: [workspaceId], references: [id])
-  screens       ScreenConfig[]
+  id              String         @id @default(cuid())
+  workspaceId     String
+  clientName      String
+  status          String         @default("DRAFT")
+  internalAudit   Json?
+  clientSummary   Json?
+  aiThreadId      String?
+  aiWorkspaceSlug String?
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id])
+  screens         ScreenConfig[]
 }
 
 model ScreenConfig {
