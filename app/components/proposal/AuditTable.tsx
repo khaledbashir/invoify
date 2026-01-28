@@ -100,7 +100,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                 <div className="text-[10px] text-zinc-500 font-normal">{screen.pixelMatrix}</div>
               </div>
               <div className="col-span-1 text-right">{screen.quantity}</div>
-              <div className="col-span-1 text-right">{screen.areaSqFt.toFixed(0)} sf</div>
+              <div className="col-span-1 text-right">{Number(screen.areaSqFt).toFixed(2)} sf</div>
               <div className="col-span-1 text-right text-indigo-300/80">{formatCurrency(calc.hardware)}</div>
               <div className="col-span-1 text-right text-indigo-300/80">{formatCurrency(calc.services)}</div>
               <div className="col-span-1 text-right text-red-300/80">{formatCurrency(calc.totalCost)}</div>
@@ -108,7 +108,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
               <div className="col-span-1 text-right text-yellow-600/80">{formatCurrency(calc.bondCost)}</div>
               <div className="col-span-1 text-right text-green-400/80">{formatCurrency(calc.ancMargin)}</div>
               <div className={`col-span-1 text-right font-bold ${calc.marginPct < 20 ? 'text-red-500' : 'text-green-500'}`}>
-                {calc.marginPct.toFixed(1)}%
+                {calc.marginPct.toFixed(2)}%
               </div>
               <div className="col-span-1 text-right text-white font-bold">{formatCurrency(calc.finalClientTotal)}</div>
             </div>
@@ -128,7 +128,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
         <div className="col-span-1 text-right text-yellow-500">{formatCurrency(dynamicTotals.bondCost)}</div>
         <div className="col-span-1 text-right text-green-500">{formatCurrency(dynamicTotals.ancMargin)}</div>
         <div className="col-span-1 text-right text-green-500">
-          {dynamicTotals.sellPrice > 0 ? ((dynamicTotals.ancMargin / dynamicTotals.sellPrice) * 100).toFixed(1) : "0.0"}%
+          {dynamicTotals.sellPrice > 0 ? ((dynamicTotals.ancMargin / dynamicTotals.sellPrice) * 100).toFixed(2) : "0.00"}%
         </div>
         <div className="col-span-1 text-right text-white text-base">{formatCurrency(dynamicTotals.finalClientTotal)}</div>
       </div>

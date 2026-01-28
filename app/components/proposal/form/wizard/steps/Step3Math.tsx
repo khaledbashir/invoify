@@ -22,8 +22,8 @@ const EduTooltip = ({ children, content }: { children: React.ReactNode; content:
                     <Info className="w-3.5 h-3.5 text-zinc-500 hover:text-[#0A52EF] transition-colors" />
                 </span>
             </TooltipTrigger>
-            <TooltipContent 
-                side="top" 
+            <TooltipContent
+                side="top"
                 className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
             >
                 <p className="text-xs leading-relaxed">{content}</p>
@@ -42,7 +42,7 @@ const Step3Math = () => {
     const screens = watch("details.screens") || [];
     const bondRate = useWatch({ name: "details.bondRate", control }) || 1.5;
     const mirrorMode = useWatch({ name: "details.mirrorMode", control });
-    
+
     // Global pricing controls
     const globalMargin = useWatch({ name: "details.globalMargin", control });
     const globalBondRate = useWatch({ name: "details.globalBondRate", control }) || 1.5;
@@ -84,8 +84,8 @@ const Step3Math = () => {
                                                 <Info className="w-3.5 h-3.5 text-white/60 hover:text-white transition-colors" />
                                             </div>
                                         </TooltipTrigger>
-                                        <TooltipContent 
-                                            side="top" 
+                                        <TooltipContent
+                                            side="top"
                                             className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
                                         >
                                             <p className="text-xs leading-relaxed">
@@ -94,8 +94,9 @@ const Step3Math = () => {
                                         </TooltipContent>
                                     </Tooltip>
                                     <h3 className="text-3xl font-bold">
-                                        {formatCurrency(sellPricePerSqFt)} <span className="text-sm font-normal">/ SqFt</span>
-                                    </h3>
+                                        <h3 className="text-3xl font-bold">
+                                            {formatCurrency(sellPricePerSqFt)} <span className="text-sm font-normal">/ SqFt</span>
+                                        </h3>
                                 </div>
                                 <div className="p-3 bg-white/10 rounded-xl">
                                     <DollarSign className="w-8 h-8 text-white" />
@@ -136,8 +137,8 @@ const Step3Math = () => {
                                             <Info className="w-3.5 h-3.5 text-zinc-600 hover:text-zinc-400 transition-colors" />
                                         </div>
                                     </TooltipTrigger>
-                                    <TooltipContent 
-                                        side="top" 
+                                    <TooltipContent
+                                        side="top"
                                         className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
                                     >
                                         <p className="text-xs leading-relaxed">
@@ -145,13 +146,13 @@ const Step3Math = () => {
                                         </p>
                                     </TooltipContent>
                                 </Tooltip>
-                                
+
                                 <h3 className="text-lg font-bold text-zinc-200">
                                     {mirrorMode ? "Excel Pass-Through" : "ANC Strategic Estimator"}
                                 </h3>
                                 <p className="text-zinc-500 text-[10px] mt-1 italic">
-                                    {mirrorMode 
-                                        ? "Using values from imported Excel" 
+                                    {mirrorMode
+                                        ? "Using values from imported Excel"
                                         : "Using internal formulas & logic"
                                     }
                                 </p>
@@ -192,8 +193,8 @@ const Step3Math = () => {
                                                 <Info className="w-3.5 h-3.5 text-zinc-600 hover:text-[#0A52EF] transition-colors" />
                                             </Label>
                                         </TooltipTrigger>
-                                        <TooltipContent 
-                                            side="top" 
+                                        <TooltipContent
+                                            side="top"
                                             className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
                                         >
                                             <p className="text-xs leading-relaxed">
@@ -201,22 +202,22 @@ const Step3Math = () => {
                                             </p>
                                         </TooltipContent>
                                     </Tooltip>
-                                    
+
                                     <span className="text-lg font-bold text-blue-400">
-                                        {((globalMargin || 0.25) * 100).toFixed(0)}%
+                                        {((globalMargin || 0.25) * 100).toFixed(2)}%
                                     </span>
-                                </div>                            
-                                
+                                </div>
+
                                 <input
                                     type="range"
                                     min="0"
                                     max="0.8"
-                                    step="0.05"
+                                    step="0.01"
                                     value={globalMargin || 0.25}
                                     onChange={(e) => applyGlobalMargin(parseFloat(e.target.value))}
                                     className="w-full h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                 />
-                                
+
                                 <div className="flex justify-between text-xs text-zinc-500">
                                     <span>0%</span>
                                     <span className="text-yellow-500">⚠️ Low margin zone</span>
@@ -235,8 +236,8 @@ const Step3Math = () => {
                                                 <Info className="w-3.5 h-3.5 text-zinc-600 hover:text-[#0A52EF] transition-colors" />
                                             </Label>
                                         </TooltipTrigger>
-                                        <TooltipContent 
-                                            side="top" 
+                                        <TooltipContent
+                                            side="top"
                                             className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
                                         >
                                             <p className="text-xs leading-relaxed">
@@ -244,12 +245,12 @@ const Step3Math = () => {
                                             </p>
                                         </TooltipContent>
                                     </Tooltip>
-                                    
+
                                     <p className="text-xs text-zinc-500 mt-1">
                                         Applied to total project value
                                     </p>
-                                </div>                            
-                                
+                                </div>
+
                                 <Input
                                     type="number"
                                     step="0.1"
@@ -278,7 +279,7 @@ const Step3Math = () => {
                                                 : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600"
                                         )}
                                     >
-                                        {preset.label} ({(preset.value * 100).toFixed(0)}%)
+                                        {preset.label} ({(preset.value * 100).toFixed(2)}%)
                                     </button>
                                 ))}
                             </div>
@@ -300,7 +301,7 @@ const Step3Math = () => {
                                 </CardDescription>
                             </div>
                         </div>
-                    </CardHeader>                
+                    </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto">
                             <AuditTable bondRateOverride={bondRate} />
