@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       internalAudit: internalAudit?.perScreen?.[idx] || null,
     }));
 
-    const proposalName = proposal.proposalName || proposal.clientName || "Proposal";
+    const proposalName = proposal.clientName || "Proposal";
     const buffer = await generateAuditExcelBuffer(screensWithAudit, {
       proposalName,
       clientName: proposal.clientName,
