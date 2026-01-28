@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
             data: {
               workspaceId: workspace.id,
               clientName: body.clientName,
-              proposalName: `${body.clientName} LED Project`,
               status: "DRAFT",
               aiThreadId: threadId,
             },
