@@ -1,5 +1,6 @@
 import * as xlsx from 'xlsx';
 import { InternalAudit, ScreenAudit } from '@/lib/estimator';
+import { formatDimension, formatCurrencyInternal } from '@/lib/math';
 
 interface ParsedANCProposal {
     clientName: string;
@@ -75,9 +76,9 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
             const screen: any = {
                 name: projectName,
-                pitchMm: parseFloat(pitch) || 0,
-                heightFt: parseFloat(heightFt) || 0,
-                widthFt: parseFloat(widthFt) || 0,
+                pitchMm: formatDimension(pitch),
+                heightFt: formatDimension(heightFt),
+                widthFt: formatDimension(widthFt),
                 pixelsH: parseInt(pixelsH) || 0,
                 pixelsW: parseInt(pixelsW) || 0,
                 brightness: brightness,
@@ -115,16 +116,16 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
                 name: projectName,
                 productType: 'LED Display',
                 quantity: 1,
-                areaSqFt: (parseFloat(heightFt) || 0) * (parseFloat(widthFt) || 0),
+                areaSqFt: formatDimension((parseFloat(heightFt) || 0) * (parseFloat(widthFt) || 0)),
                 pixelResolution: (parseInt(pixelsH) || 0) * (parseInt(pixelsW) || 0),
                 pixelMatrix: `${pixelsH} x ${pixelsW} @ ${pitch}mm`,
                 breakdown: {
-                    hardware: hardwareCost,
-                    structure: structureCost, // Mapped heuristic
+                    hardware: formatCurrencyInternal(hardwareCost),
+                    structure: formatCurrencyInternal(structureCost), // Mapped heuristic
                     install: 0,
-                    labor: laborCost, // Mapped heuristic
+                    labor: formatCurrencyInternal(laborCost), // Mapped heuristic
                     power: 0,
-                    shipping: shippingCost,
+                    shipping: formatCurrencyInternal(shippingCost),
                     pm: 0,
                     generalConditions: 0,
                     travel: 0,
@@ -133,10 +134,10 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
                     permits: 0,
                     cms: 0,
                     demolition: 0,
-                    ancMargin: ancMargin,
-                    sellPrice: sellPrice,
-                    bondCost: bondCost,
-                    totalCost: totalCostBeforeMargin,
+                    ancMargin: formatCurrencyInternal(ancMargin),
+                    sellPrice: formatCurrencyInternal(sellPrice),
+                    bondCost: formatCurrencyInternal(bondCost),
+                    totalCost: formatCurrencyInternal(totalCostBeforeMargin),
                     finalClientTotal: finalClientTotal,
                     sellingPricePerSqFt: heightFt && widthFt ? finalClientTotal / (parseFloat(heightFt) * parseFloat(widthFt)) : 0,
                     marginAmount: ancMargin // back compat

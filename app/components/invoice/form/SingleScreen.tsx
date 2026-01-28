@@ -22,6 +22,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Enterprise Math
+import { formatDimension, formatCurrencyPDF, calculateArea, safeNumber } from "@/lib/math";
+
 type SingleScreenProps = {
     name: string;
     index: number;
@@ -72,7 +75,7 @@ const SingleScreen = ({
 
     useEffect(() => {
         if (width != undefined && height != undefined) {
-            const area = (Number(width) * Number(height)).toFixed(2);
+            const area = calculateArea(Number(width), Number(height));
             setValue(`${name}[${index}].areaSqFt`, area);
         }
         if (width != undefined && height != undefined && pitch != undefined) {
@@ -84,7 +87,7 @@ const SingleScreen = ({
         }
     }, [width, height, pitch, name, index, setValue]);
 
-    const area = (Number(width || 0) * Number(height || 0)).toFixed(2);
+    const area = calculateArea(safeNumber(width), safeNumber(height));
 
     return (
         <div className={cn(
@@ -112,7 +115,7 @@ const SingleScreen = ({
                             #{index + 1} - {screenName || "Untitled Screen"}
                         </p>
                         <p className="text-xs text-zinc-500">
-                            {width > 0 && height > 0 ? `${width}' × ${height}'` : "No dimensions"} 
+                            {width > 0 && height > 0 ? `${formatDimension(Number(width))}' × ${formatDimension(Number(height))}'` : "No dimensions"} 
                             {quantity > 1 && ` × ${quantity}`}
                             {pitch > 0 && ` • ${pitch}mm pitch`}
                         </p>
@@ -120,10 +123,29 @@ const SingleScreen = ({
 
                     {/* Warning/Error Badges */}
                     {hasErrors && (
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold rounded-full flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            Errors
-                        </span>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold rounded-full flex items-center gap-1 cursor-help">
+                                        <AlertTriangle className="w-3 h-3" />
+                                        Errors
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent 
+                                    side="top" 
+                                    className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
+                                >
+                                    <div className="text-xs space-y-1">
+                                        <p className="font-bold text-red-400 mb-2">Validation Errors:</p>
+                                        {screenErrors && Object.entries(screenErrors).map(([field, error]: [string, any]) => (
+                                            <p key={field} className="text-zinc-300">
+                                                • {field}: {error?.message || 'Invalid'}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     )}
                     {hasLowMargin && !hasErrors && (
                         <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold rounded-full">
@@ -157,7 +179,7 @@ const SingleScreen = ({
                     <div className="text-right">
                         <p className="text-lg font-bold text-blue-400">
                             {finalClientTotal > 0
-                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(finalClientTotal)
+                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(formatCurrencyPDF(finalClientTotal))
                                 : "$0"
                             }
                         </p>

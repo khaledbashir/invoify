@@ -8,144 +8,41 @@ datasource db {
 }
 
 model Workspace {
-  id            String   @id @default(cuid())
-  name          String
-  users         User[]
-  proposals     Proposal[]
-  aiWorkspaceSlug String? // AnythingLLM workspace slug (optional)
+  id              String     @id @default(cuid())
+  name            String
+  aiWorkspaceSlug String?
+  proposals       Proposal[]
+  users           User[]
 }
 
 model User {
   id          String    @id @default(cuid())
   email       String    @unique
-  name        String?
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 }
 
 model Proposal {
-  id              String             @id @default(cuid())
-  workspaceId     String
-  clientName      String
-  proposalName    String?            // Professional name for client-facing exports
-  status          String             @default("DRAFT") // DRAFT | PENDING_APPROVAL | FINALIZED
-  documentType    String             @default("First Round") // LOI | First Round
-  pricingType     String             @default("Budget") // Hard Quoted | Budget
-
-  // Timestamps for auto-save & history
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  lastSavedAt     DateTime?
-
-  // Core Data (Sender/Receiver only - Screens are in ScreenConfig)
-  senderData      Json?              // { name, address, email, phone }
-  receiverData    Json?              // { name, address, email, phone }
-  // NOTE: No detailsData here! ScreenConfig is the SINGLE SOURCE OF TRUTH.
-
-  // Formulas & Calculations (stored, not just results)
-  marginFormula   String?            @default("P = C / (1 - M)") // Divisor Model
-  bondFormula     String?            @default("B = P * 0.015")   // 1.5% Bond
-  bondRate        Float              @default(1.5)               // Mutable bond rate override
-
-  // Internal Audit Snapshots (computed, not editable)
-  internalAudit   Json?              // Detailed per-screen audit (internal use)
-  clientSummary   Json?              // Clean summary shown on client PDF
-
-  // AI Integration
-  aiWorkspaceSlug String?            // Dedicated AnythingLLM workspace for this project
-  aiThreadId      String?            // AnythingLLM thread id (optional)
-  rfpDocumentUrl  String?            // URL to uploaded RFP document
-  isGodModeActive Boolean            @default(false) // Show French Blue glow on AI-extracted fields
-
-  // Relations
-  screens         ScreenConfig[]
-  revisions       ProposalRevision[]
-  auditLogs       AuditLog[]
-  rfpQuestions    RfpQuestion[]
-  workspace       Workspace          @relation(fields: [workspaceId], references: [id])
-
-  @@index([workspaceId])
-  @@index([clientName])
-  @@index([status])
-  @@index([updatedAt])
-}
-
-model ProposalRevision {
-  id              String   @id @default(cuid())
-  proposalId      String
-  version         Int      // v1, v2, v3...
-  createdAt       DateTime @default(now())
-  createdBy       String?  // userId
-
-  // Snapshot of the proposal state at this revision
-  snapshot        Json     // Full copy of senderData, receiverData, detailsData, screens
-
-  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-
-  @@unique([proposalId, version])
-  @@index([proposalId])
-}
-
-model AuditLog {
-  id              String   @id @default(cuid())
-  proposalId      String
-  action          String   // CREATED | SAVED | MARGIN_CHANGED | SCREEN_ADDED | EXPORTED | FINALIZED
-  changeSource    String?  // AI_RAG | USER_OVERRIDE | EXCEL_IMPORT | SYSTEM
-  userId          String?
-  userName        String?  // Human-readable name for audit trail
-  timestamp       DateTime @default(now())
-  metadata        Json?    // { field: "margin", oldValue: 0.08, newValue: 0.10, aiConfidence: 0.85 }
-
-  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
-
-  @@index([proposalId])
-  @@index([timestamp])
-}
-
-model RfpQuestion {
-  id          String       @id @default(cuid())
-  proposalId  String
-  question    String
-  answer      String?      // User's answer (nullable until answered)
-  answered    Boolean      @default(false)  // Tracks if question is answered
-  order       Int          // Display order
-  proposal    Proposal     @relation(fields: [proposalId], references: [id])
+  id            String         @id @default(cuid())
+  workspaceId   String
+  clientName    String
+  status        String         @default("DRAFT")
+  internalAudit Json?
+  clientSummary Json?
+  aiThreadId    String?
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id])
+  screens       ScreenConfig[]
 }
 
 model ScreenConfig {
-  id           String         @id @default(cuid())
-  proposalId   String
-  name         String         // Internal reference name
-  externalName String?        // Client-facing name (falls back to name)
-  productType  String?        // product category (e.g. "Outdoor LED")
-  
-  // Dimensions and Specs (using Ft/Mm suffix for precision)
-  widthFt      Float?
-  heightFt     Float?
-  pitchMm      Float?
-  
-  // Weights (Legacy support)
-  width        Float?         // legacy field
-  height       Float?         // legacy field
-  pixelPitch   Float?         // legacy field
-  
-  quantity     Int            @default(1)
-  
-  // Costing
-  costPerSqFt   Float?
-  desiredMargin Float?
-  
-  // Form/Installation
-  serviceType  String?        // Top | Front/Rear
-  formFactor   String?        // Straight | Curved
-  
-  isReplacement Boolean       @default(false)
-  useExistingStructure Boolean @default(false)
-  includeSpareParts Boolean    @default(true)
-  
-  aiSource      Json?          // Metadata: { field: { page, text, confidence } }
-  lineItems    CostLineItem[]
-  proposal     Proposal       @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  id         String         @id @default(cuid())
+  proposalId String
+  name       String
+  pixelPitch Float
+  width      Float
+  height     Float
+  lineItems  CostLineItem[]
+  proposal   Proposal       @relation(fields: [proposalId], references: [id])
 }
 
 model CostLineItem {
@@ -157,4 +54,3 @@ model CostLineItem {
   price          Decimal      @db.Decimal(12, 2)
   screenConfig   ScreenConfig @relation(fields: [screenConfigId], references: [id])
 }
-
