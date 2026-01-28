@@ -81,7 +81,7 @@ const ProposalTemplate1 = (data: ProposalType) => {
 								{item.name} {item.isGroup ? ', Install, CMS, Engineering, Warranty' : ''}
 							</div>
 							<div className='text-[10px] font-bold text-zinc-900'>
-								${formatNumberWithCommas(item.total)}
+								${formatNumberWithCommas(Math.round(item.total))}
 							</div>
 						</div>
 					))}
@@ -91,7 +91,7 @@ const ProposalTemplate1 = (data: ProposalType) => {
 				<div className="flex justify-between items-center mt-2 pt-1 border-t-2 border-black">
 					<div className="text-right w-full text-xs font-bold uppercase mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>SUBTOTAL:</div>
 					<div className="text-xs font-bold text-black min-w-[80px] text-right">
-						${formatNumberWithCommas(Number(details.subTotal))}
+						${formatNumberWithCommas(Math.round(Number(details.subTotal)))}
 					</div>
 				</div>
 			</div>
@@ -113,14 +113,14 @@ const ProposalTemplate1 = (data: ProposalType) => {
 								{opt.description || opt.name}
 							</div>
 							<div className='text-[10px] font-bold text-zinc-900'>
-								${formatNumberWithCommas(opt.total)}
+								${formatNumberWithCommas(Math.round(opt.total))}
 							</div>
 						</div>
 					</div>
 					<div className="flex justify-between items-center mt-1 pt-1 border-t-2 border-black">
 						<div className="text-right w-full text-xs font-bold uppercase mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>SUBTOTAL:</div>
 						<div className="text-xs font-bold text-black min-w-[80px] text-right">
-							${formatNumberWithCommas(opt.total)}
+							${formatNumberWithCommas(Math.round(opt.total))}
 						</div>
 					</div>
 				</div>
@@ -223,19 +223,19 @@ const ProposalTemplate1 = (data: ProposalType) => {
 									</div>
 									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Active Display Height (ft.)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.heightFt ?? screen.height ?? 0}'</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px]">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</span>
 									</div>
 									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Active Display Width (ft.)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.widthFt ?? screen.width ?? 0}'</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px]">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</span>
 									</div>
 									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Pixel Resolution (H)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsH || Math.round((screen.heightFt * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsH || Math.round((Number(screen.heightFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
 									</div>
 									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-black">
 										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>Pixel Resolution (W)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsW || Math.round((screen.widthFt * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsW || Math.round((Number(screen.widthFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
 									</div>
 								</div>
 							</div>

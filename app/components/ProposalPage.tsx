@@ -69,19 +69,19 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
 
   // Header: Logo | Stepper (center) | Actions
   const HeaderContent = (
-    <div className="h-full max-w-[1920px] mx-auto px-4 flex items-center justify-between">
-      {/* Logo with clear space */}
-      <div className="flex items-center shrink-0 pl-2 w-44">
-        <LogoSelector theme="dark" width={80} height={32} />
+    <div className="h-full w-full flex items-center justify-between px-6">
+      {/* Logo Guard: Blue header = White Logo */}
+      <div className="flex items-center shrink-0 w-64">
+        <LogoSelector theme="dark" width={100} height={40} className="p-0" />
       </div>
 
       {/* Wizard Stepper (centered) */}
-      <div className="flex-1 flex justify-center">
+      <div className="flex-1 flex justify-center max-w-2xl">
         <WizardStepper wizard={wizard} />
       </div>
 
       {/* Right Actions - Strict: Save and Finalize only */}
-      <div className="flex items-center gap-3 shrink-0 w-44 justify-end">
+      <div className="flex items-center gap-4 shrink-0 w-64 justify-end">
         <SaveIndicator
           status={saveStatus}
           lastSavedAt={(initialData as any)?.lastSavedAt ? new Date((initialData as any).lastSavedAt) : undefined}
@@ -90,7 +90,7 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
         <Button
           size="sm"
           onClick={() => handleSubmit(onFormSubmit)()}
-          className="bg-[#0A52EF] hover:bg-[#0A52EF]/90 text-white font-bold h-9 px-5 rounded-lg transition-all"
+          className="bg-[#0A52EF] hover:bg-blue-600 text-white font-black uppercase tracking-widest h-10 px-6 rounded-xl transition-all shadow-lg shadow-blue-500/10 active:scale-95"
         >
           Finalize 🏁
         </Button>
@@ -98,14 +98,15 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
     </div>
   );
 
-  // Form Content (Drafting Mode)
+  // Form Content (The Hub - Drafting Mode)
   const FormContent = (
-    <div className="flex flex-col h-full bg-zinc-950">
-      <div className="px-4 pt-4 shrink-0">
+    <div className="flex flex-col h-full">
+      {/* ActionToolbar: only visible in drafting mode */}
+      <div className="px-6 pt-6 shrink-0">
         <ActionToolbar />
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto custom-scrollbar">
         <WizardStep>
           <Step1Ingestion />
         </WizardStep>
@@ -122,32 +123,36 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
     </div>
   );
 
-  // AI Content (Intelligence Mode)
+  // AI Content (The Hub - Intelligence Mode)
   const AIContent = (
-    <div className="h-full bg-zinc-950 border-r border-zinc-800/50">
+    <div className="h-full flex flex-col">
       <RfpSidebar />
     </div>
   );
 
-  // Audit Content (Audit Mode)
+  // Audit Content (The Hub - Audit Mode)
   const AuditContent = (
-    <div className="h-full bg-zinc-950 overflow-auto p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="h-full flex flex-col p-6 space-y-6">
+      <div className="flex items-center justify-between bg-zinc-900/40 p-6 rounded-2xl border border-zinc-800">
         <div>
-          <h2 className="text-xl font-bold text-white">Project Financial Audit</h2>
-          <p className="text-sm text-zinc-500">Real-time gap analysis and margin verification Protocol.</p>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Financial Audit</h2>
+          <p className="text-sm text-zinc-500 font-medium">Real-time margin verification & ANC Profitability Protocol.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-blue-400 border-blue-500/30 bg-blue-500/10">17/20 Strategy Match</Badge>
+        <div className="flex flex-col items-end gap-1">
+          <Badge className="bg-blue-600 text-white font-black uppercase tracking-widest px-3 py-1">17/20 Strategy Match</Badge>
+          <span className="text-[10px] text-zinc-600 font-bold uppercase">Natalia Engine Active</span>
         </div>
       </div>
-      <AuditTable />
+
+      <div className="flex-1 overflow-auto custom-scrollbar">
+        <AuditTable />
+      </div>
     </div>
   );
 
   // PDF Content (The Anchor)
   const PDFContent = (
-    <div className="p-4">
+    <div className="animate-in fade-in zoom-in-95 duration-700">
       <PdfViewer />
     </div>
   );

@@ -25,132 +25,139 @@ const Step1Ingestion = () => {
     });
 
     const isNew = !proposalId || proposalId === 'new';
-    const [clientNameInput, setClientNameInput] = useState("");
-
-    const steps = ["Creating Workspace...", "Injecting Master Formulas...", "Training Strategic Agent..."];
+    const [selectedPath, setSelectedPath] = useState<"MIRROR" | "STRATEGIC" | null>(null);
 
     const handleCreateProject = async () => {
-        if (!clientNameInput) return;
+        if (!clientNameInput || !selectedPath) return;
         setLoading(true);
         setCreationStep(0);
 
         try {
-            // Animate through steps
             const resp = await fetch("/api/workspaces/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: clientNameInput,
-                    userEmail: "noreply@anc.com", // Default for now
+                    userEmail: "noreply@anc.com",
                     createInitialProposal: true,
-                    clientName: clientNameInput
+                    clientName: clientNameInput,
+                    calculationMode: selectedPath
                 }),
             });
 
             const json = await resp.json();
 
-            // Artificial delay for Ferrari feel, but reduced
-            setCreationStep(0);
-            await new Promise((r) => setTimeout(r, 400));
-            setCreationStep(1);
-            await new Promise((r) => setTimeout(r, 400));
-            setCreationStep(2);
-            await new Promise((r) => setTimeout(r, 400));
-
             if (resp.ok && json && json.proposal) {
-                // store workspace/thread locally
-                if (typeof window !== "undefined") {
-                    if (json.ai?.slug) localStorage.setItem("aiWorkspaceSlug", json.ai.slug);
-                    if (json.ai?.threadId) localStorage.setItem("aiThreadId", json.ai.threadId);
+                // Artificial delay for Ferrari feel
+                for (let i = 0; i < steps.length; i++) {
+                    setCreationStep(i);
+                    await new Promise((r) => setTimeout(r, 600));
                 }
 
                 // Redirect!
                 window.location.href = `/projects/${json.proposal.id}`;
             } else {
-                console.error("Workspace creation failed", json);
-                alert("Failed to create Project Vault. Check database connection.");
-                setLoading(false);
+                throw new Error(json.error || "Workspace creation failed");
             }
         } catch (e) {
             console.error("Failed to create workspace:", e);
+            alert(`PROJECT VAULT ERROR: ${e instanceof Error ? e.message : "Check database connection."}`);
             setLoading(false);
         }
     };
 
     if (isNew) {
         return (
-            <div className="max-w-xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Card className="bg-zinc-900/50 border-zinc-800/50">
-                    <CardHeader>
-                        <CardTitle className="text-xl text-zinc-100">Start New Project</CardTitle>
-                        <CardDescription className="text-zinc-400">Initialize the AI Strategic Hub to begin.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {!loading ? (
-                            <>
-                                <div className="space-y-2">
-                                    <label className="text-xs text-zinc-500 uppercase font-bold tracking-wider">Project / Client Name</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            className="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm ring-offset-zinc-950 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-white"
-                                            placeholder="e.g. Lakers - Arena Renovation"
-                                            value={clientNameInput}
-                                            onChange={(e) => setClientNameInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
-                                        />
-                                        <button
-                                            onClick={handleCreateProject}
-                                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-zinc-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2"
-                                        >
-                                            Initialize
-                                        </button>
-                                    </div>
-                                    <div className="pt-4 border-t border-zinc-800 flex flex-col items-center">
-                                        <p className="text-xs text-zinc-500 mb-2 italic">Or use Mirror Mode</p>
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => document.getElementById("excel-import-input-isnew")?.click()}
-                                                disabled={excelImportLoading}
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 text-xs font-bold rounded-lg border border-emerald-600/30 transition-all disabled:opacity-50"
-                                            >
-                                                {excelImportLoading ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Upload className="w-4 h-4" />
-                                                )}
-                                                <span>Import ANC Excel (Mirror Mode)</span>
-                                            </button>
-                                            <input
-                                                id="excel-import-input-isnew"
-                                                type="file"
-                                                accept=".xlsx,.xls"
-                                                className="hidden"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        await importANCExcel(file);
-                                                        // Automatically trigger initialization with the imported name
-                                                        // Note: importANCExcel sets receiver.name, but we need to pass it to handleCreateProject
-                                                        // Or just let the user see it filled and they click initialize?
-                                                        // Better: auto-init if they use excel
-                                                    }
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center gap-4 py-8">
-                                <div className="animate-spin w-8 h-8 rounded-full border-t-2 border-b-2 border-blue-500"></div>
-                                <div className="text-center">
-                                    <div className="text-zinc-200 font-medium">{steps[creationStep]}</div>
-                                    <div className="text-zinc-500 text-sm mt-2">Setting up database & AI context...</div>
-                                </div>
+            <div className="max-w-4xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div className="text-center mb-10">
+                    <h1 className="text-4xl font-black tracking-tighter text-white mb-2 uppercase">Command Center Initialization</h1>
+                    <p className="text-zinc-500 font-medium">Define your project path to activate the Strategic Hub.</p>
+                </div>
+
+                {!loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full items-stretch">
+                        {/* LEFT: Project Identity */}
+                        <div className="flex flex-col gap-6 p-8 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
+                            <div className="space-y-4">
+                                <label className="text-xs text-blue-500 uppercase font-black tracking-[0.2em]">Project Identity</label>
+                                <input
+                                    autoFocus
+                                    className="flex h-14 w-full rounded-xl border-2 border-zinc-800 bg-zinc-950 px-4 py-2 text-lg font-bold ring-offset-zinc-950 placeholder:text-zinc-700 focus:border-blue-600 focus:outline-none transition-all text-white shadow-2xl"
+                                    placeholder="e.g. Lakers Arena - 2026"
+                                    value={clientNameInput}
+                                    onChange={(e) => setClientNameInput(e.target.value)}
+                                />
+                                <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                                    The project name will be used to generate your unique Strategic Slug and AI context.
+                                </p>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+
+                            <div className="mt-auto pt-6 border-t border-zinc-800/50">
+                                <button
+                                    onClick={handleCreateProject}
+                                    disabled={!clientNameInput || !selectedPath}
+                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-black uppercase tracking-widest transition-all focus:outline-none disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed bg-[#0A52EF] text-white hover:bg-blue-600 h-14 shadow-xl shadow-blue-500/10 active:scale-95"
+                                >
+                                    Initialize Strategic Hub
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Path Selection */}
+                        <div className="flex flex-col gap-4">
+                            <label className="text-xs text-blue-500 uppercase font-black tracking-[0.2em] ml-2">Navigation Strategy</label>
+
+                            <div
+                                onClick={() => setSelectedPath("STRATEGIC")}
+                                className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPath === "STRATEGIC"
+                                        ? "bg-blue-600/10 border-blue-600 shadow-2xl shadow-blue-500/10"
+                                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className={`p-3 rounded-lg ${selectedPath === "STRATEGIC" ? "bg-blue-600 text-white" : "bg-zinc-800 text-zinc-500"}`}>
+                                        <Building2 className="w-5 h-5" />
+                                    </div>
+                                    <h3 className={`font-black uppercase tracking-tight ${selectedPath === "STRATEGIC" ? "text-white" : "text-zinc-400"}`}>Strategic Mode</h3>
+                                </div>
+                                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
+                                    Full commercial optimization with Natalia Math Engine. Automatic margin logic and AI assistance.
+                                </p>
+                            </div>
+
+                            <div
+                                onClick={() => setSelectedPath("MIRROR")}
+                                className={`group p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedPath === "MIRROR"
+                                        ? "bg-emerald-600/10 border-emerald-600 shadow-2xl shadow-emerald-500/10"
+                                        : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-4 mb-3">
+                                    <div className={`p-3 rounded-lg ${selectedPath === "MIRROR" ? "bg-emerald-600 text-white" : "bg-zinc-800 text-zinc-500"}`}>
+                                        <Upload className="w-5 h-5" />
+                                    </div>
+                                    <h3 className={`font-black uppercase tracking-tight ${selectedPath === "MIRROR" ? "text-white" : "text-zinc-400"}`}>Mirror Mode</h3>
+                                </div>
+                                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
+                                    Excel Pass-Through. Lock pricing to your uploaded ANC spreadsheet for 1:1 precision.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center gap-6 py-20 bg-zinc-900/30 border border-zinc-800 rounded-3xl backdrop-blur-xl">
+                        <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-4 border-blue-600/20 border-t-blue-600 animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-blue-600/10 animate-pulse"></div>
+                            </div>
+                        </div>
+                        <div className="text-center space-y-2">
+                            <div className="text-2xl font-black text-white uppercase tracking-tighter italic">{steps[creationStep]}</div>
+                            <div className="text-zinc-500 text-sm font-medium">Securing Project Vault & Strategic Context...</div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
