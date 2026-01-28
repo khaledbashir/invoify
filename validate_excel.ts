@@ -15,18 +15,19 @@ async function run() {
         const buffer = fs.readFileSync(filePath);
         const result = await parseANCExcel(buffer);
 
+        const f = result.formData;
         console.log("=== PARSING RESULT ===");
-        console.log("Client Name:", result.clientName);
-        console.log("Project Name:", result.proposalName);
-        console.log("\n--- SCREENS FOUND: " + result.screens.length + " ---");
-        result.screens.forEach((s, i) => {
+        console.log("Client Name:", f.receiver?.name);
+        console.log("Project Name:", f.details?.proposalName);
+        console.log("\n--- SCREENS FOUND: " + f.details?.screens?.length + " ---");
+        f.details?.screens?.forEach((s: any, i: number) => {
             console.log(`\nScreen ${i + 1}: ${s.name}`);
             console.log(`Dims: ${s.heightFt}' x ${s.widthFt}'`);
             console.log(`Resolution: ${s.pixelsH} x ${s.pixelsW}`);
             console.log(`Pitch: ${s.pitchMm}mm`);
             console.log(`Brightness (Extracted):`, s.brightness);
-            console.log(`Line Items (Mirror Mode):`, s.lineItems.length);
-            if (s.lineItems.length > 0) {
+            console.log(`Line Items (Mirror Mode):`, s.lineItems?.length);
+            if (s.lineItems && s.lineItems.length > 0) {
                 console.log("  [Mirror Items Sample]");
                 s.lineItems.slice(0, 3).forEach((li: any) => console.log(`  - ${li.category}: $${li.price}`));
             } else {
