@@ -21,7 +21,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Map internalAudit data to screens for the exporter
-    const internalAudit: any = proposal.internalAudit;
+    let internalAudit: any = proposal.internalAudit;
+    if (typeof internalAudit === "string" && internalAudit.trim() !== "") {
+      try {
+        internalAudit = JSON.parse(internalAudit);
+      } catch {
+        internalAudit = null;
+      }
+    }
     const screensWithAudit = (proposal.screens || []).map((screen, idx) => ({
       ...screen,
       internalAudit: internalAudit?.perScreen?.[idx] || null,

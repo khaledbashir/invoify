@@ -15,6 +15,7 @@ export interface ScreenItem {
         width?: number;
         height?: number;
         brightness?: number;
+        quantity?: number;
     };
 }
 
@@ -67,7 +68,11 @@ export function groupScreensForPDF(screens: ScreenItem[]): {
 function generateGroupDescription(items: ScreenItem[]): string {
     if (items.length === 1) {
         const item = items[0];
-        return `LED Display System - ${item.specs?.width || 0}'w x ${item.specs?.height || 0}'h`;
+        const h = Number(item.specs?.height || 0).toFixed(2);
+        const w = Number(item.specs?.width || 0).toFixed(2);
+        const p = item.specs?.pitch || 0;
+        const q = item.specs?.quantity || 1;
+        return `${item.name} - ${h}' H x ${w}' W - ${p}mm - QTY ${q}`;
     }
 
     const totalArea = items.reduce((sum, item) => {
@@ -76,7 +81,7 @@ function generateGroupDescription(items: ScreenItem[]): string {
         return sum + (w * h);
     }, 0);
 
-    return `LED Display System Package (${items.length} displays, ${Math.round(totalArea)} sq ft total)`;
+    return `${items.length} Displays Package (${Math.round(totalArea)} sq ft total)`;
 }
 
 /**
@@ -104,9 +109,13 @@ export function convertToLineItems(screens: ScreenItem[]): {
 
     // Add ungrouped items
     ungrouped.forEach(screen => {
+        const h = Number(screen.specs?.height || 0).toFixed(2);
+        const w = Number(screen.specs?.width || 0).toFixed(2);
+        const p = screen.specs?.pitch || 0;
+        const q = screen.specs?.quantity || 1;
         lineItems.push({
             name: screen.name,
-            description: `LED Display - ${screen.specs?.width || 0}'w x ${screen.specs?.height || 0}'h`,
+            description: `${h}' H x ${w}' W - ${p}mm - QTY ${q}`,
             total: screen.sellPrice,
             isGroup: false,
         });

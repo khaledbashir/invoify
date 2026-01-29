@@ -21,12 +21,12 @@ type SendPdfEmailProps = {
 };
 
 export default function SendPdfEmail({ proposalNumber }: SendPdfEmailProps) {
-    const logo = `${BASE_URL}/assets/img/invoify-logo.png`;
+    const logo = `${BASE_URL}/assets/img/anc-logo.png`;
     return (
         <Html>
             <Head />
             <Preview>
-                Your proposal #{proposalNumber} is ready for download
+                Your ANC Proposal #{proposalNumber} is ready for download
             </Preview>
             <Tailwind>
                 <Body className="bg-gray-100">
@@ -34,12 +34,12 @@ export default function SendPdfEmail({ proposalNumber }: SendPdfEmailProps) {
                         <Section className="bg-white border-black-950 my-10 px-10 py-4 rounded-md">
                             <Img
                                 src={logo}
-                                alt="Invoify Logo"
-                                width={200}
-                                height={120}
+                                alt="ANC Logo"
+                                width={120}
+                                height={60}
                             />
                             <Heading className="leading-tight">
-                                Thanks for using Invoify!
+                                Your ANC Proposal is Ready
                             </Heading>
 
                             <Text>
@@ -53,7 +53,7 @@ export default function SendPdfEmail({ proposalNumber }: SendPdfEmailProps) {
                             <Text>
                                 Best Regards,
                                 <br />
-                                Invoify Team
+                                ANC Proposal Studio
                             </Text>
                         </Section>
                     </Container>

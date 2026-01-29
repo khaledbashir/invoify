@@ -174,8 +174,8 @@ export const ChargesContextProvider = ({ children }: ChargesContextProps) => {
         // Here Number(item.total) fixes a bug where an extra zero appears
         // at the beginning of subTotal caused by toFixed(2) in item.total in single item
         // Reason: toFixed(2) returns string, not a number instance
-        const totalSum: number = itemsArray.reduce(
-            (sum: number, item: ItemType) => sum + Number(item.total),
+        const totalSum: number = (Array.isArray(itemsArray) ? itemsArray : []).reduce(
+            (sum: number, item: ItemType) => sum + Number(item?.total || 0),
             0
         );
 
@@ -183,9 +183,9 @@ export const ChargesContextProvider = ({ children }: ChargesContextProps) => {
         setSubTotal(totalSum);
 
         let discountAmount: number =
-            parseFloat(discount!.amount.toString()) ?? 0;
-        let taxAmount: number = parseFloat(tax!.amount.toString()) ?? 0;
-        let shippingCost: number = parseFloat(shipping!.cost.toString()) ?? 0;
+            parseFloat(discount?.amount?.toString() || "0") || 0;
+        let taxAmount: number = parseFloat(tax?.amount?.toString() || "0") || 0;
+        let shippingCost: number = parseFloat(shipping?.cost?.toString() || "0") || 0;
 
         let discountAmountType: string = "amount";
         let taxAmountType: string = "amount";

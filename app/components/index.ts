@@ -55,6 +55,7 @@ import ThemeSwitcher from "./reusables/ThemeSwitcher";
 import Subheading from "./reusables/Subheading";
 import AiWand from "./reusables/AiWand";
 import LogoSelector from "./reusables/LogoSelector";
+import { ExcelDropzone } from "./reusables/ExcelDropzone";
 
 /* =========================
    * Modals & Alerts
@@ -148,6 +149,7 @@ export {
    ProposalTemplate2,
    ProposalTemplate3,
    SendPdfEmail,
-   FormSelect,
-   LogoSelector,
+    FormSelect,
+    LogoSelector,
+    ExcelDropzone,
 };

@@ -352,16 +352,19 @@ Proactive Recommendations: When you detect specific specs from an RFP or documen
             // Also run a quick DB benchmark to provide context (read-only)
             try {
               const { prisma } = await import("@/lib/prisma");
-              // FIX: Use Prisma.DbNull to filter nullable JSON fields properly
-              const proposals = await prisma.proposal.findMany({ where: { internalAudit: { not: Prisma.DbNull } }, take: 50 });
+              const proposals = await prisma.proposal.findMany({ where: { internalAudit: { not: null } }, take: 50 });
               const margins: number[] = [];
               for (const p of proposals) {
-                const ia = p.internalAudit as Prisma.JsonObject;
-                const totals = ia.totals as Prisma.JsonObject | null;
-                if (totals && typeof totals.margin === 'number' && typeof totals.totalPrice === 'number') {
-                  const m = totals.margin / (totals.totalPrice || 1);
-                  margins.push(m);
-                }
+                const raw = p.internalAudit;
+                if (!raw) continue;
+                try {
+                  const ia = JSON.parse(raw) as any;
+                  const totals = ia?.totals;
+                  if (totals && typeof totals.margin === "number" && typeof totals.totalPrice === "number") {
+                    const m = totals.margin / (totals.totalPrice || 1);
+                    margins.push(m);
+                  }
+                } catch { }
               }
               const avgMargin = margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : null;
 

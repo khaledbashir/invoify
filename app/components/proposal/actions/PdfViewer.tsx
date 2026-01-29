@@ -35,26 +35,17 @@ const PdfViewer = () => {
     const Template = DynamicProposalTemplate as any;
 
     return (
-        <div className="my-3">
-            <div className="w-full rounded-lg shadow-2xl bg-white min-h-[1000px] relative">
-                <div
-                    className="h-full w-full overflow-y-auto rounded-xl bg-white shadow-xl ring-1 ring-gray-900/5"
-                    style={{
-                        aspectRatio: "210/297", // A4 aspect ratio
-                    }}
-                >
-                    {Template ? (
-                        <Template
-                            {...debouncedValues}
-                            forceWhiteLogo={forceWhiteLogo}
-                        />
-                    ) : (
-                        <div className="flex items-center justify-center h-full text-gray-400">
-                            Generator Loading...
-                        </div>
-                    )}
+        <div className="w-full h-full flex flex-col items-center">
+            {Template ? (
+                <Template
+                    {...debouncedValues}
+                    forceWhiteLogo={forceWhiteLogo}
+                />
+            ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">
+                    Generator Loading...
                 </div>
-            </div>
+            )}
         </div>
     );
 };

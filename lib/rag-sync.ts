@@ -35,13 +35,18 @@ export async function vectorSearch(workspace: string, query: string) {
 
   const endpoint = `${ANYTHING_LLM_BASE_URL}/workspace/${workspace}/vector-search`;
 
+  // REQ-25: Division 11 Target RAG Extraction
+  // Prioritize "Section 11 63 10" and "Section 11 06 60"
+  const sectionKeywords = ["Section 11 63 10", "Section 11 06 60", "Division 11", "Display Schedule"];
+  const enhancedQuery = `${query} ${sectionKeywords.join(' ')}`;
+
   const res = await fetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${ANYTHING_LLM_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query, topN: 4, scoreThreshold: 0.2 }),
+    body: JSON.stringify({ query: enhancedQuery, topN: 6, scoreThreshold: 0.2 }),
   });
 
   const text = await res.text();

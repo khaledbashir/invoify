@@ -12,13 +12,13 @@ export interface ScreenPriceBreakdown {
 }
 
 /**
- * calculateTotalWithBond (Ferrari Edition Divisor Model)
+ * calculateTotalWithBond (Natalia Math Divisor Model)
  * Sell Price = Cost / (1 - Margin%)
  * Bond = Sell Price * 0.015
  * Total = Sell Price + Bond
  */
 export function calculateTotalWithBond(cost: number, marginPct: number) {
-  // Ferrari Edition Divisor Model: P = C / (1 - M)
+  // Natalia Math Divisor Model: P = C / (1 - M)
   const sellPrice = cost / (1 - (marginPct / 100));
   // Bond is 1.5% of the Sell Price
   const bond = sellPrice * 0.015;
@@ -323,9 +323,24 @@ export function calculatePerScreenAudit(
   const costPerSqFt = s.costPerSqFt ?? catalogEntry.cost_per_sqft ?? DEFAULT_COST_PER_SQFT;
 
   // Pixel Matrix Math: (H_mm / Pitch) × (W_mm / Pitch)
-  const heightMm = (s.heightFt ?? 0) * 304.8; // Convert feet to mm
-  const widthMm = (s.widthFt ?? 0) * 304.8;
-  const pitchMeters = pitch / 1000;
+  const resolveModuleKey = (productType: string | undefined, pitchMm: number) => {
+    if (!productType) return null;
+    const t = productType.toLowerCase();
+    if (t.includes("lg") && Math.abs(pitchMm - 4) < 0.25) return "LG-GSQA-4MM";
+    if (t.includes("yaham") && Math.abs(pitchMm - 10) < 0.5) return "YAHAM-10MM-INDOOR";
+    return null;
+  };
+
+  const moduleKey = s.aiSource?.moduleKey ?? resolveModuleKey(s.productType, pitch);
+  const targetHeightFt = s.heightFt ?? 0;
+  const targetWidthFt = s.widthFt ?? 0;
+  const { matchModules } = require("../services/module-matching");
+  const matched = moduleKey && targetHeightFt > 0 && targetWidthFt > 0
+    ? matchModules(targetWidthFt, targetHeightFt, moduleKey)
+    : null;
+
+  const heightMm = (matched?.actualHeightFt ?? targetHeightFt) * 304.8;
+  const widthMm = (matched?.actualWidthFt ?? targetWidthFt) * 304.8;
   const pixelsH = Math.round(heightMm / pitch);
   const pixelsW = Math.round(widthMm / pitch);
   const pixelResolution = pixelsH * pixelsW;
@@ -394,12 +409,11 @@ export function calculatePerScreenAudit(
     demolition
   );
 
-  // Sell Price (P): Total Cost / (1 - DesiredMargin)
-  // Ferrari Edition Divisor Model: P = C / (1 - M)
+  // Natalia Math Divisor Model: P = C / (1 - M)
   const sellPrice = roundToCents(totalCost / (1 - desiredMargin));
 
-  // Bond Fee: 1.5% applied ON TOP of the Sell Price
-  const bondCost = roundToCents(sellPrice * 0.015);
+  // Bond Fee: 1.5% applied ON TOP of the Sell Price (calculated against Sell Price)
+  const bondCost = roundToCents(sellPrice * BOND_PCT);
   const finalClientTotal = roundToCents(sellPrice + bondCost);
 
   // ANC Margin (Profit): Sell Price - Total Cost
@@ -502,9 +516,15 @@ export function calculateANCProject(
  */
 export function calculateProposalAudit(
   screens: ScreenInput[],
-  options?: { defaultCostPerSqFt?: number; defaultPitchMm?: number; defaultDesiredMargin?: number }
+  options?: { 
+    defaultCostPerSqFt?: number; 
+    defaultPitchMm?: number; 
+    defaultDesiredMargin?: number;
+    taxRate?: number; // Override default 9.5%
+    bondPct?: number; // Override default 1.5%
+  }
 ): { clientSummary: ClientSummary; internalAudit: InternalAudit } {
-  const perScreen = screens.map((s) => calculatePerScreenAudit(s, options));
+  const perScreen = screens.map((s) => calculatePerScreenAudit(s, { ...options, bondPct: options?.bondPct }));
 
   const totals = {
     hardware: 0,
@@ -574,9 +594,10 @@ export function calculateProposalAudit(
     totals,
   };
 
-  // Apply project tax (flat 9.5%) to the subtotal to compute grand total
+  // Apply project tax (default 9.5% or override) to the subtotal to compute grand total
   const subtotal = roundToCents(totals.finalClientTotal);
-  const taxAmount = roundToCents(subtotal * 0.095);
+  const activeTaxRate = options?.taxRate !== undefined ? options.taxRate : 0.095;
+  const taxAmount = roundToCents(subtotal * activeTaxRate);
   const grandTotal = roundToCents(subtotal + taxAmount);
 
   const clientSummary: ClientSummary = {

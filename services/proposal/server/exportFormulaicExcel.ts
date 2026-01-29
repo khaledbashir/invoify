@@ -39,7 +39,7 @@ export async function generateAuditExcel(
     options?: AuditExcelOptions
 ): Promise<ExcelJS.Workbook> {
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'ANC Ferrari Intelligence';
+    workbook.creator = 'ANC Natalia Intelligence Core';
     workbook.created = new Date();
 
     // Sheet 1: Internal Audit (Formulas)
@@ -83,6 +83,8 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         { col: 'E', label: 'Total Cost', width: 18 },
         { col: 'F', label: 'Margin %', width: 12 },
         { col: 'G', label: 'Sell Price (Divisor)', width: 20 },
+        { col: 'H', label: 'Tax/Bond Rate', width: 15 },
+        { col: 'I', label: 'Final Item Total', width: 20 },
     ];
 
     headers.forEach(h => {
@@ -99,29 +101,32 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         const b = audit?.breakdown || {};
 
         // Section Header
-        sheet.mergeCells(`A${currentRow}:G${currentRow}`);
+        sheet.mergeCells(`A${currentRow}:I${currentRow}`);
         const sectionCell = sheet.getCell(`A${currentRow}`);
         sectionCell.value = `DISPLAY ${idx + 1}: ${screen.name || 'Unnamed'}`;
-        sectionCell.font = { bold: true };
-        sectionCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEBF5FB' } };
+        sectionCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        sectionCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A52EF' } };
         currentRow++;
 
-        // 1. HARDWARE SECTION
+        // 1. HARDWARE SECTION (MODULE-BASED)
         const hwRow = currentRow;
-        sheet.getCell(`A${currentRow}`).value = 'Hardware';
+        sheet.getCell(`A${currentRow}`).value = 'Hardware (Module-First)';
         sheet.getCell(`B${currentRow}`).value = 'Area (SqFt)';
         sheet.getCell(`C${currentRow}`).value = audit?.areaSqFt || 0;
-        sheet.getCell(`D${currentRow}`).value = 'Qty * Height * Width';
+        sheet.getCell(`D${currentRow}`).value = 'Module Count * Module Size';
 
         // Cost per SqFt (Input)
         currentRow++;
         sheet.getCell(`B${currentRow}`).value = 'Unit Cost ($/SqFt)';
         sheet.getCell(`C${currentRow}`).value = screen.costPerSqFt || 120;
+        sheet.getCell(`C${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
+        sheet.getCell(`D${currentRow}`).value = 'YELLOW CELLS = FINANCE INPUTS';
 
         // Spare Parts Toggle (Visual indicator)
         currentRow++;
         sheet.getCell(`B${currentRow}`).value = 'Spare Parts (5%)';
         sheet.getCell(`C${currentRow}`).value = screen.includeSpareParts ? 'YES' : 'NO';
+        sheet.getCell(`C${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
 
         // Hardware Total Cost Formula
         // E[hwRow] = C[hwRow] * C[hwRow+1] * (IF(C[hwRow+2]="YES", 1.05, 1))
@@ -140,6 +145,7 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         sheet.getCell(`B${currentRow}`).value = 'Install/Structure/Labor';
         const softCostTotal = (b.install || 0) + (b.labor || 0) + (b.structure || 0) + (b.power || 0) + (b.shipping || 0) + (b.pm || 0);
         sheet.getCell(`C${currentRow}`).value = softCostTotal;
+        sheet.getCell(`C${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } };
         sheet.getCell(`D${currentRow}`).value = 'Est. Support Costs';
         sheet.getCell(`E${currentRow}`).value = { formula: `C${currentRow}` };
         sheet.getCell(`E${currentRow}`).numFmt = '"$"#,##0.00';
@@ -162,39 +168,53 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         currentRow++;
         const sellPriceRow = currentRow;
         sheet.getCell(`A${currentRow}`).value = 'SELL PRICE (P)';
-        sheet.getCell(`D${currentRow}`).value = 'Cost / (1 - Margin)';
+        sheet.getCell(`D${currentRow}`).value = 'Natalia Math: Cost / (1 - Margin)';
         sheet.getCell(`G${currentRow}`).value = { formula: `E${totalCostRow}/(1-F${marginRow})` };
         sheet.getCell(`G${currentRow}`).font = { bold: true, color: { argb: 'FF0A52EF' } };
         sheet.getCell(`G${currentRow}`).numFmt = '"$"#,##0.00';
 
+        // 4. TAX & BOND INPUTS (DYNAMIC)
+        currentRow++;
+        const taxRow = currentRow;
+        sheet.getCell(`A${currentRow}`).value = 'SALES TAX';
+        sheet.getCell(`D${currentRow}`).value = 'Sell Price * Tax Rate';
+        sheet.getCell(`H${currentRow}`).value = 0.095; // Default 9.5% tax
+        sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
+        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
+        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${taxRow}` };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+
         currentRow++;
         const bondRow = currentRow;
-        sheet.getCell(`A${currentRow}`).value = 'LABOR BOND (1.5%)';
-        sheet.getCell(`D${currentRow}`).value = 'Sell Price * 0.015';
-        sheet.getCell(`G${currentRow}`).value = { formula: `G${sellPriceRow}*0.015` };
-        sheet.getCell(`G${currentRow}`).numFmt = '"$"#,##0.00';
+        sheet.getCell(`A${currentRow}`).value = 'PERFORMANCE BOND (1.5%)';
+        sheet.getCell(`D${currentRow}`).value = 'Sell Price * Bond Rate';
+        sheet.getCell(`H${currentRow}`).value = 0.015; // Default 1.5% bond
+        sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
+        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
+        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${bondRow}` };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
 
         currentRow++;
         sheet.getCell(`A${currentRow}`).value = 'FINAL CLIENT TOTAL';
-        sheet.getCell(`G${currentRow}`).value = { formula: `G${sellPriceRow}+G${bondRow}` };
-        sheet.getCell(`G${currentRow}`).font = { bold: true, size: 12 };
-        sheet.getCell(`G${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD4EDDA' } };
-        sheet.getCell(`G${currentRow}`).numFmt = '"$"#,##0.00';
+        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}+I${taxRow}+I${bondRow}` };
+        sheet.getCell(`I${currentRow}`).font = { bold: true, size: 12 };
+        sheet.getCell(`I${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD4EDDA' } };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
 
         currentRow += 2; // Spacer
     });
 
     // Summary Totals at the bottom
-    sheet.mergeCells(`A${currentRow}:G${currentRow}`);
+    sheet.mergeCells(`A${currentRow}:I${currentRow}`);
     sheet.getCell(`A${currentRow}`).value = 'GRAND TOTAL SUMMARY';
     sheet.getCell(`A${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } };
     sheet.getCell(`A${currentRow}`).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     currentRow++;
 
     sheet.getCell(`A${currentRow}`).value = 'PROJECT TOTAL';
-    sheet.getCell(`G${currentRow}`).value = { formula: `SUMIF(A1:A${currentRow - 1}, "FINAL CLIENT TOTAL", G1:G${currentRow - 1})` };
-    sheet.getCell(`G${currentRow}`).font = { bold: true, size: 14 };
-    sheet.getCell(`G${currentRow}`).numFmt = '"$"#,##0.00';
+    sheet.getCell(`I${currentRow}`).value = { formula: `SUMIF(A1:A${currentRow - 1}, "FINAL CLIENT TOTAL", I1:I${currentRow - 1})` };
+    sheet.getCell(`I${currentRow}`).font = { bold: true, size: 14 };
+    sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
 }
 
 export async function generateAuditExcelBuffer(screens: any[], options?: AuditExcelOptions): Promise<Buffer> {

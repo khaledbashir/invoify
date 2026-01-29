@@ -17,20 +17,7 @@ import {
     FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type Message = {
-    role: "user" | "ai";
-    content: string;
-    timestamp: Date;
-};
-
-type GapItem = {
-    id: string;
-    field: string;
-    screenIndex?: number;
-    priority: "high" | "medium" | "low";
-    description: string;
-};
+import { analyzeGaps, calculateCompletionRate, GapItem } from "@/lib/gap-analysis";
 
 interface AiCommandBarProps {
     isExpanded: boolean;
@@ -58,67 +45,6 @@ const QUICK_PROMPTS = [
     },
 ];
 
-/**
- * 17/20 Gap Analysis
- * Analyzes the current proposal and identifies missing information
- */
-function analyzeGaps(formValues: any): GapItem[] {
-    const gaps: GapItem[] = [];
-    const screens = formValues?.details?.screens || [];
-
-    // Check for missing screen information
-    screens.forEach((screen: any, index: number) => {
-        if (!screen.name || screen.name === "") {
-            gaps.push({
-                id: `screen-${index}-name`,
-                field: "Screen Name",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} needs a name`
-            });
-        }
-        if (!screen.widthFt || screen.widthFt === 0) {
-            gaps.push({
-                id: `screen-${index}-width`,
-                field: "Width",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} missing width`
-            });
-        }
-        if (!screen.heightFt || screen.heightFt === 0) {
-            gaps.push({
-                id: `screen-${index}-height`,
-                field: "Height",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} missing height`
-            });
-        }
-        if (!screen.pitchMm || screen.pitchMm === 0) {
-            gaps.push({
-                id: `screen-${index}-pitch`,
-                field: "Pitch",
-                screenIndex: index,
-                priority: "medium",
-                description: `Screen ${index + 1} missing pitch`
-            });
-        }
-    });
-
-    // Check receiver info
-    if (!formValues?.receiver?.name) {
-        gaps.push({
-            id: "receiver-name",
-            field: "Client Name",
-            priority: "high",
-            description: "Client/Receiver name is missing"
-        });
-    }
-
-    return gaps;
-}
-
 const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
     const {
         aiWorkspaceSlug,
@@ -136,7 +62,7 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
     const gaps = analyzeGaps(formValues);
     const highPriorityGaps = gaps.filter(g => g.priority === "high");
     const gapCount = gaps.length;
-    const completionRate = Math.max(0, Math.min(100, ((20 - gapCount) / 20) * 100));
+    const completionRate = calculateCompletionRate(gapCount);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -203,13 +129,21 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
 
                     {/* Gap Analysis Badge */}
                     {gapCount > 0 && (
-                        <button
+                        <div
+                            role="button"
+                            tabIndex={0}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setShowGaps(!showGaps);
                             }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    setShowGaps(!showGaps);
+                                }
+                            }}
                             className={cn(
-                                "ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full flex items-center gap-1 transition-colors",
+                                "ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full flex items-center gap-1 transition-colors cursor-pointer select-none",
                                 highPriorityGaps.length > 0
                                     ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
                                     : "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
@@ -217,7 +151,7 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
                         >
                             <AlertCircle className="w-3 h-3" />
                             {gapCount} gaps
-                        </button>
+                        </div>
                     )}
                     {gapCount === 0 && (
                         <span className="ml-2 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-full flex items-center gap-1">

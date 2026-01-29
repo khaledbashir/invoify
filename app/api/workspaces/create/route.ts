@@ -14,6 +14,12 @@ export interface CreateWorkspaceRequest {
   createInitialProposal?: boolean;
   clientName?: string;
   calculationMode?: "MIRROR" | "STRATEGIC";
+  excelData?: {
+    screens?: any[];
+    receiverName?: string;
+    proposalName?: string;
+    internalAudit?: any;
+  };
 }
 
 /**
@@ -50,10 +56,32 @@ export async function POST(request: NextRequest) {
       proposal = await prisma.proposal.create({
         data: {
           workspaceId: workspace.id,
-          clientName: body.clientName || body.name,
+          clientName: body.excelData?.receiverName || body.clientName || body.name,
           status: "DRAFT",
           calculationMode: body.calculationMode === "MIRROR" ? "MIRROR" : "INTELLIGENCE",
+          internalAudit: body.excelData?.internalAudit ? JSON.stringify(body.excelData.internalAudit) : undefined,
+          screens: body.excelData?.screens ? {
+            create: body.excelData.screens.map((screen: any) => ({
+              name: screen.name || "Unnamed Screen",
+              pixelPitch: Number(screen.pixelPitch || screen.pitchMm || 10),
+              width: Number(screen.width || screen.widthFt || 0),
+              height: Number(screen.height || screen.heightFt || 0),
+              lineItems: {
+                create: (screen.lineItems || []).map((li: any) => ({
+                  category: li.category || "Other",
+                  cost: Number(li.cost || 0),
+                  margin: Number(li.margin || 0),
+                  price: Number(li.price || 0),
+                }))
+              }
+            }))
+          } : undefined
         },
+        include: {
+          screens: {
+            include: { lineItems: true }
+          }
+        }
       });
     }
 

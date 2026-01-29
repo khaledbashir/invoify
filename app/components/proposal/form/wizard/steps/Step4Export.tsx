@@ -16,7 +16,10 @@ import {
     Check,
     FileSpreadsheet,
     Shield,
-    AlertTriangle
+    AlertTriangle,
+    Zap,
+    Download,
+    Lock
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { BaseButton } from "@/app/components";
 import { formatCurrency } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const Step4Export = () => {
     const {
@@ -36,7 +40,7 @@ const Step4Export = () => {
     } = useProposalContext();
     const { watch } = useFormContext();
     const [copied, setCopied] = useState(false);
-    const [emailSent, setEmailSent] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
     // Get proposal data
     const screens = watch("details.screens") || [];
@@ -45,242 +49,187 @@ const Step4Export = () => {
     const proposalId = watch("details.proposalId");
     const totalValue = internalAudit?.totals?.finalClientTotal || 0;
     const lastSaved = watch("lastSavedAt");
+    const mirrorMode = watch("details.mirrorMode");
 
     const screenCount = screens.length;
     const hasErrors = screens.some((s: any) => !s.widthFt || !s.heightFt || !s.name);
     const allScreensValid = screenCount > 0 && !hasErrors;
 
-    const handleCopyLink = () => {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    const handleSendEmail = async () => {
-        // This would typically open a modal or use the existing email modal
-        setEmailSent(true);
-        setTimeout(() => setEmailSent(false), 3000);
+    const handleGlobalExport = async () => {
+        setExporting(true);
+        try {
+            // Trigger both exports as requested
+            await downloadPdf();
+            await exportAudit();
+        } finally {
+            setTimeout(() => setExporting(false), 2000);
+        }
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6 max-w-4xl mx-auto">
-            {/* Success Header */}
-            <div className="text-center space-y-3">
-                <div className={cn(
-                    "inline-flex items-center justify-center w-12 h-12 rounded-full mb-2",
-                    allScreensValid ? "bg-emerald-500/10" : "bg-yellow-500/10"
-                )}>
-                    {allScreensValid ? (
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                    ) : (
-                        <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                    )}
+        <div className="h-full flex flex-col p-8 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Phase 4 Header */}
+            <div className="flex flex-col items-center text-center mb-12">
+                <div className="w-16 h-16 rounded-2xl bg-brand-blue/10 flex items-center justify-center mb-6 relative group">
+                    <div className="absolute inset-0 bg-brand-blue/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                    <Zap className="w-8 h-8 text-brand-blue relative z-10" />
                 </div>
-
-                <h1 className="text-xl font-semibold text-zinc-100">
-                    {allScreensValid ? "Proposal Validated" : "Proposal Incomplete"}
-                </h1>
-
-                <p className="text-zinc-500 text-base">
-                    {proposalName}
+                
+                <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Validation & Final Export</h2>
+                <p className="text-zinc-500 text-sm max-w-md font-medium">
+                    Review your strategic analysis and generate professional-grade project artifacts.
                 </p>
+            </div>
 
-                <div className="flex items-center justify-center gap-3 text-[11px]">
-                    <span className="px-2 py-0.5 bg-zinc-800 rounded text-zinc-400">
-                        {screenCount} screen{screenCount !== 1 ? 's' : ''}
-                    </span>
-                    <span className="px-2 py-0.5 border border-blue-500/20 text-blue-500 rounded font-medium">
-                        {formatCurrency(totalValue)}
-                    </span>
-                    {allScreensValid && (
-                        <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 rounded flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            Ready for Export
-                        </span>
-                    )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                {/* Left Column: Summary & Status */}
+                <div className="lg:col-span-1 space-y-6">
+                    <Card className="bg-zinc-900/50 border-zinc-800 overflow-hidden relative">
+                        {/* 55° Slash Decorative Pattern */}
+                        <div className="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none overflow-hidden">
+                            <div className="absolute top-0 right-0 w-full h-full transform rotate-[55deg] translate-x-8 -translate-y-8 bg-gradient-to-b from-brand-blue to-transparent" />
+                        </div>
+
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-xs font-bold text-zinc-500 uppercase tracking-[0.2em]">Project Status</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-white mb-1 truncate">{proposalName}</h3>
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-[10px] border-zinc-800 text-zinc-400 font-bold uppercase tracking-widest">
+                                        {screenCount} Screens
+                                    </Badge>
+                                    <Badge className="bg-brand-blue/10 text-brand-blue border-none text-[10px] font-bold uppercase tracking-widest">
+                                        {formatCurrency(totalValue)}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 pt-4 border-t border-zinc-800/50">
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-zinc-500 font-medium">Calculation Mode</span>
+                                    <span className="text-zinc-300 font-bold">{mirrorMode ? "Mirror Mode" : "Strategic AI"}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="text-zinc-500 font-medium">Data Integrity</span>
+                                    {allScreensValid ? (
+                                        <span className="text-emerald-500 font-bold flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" /> Verified
+                                        </span>
+                                    ) : (
+                                        <span className="text-amber-500 font-bold flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" /> Issues Found
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <div className="p-4 rounded-xl bg-zinc-900/30 border border-zinc-800 flex items-center gap-3">
+                        <Clock className="w-4 h-4 text-zinc-600" />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Last Vault Sync</span>
+                            <span className="text-xs text-zinc-400 font-medium">{lastSaved ? new Date(lastSaved).toLocaleTimeString() : "Pending sync..."}</span>
+                        </div>
+                    </div>
                 </div>
 
-                {hasErrors && (
-                    <div className="inline-flex items-center gap-2 px-4 py-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg mt-4">
-                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                        <span className="text-yellow-500">
-                            Some screens have missing information. Complete all fields before exporting.
-                        </span>
-                    </div>
-                )}
-            </div>
+                {/* Right Column: Global Export Action */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* The Global Export Button - Primary Call to Action */}
+                    <div 
+                        onClick={allScreensValid ? handleGlobalExport : undefined}
+                        className={cn(
+                            "group relative overflow-hidden rounded-3xl p-10 transition-all duration-500",
+                            allScreensValid 
+                                ? "bg-brand-blue cursor-pointer hover:shadow-[0_0_40px_rgba(10,82,239,0.3)] hover:-translate-y-1" 
+                                : "bg-zinc-800/50 cursor-not-allowed opacity-60"
+                        )}
+                    >
+                        {/* 55° Slash Pattern for Brand Consistency */}
+                        <div className="absolute inset-0 opacity-20 pointer-events-none">
+                            {[...Array(6)].map((_, i) => (
+                                <div 
+                                    key={i}
+                                    className="absolute h-[200%] w-px bg-white transform rotate-[55deg]"
+                                    style={{ left: `${i * 20}%`, top: '-50%' }}
+                                />
+                            ))}
+                        </div>
 
-            {/* Primary Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Download PDF */}
-                <Card
-                    className={cn(
-                        "border transition-all cursor-pointer group",
-                        allScreensValid
-                            ? "bg-zinc-900/50 border-zinc-800 hover:border-[#0A52EF]/50 hover:shadow-[0_0_20px_rgba(10,82,239,0.2)]"
-                            : "bg-zinc-900/30 border-zinc-800/50 opacity-50 cursor-not-allowed"
-                    )}
-                    onClick={allScreensValid ? downloadPdf : undefined}
-                >
-                    <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 rounded-xl bg-[#0A52EF]/10 group-hover:bg-[#0A52EF]/20 transition-colors">
-                                <FileDown className="w-6 h-6 text-[#0A52EF]" />
+                        <div className="relative z-10 flex flex-col items-center text-center gap-6">
+                            <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform duration-500">
+                                {exporting ? (
+                                    <Zap className="w-10 h-10 text-white animate-pulse" />
+                                ) : (
+                                    <Download className="w-10 h-10 text-white" />
+                                )}
                             </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-zinc-100">Download PDF</h3>
-                                <p className="text-sm text-zinc-500 mt-1">
-                                    Client-ready proposal
+                            
+                            <div>
+                                <h3 className="text-2xl font-bold text-white mb-2">Global Export Bundle</h3>
+                                <p className="text-white/70 text-sm max-w-sm mx-auto font-medium leading-relaxed">
+                                    Generates both the <span className="text-white font-bold">Client-Facing PDF</span> and the <span className="text-white font-bold">Internal Audit Excel</span> in a single operation.
                                 </p>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
-                {/* Internal Excel Audit - With Security Blanket Tooltip */}
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Card
-                                className="bg-zinc-900/50 border-zinc-800 hover:border-emerald-500/50 transition-all cursor-pointer group"
-                                onClick={exportAudit}
-                            >
-                                <CardContent className="p-6">
-                                    <div className="flex items-start gap-4">
-                                        <div className="p-3 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-colors">
-                                            <FileSpreadsheet className="w-6 h-6 text-emerald-500" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-semibold text-zinc-100">Internal Excel Audit</h3>
-                                            <p className="text-sm text-zinc-500 mt-1">
-                                                Formulaic breakdown with divisor math
-                                            </p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </TooltipTrigger>
-                        <TooltipContent
-                            side="top"
-                            className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
-                        >
-                            <p className="text-xs leading-relaxed">
-                                <strong className="text-emerald-400">The Security Blanket:</strong> This generates an Excel file with Live Formulas. Senior estimators can audit every cell to see exactly how the AI arrived at the numbers.
-                            </p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-
-                {/* Email to Client */}
-                <Card
-                    className={cn(
-                        "border transition-all cursor-pointer group",
-                        allScreensValid
-                            ? "bg-zinc-900/50 border-zinc-800 hover:border-purple-500/50"
-                            : "bg-zinc-900/30 border-zinc-800/50 opacity-50 cursor-not-allowed"
-                    )}
-                    onClick={allScreensValid ? handleSendEmail : undefined}
-                >
-                    <CardContent className="p-6">
-                        <div className="flex items-start gap-4">
-                            <div className="p-3 rounded-xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                                <Mail className="w-6 h-6 text-purple-500" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-zinc-100">Email to Client</h3>
-                                <p className="text-sm text-zinc-500 mt-1">
-                                    Send proposal directly
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Secondary Actions */}
-            <Card className="bg-zinc-900/30 border-zinc-800">
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-zinc-400">Additional Options</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <BaseButton
-                            variant="outline"
-                            size="sm"
-                            onClick={previewPdfInTab}
-                            className="justify-center"
-                        >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Preview
-                        </BaseButton>
-
-                        <BaseButton
-                            variant="outline"
-                            size="sm"
-                            onClick={printPdf}
-                            className="justify-center"
-                        >
-                            <Printer className="w-4 h-4 mr-2" />
-                            Print
-                        </BaseButton>
-
-                        <BaseButton
-                            variant="outline"
-                            size="sm"
-                            onClick={handleCopyLink}
-                            className="justify-center"
-                        >
-                            {copied ? (
-                                <><Check className="w-4 h-4 mr-2" /> Copied</>
-                            ) : (
-                                <><Share2 className="w-4 h-4 mr-2" /> Share</>
+                            {!allScreensValid && (
+                                <div className="mt-2 px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                    <Lock className="w-3 h-3" /> Complete All Steps to Unlock
+                                </div>
                             )}
-                        </BaseButton>
+                        </div>
+                    </div>
 
-                        <BaseButton
-                            variant="outline"
-                            size="sm"
-                            onClick={saveProposalData}
-                            className="justify-center"
+                    {/* Secondary Artifact Options */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button 
+                            onClick={previewPdfInTab}
+                            className="flex items-center justify-between p-5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-brand-blue/50 transition-all group"
                         >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Save Now
-                        </BaseButton>
-                    </div>
-                </CardContent>
-            </Card>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-zinc-800 text-zinc-400 group-hover:text-brand-blue transition-colors">
+                                    <Eye className="w-5 h-5" />
+                                </div>
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-white">Live PDF Preview</h4>
+                                    <p className="text-[10px] text-zinc-500 font-medium">Verify layout before export</p>
+                                </div>
+                            </div>
+                            <ArrowLeft className="w-4 h-4 text-zinc-700 group-hover:text-brand-blue rotate-180 transition-all" />
+                        </button>
 
-            {/* Project Status Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 text-sm text-zinc-500">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                            {lastSaved
-                                ? `Last saved to vault: ${new Date(lastSaved).toLocaleString()}`
-                                : "Auto-saving enabled"
-                            }
-                        </span>
+                        <button 
+                            onClick={exportAudit}
+                            className="flex items-center justify-between p-5 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-emerald-500/50 transition-all group"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-xl bg-zinc-800 text-zinc-400 group-hover:text-emerald-500 transition-colors">
+                                    <FileSpreadsheet className="w-5 h-5" />
+                                </div>
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-white">Audit Security Blanket</h4>
+                                    <p className="text-[10px] text-zinc-500 font-medium">Excel with hidden formulas</p>
+                                </div>
+                            </div>
+                            <ArrowLeft className="w-4 h-4 text-zinc-700 group-hover:text-emerald-500 rotate-180 transition-all" />
+                        </button>
                     </div>
-
-                    {proposalId && (
-                        <span className="text-xs text-zinc-600 font-mono">
-                            ID: {proposalId}
-                        </span>
-                    )}
                 </div>
-
-                <BaseButton
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.history.back()}
-                >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    Back to Pricing
-                </BaseButton>
             </div>
 
+            {/* Support Footer */}
+            <div className="mt-auto pt-8 border-t border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-zinc-600" />
+                    <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">ANC Identity Protection System Active</span>
+                </div>
+                <div className="text-[10px] font-medium text-zinc-600">
+                    For branding approvals, contact <span className="text-zinc-500 underline">alison@anc.com</span>
+                </div>
+            </div>
         </div>
     );
 };

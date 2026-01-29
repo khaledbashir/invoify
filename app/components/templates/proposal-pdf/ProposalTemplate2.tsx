@@ -14,137 +14,168 @@ import { ProposalType } from "@/types";
 
 // Styles
 import { PDF_COLORS, PDF_STYLES } from "./PdfStyles";
+import { BrandSlashes } from "@/app/components/reusables/BrandGraphics";
 
 interface ProposalTemplate2Props extends ProposalType {
     forceWhiteLogo?: boolean;
     screens?: any[];
+    isSharedView?: boolean;
 }
 
 const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
-    const { sender, receiver, details, forceWhiteLogo, screens } = data;
-    const internalAudit = details?.internalAudit as any; // Cast for now if schema update lags
+    const { sender, receiver, details, forceWhiteLogo, screens: screensProp, isSharedView = false } = data;
+    const screens = screensProp || details?.screens || [];
+    const internalAudit = details?.internalAudit as any;
     const totals = internalAudit?.totals;
 
-    // Filter out "summary" tables only? Or generic items?
-    // Dynamic Template Mapping:
-    // This template binds to ProposalContext data.
-    // 1. Specs (Screen Configs)
-    // 2. Pricing Breakdown (Audit Table)
-    // 3. Summary (Totals)
+    const isLOI = (details as any).documentType === "LOI";
+    const pricingType = (details as any).pricingType;
+    const docLabel = isLOI ? "SALES QUOTATION" : pricingType === "Hard Quoted" ? "SALES QUOTATION" : "BUDGET ESTIMATE";
 
-    // Helper for Header
+    // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
-        <div className="text-center mb-8 mt-4">
-            <h2 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="text-xl font-bold tracking-wide">{title}</h2>
+        <div className="text-center mb-6 mt-8">
+            <h2 className="text-xl font-medium tracking-[0.2em] text-gray-500 uppercase" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>{title}</h2>
         </div>
     );
 
-    // Helper for Spec Table - Updated to match ABCDE style
+    // Helper for Spec Table - MATCHES IMAGE 1
     const SpecTable = ({ screen }: { screen: any }) => (
         <div className="mb-8 break-inside-avoid">
-            {/* Gray Header Bar */}
-            <div className="flex justify-between items-center bg-gray-200 px-2 py-1 border-b border-gray-300">
-                <h3 className="font-bold text-sm text-gray-900">{screen.name}</h3>
-                <span className="font-bold text-sm text-gray-900">Specifications</span>
+            {/* Header Bar */}
+            <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
+                <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
+                <span className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
             </div>
-            <table className="w-full text-xs">
+            <table className="w-full text-[11px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                 <tbody>
-                    <tr className="bg-white border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">MM Pitch</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.pitchMm ?? screen.pixelPitch} mm</td>
+                    <tr className="bg-white">
+                        <td className="p-1.5 pl-4 text-gray-700 w-2/3">MM Pitch</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{screen.pitchMm ?? screen.pixelPitch ?? 0} mm</td>
                     </tr>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">Quantity</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.quantity}</td>
+                    <tr className="bg-gray-100">
+                        <td className="p-1.5 pl-4 text-gray-700">Quantity</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{screen.quantity || 1}</td>
                     </tr>
-                    <tr className="bg-white border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">Active Display Height (ft.)</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.heightFt ?? screen.height}'</td>
+                    <tr className="bg-white">
+                        <td className="p-1.5 pl-4 text-gray-700">Active Display Height (ft.)</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</td>
                     </tr>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">Active Display Width (ft.)</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.widthFt ?? screen.width}'</td>
+                    <tr className="bg-gray-100">
+                        <td className="p-1.5 pl-4 text-gray-700">Active Display Width (ft.)</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</td>
                     </tr>
-                    <tr className="bg-white border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">Pixel Resolution (H)</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.resolutionH ?? ((screen.heightFt ?? screen.height) * 12 * 25.4 / (screen.pitchMm ?? screen.pixelPitch)).toFixed(0)} p</td>
+                    <tr className="bg-white">
+                        <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (H)</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{screen.pixelsH || Math.round((Number(screen.heightFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</td>
                     </tr>
-                    <tr className="bg-gray-50 border-b border-gray-100">
-                        <td className="p-1 pl-2 text-gray-600">Pixel Resolution (W)</td>
-                        <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.resolutionW ?? ((screen.widthFt ?? screen.width) * 12 * 25.4 / (screen.pitchMm ?? screen.pixelPitch)).toFixed(0)} p</td>
+                    <tr className="bg-gray-100">
+                        <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (W)</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{screen.pixelsW || Math.round((Number(screen.widthFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</td>
                     </tr>
-                    {screen.brightness && (
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1 pl-2 text-gray-600">Brightness (nits)</td>
-                            <td className="p-1 text-right pr-2 font-medium text-gray-900">{screen.brightness} nits</td>
-                        </tr>
-                    )}
+                    <tr className="bg-white">
+                        <td className="p-1.5 pl-4 text-gray-700">Pixel Density (sq. ft.)</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">
+                            {formatNumberWithCommas(Math.round(92903 / Math.pow(screen.pitchMm || 10, 2)))} pixels
+                        </td>
+                    </tr>
+                    <tr className="bg-gray-100">
+                        <td className="p-1.5 pl-4 text-gray-700">Brightness</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">
+                            {screen.brightnessNits ? `${formatNumberWithCommas(screen.brightnessNits)} nits` : "Standard"}
+                        </td>
+                    </tr>
+                    <tr className="bg-white">
+                        <td className="p-1.5 pl-4 text-gray-700">HDR Status</td>
+                        <td className="p-1.5 text-right pr-4 text-gray-900">{screen.isHDR ? "Enabled" : "Standard"}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     );
 
-    // Helper for Pricing Table - Updated to match ABCDE style
+    // Helper for Pricing Table - MATCHES IMAGE 2
     const PricingTable = ({ screen }: { screen: any }) => {
-        const auditRow = internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+        // REQ-28: Security - If shared view, we MUST NOT use internal audit data directly if it contains costs/margins
+        const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
         const b = auditRow?.breakdown;
-        if (!auditRow) return null;
+        
+        // Fallback for shared view where internalAudit might be missing/sanitized
+        const getPrice = (category: string) => {
+            if (b) return b[category] || 0;
+            const item = screen.lineItems?.find((li: any) => li.category?.toLowerCase() === category.toLowerCase());
+            return item?.price || 0;
+        };
+
+        const hardwarePrice = b ? (b.hardware * 1.3) : getPrice("Hardware");
+        const structurePrice = b ? b.structure : getPrice("Structure");
+        const installPrice = b ? b.install : getPrice("Install");
+        const powerPrice = b ? b.power : getPrice("Power");
+        const pmTravelPrice = b ? (b.pm + b.travel + b.generalConditions) : getPrice("PM");
+        const engineeringPrice = b ? (b.engineering + b.permits + b.submittals) : getPrice("Engineering");
+        const cmsPrice = b ? b.cms : getPrice("CMS");
+        
+        const subtotal = b ? b.finalClientTotal : (hardwarePrice + structurePrice + installPrice + powerPrice + pmTravelPrice + engineeringPrice + cmsPrice);
+        const taxRate = 0.095; // 9.5% fallback
+        const taxAmount = subtotal * taxRate;
+        const total = subtotal + taxAmount;
 
         return (
             <div className="mb-8 break-inside-avoid">
-                {/* Gray Header Bar */}
-                <div className="flex justify-between items-center bg-gray-200 px-2 py-1 border-b border-gray-300">
-                    <h3 className="font-bold text-sm text-gray-900">{screen.name}</h3>
-                    <span className="font-bold text-sm text-gray-900">Pricing</span>
+                {/* Header Bar */}
+                <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1">
+                    <h3 className="font-bold text-sm uppercase text-black">{screen.name || "Display"}</h3>
+                    <span className="font-bold text-sm uppercase text-black">Pricing</span>
                 </div>
 
-                <table className="w-full text-xs box-border">
+                <table className="w-full text-[11px] border-collapse">
                     <tbody>
-                        {/* Zebra Striping logic if needed, but screenshot shows mostly white with clean lines */}
-                        <tr className="border-b border-gray-100">
-                            {/* Make sure we have a description */}
-                            <td className="p-2 text-gray-700 w-3/4">{screen.name} - {screen.pitchMm}mm (Qty {screen.quantity})</td>
-                            <td className="p-2 text-right font-medium text-gray-900 w-1/4">{formatCurrency(b?.hardware * 1.3)}</td>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-2 pl-4 text-gray-700 w-3/4">
+                                <div className="font-bold text-black uppercase">{screen.name}</div>
+                                <div className="text-[10px] text-gray-500">
+                                    {Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}' H x {Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}' W - {screen.pitchMm ?? screen.pixelPitch ?? 0}mm - QTY {screen.quantity || 1}
+                                </div>
+                            </td>
+                            <td className="p-2 text-right pr-4 font-bold text-gray-900 w-1/4 align-bottom">{formatCurrency(hardwarePrice)}</td>
                         </tr>
                         <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Structural Materials</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.structure)}</td>
+                            <td className="p-1.5 pl-4 text-gray-600">Structural Materials</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(structurePrice)}</td>
                         </tr>
-                        <tr className="border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Structural Labor and LED Installation</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.install)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Electrical and Data - Materials and Subcontracting</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.power)}</td>
-                        </tr>
-                        <tr className="border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Project Management, General Conditions, Travel & Expenses</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.pm + b?.travel + b?.generalConditions)}</td>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-600">Structural Labor and LED Installation</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(installPrice)}</td>
                         </tr>
                         <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Submittals, Engineering, and Permits</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.engineering + b?.permits + b?.submittals)}</td>
+                            <td className="p-1.5 pl-4 text-gray-600">Electrical and Data - Materials and Subcontracting</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(powerPrice)}</td>
                         </tr>
-                        <tr className="border-b border-gray-100">
-                            <td className="p-2 text-gray-700">Content Management System Equipment, Installation, and Commissioning</td>
-                            <td className="p-2 text-right font-medium text-gray-900">{formatCurrency(b?.cms)}</td>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-600">Project Management, General Conditions, Travel & Expenses</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(pmTravelPrice)}</td>
+                        </tr>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-600">Submittals, Engineering, and Permits</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(engineeringPrice)}</td>
+                        </tr>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-600">Content Management System Equipment, Installation, and Commissioning</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
                         </tr>
 
-                        {/* Subtotal Row - darker bar */}
-                        <tr className="bg-gray-100 font-bold border-t border-gray-300">
-                            <td className="p-2 text-right text-gray-900">Subtotal:</td>
-                            <td className="p-2 text-right text-black">{formatCurrency(b?.finalClientTotal)}</td>
+                        {/* Totals Section for this screen */}
+                        <tr className="font-bold border-t border-black">
+                            <td className="p-2 text-right pr-4 uppercase text-xs">Subtotal:</td>
+                            <td className="p-2 text-right pr-4 text-xs">{formatCurrency(subtotal)}</td>
                         </tr>
-                        {/* Tax Row */}
-                        <tr className="border-b border-gray-300">
-                            <td className="p-1 text-right text-[10px] text-gray-500">Tax (Est):</td>
-                            <td className="p-1 text-right text-[10px] text-gray-500">$0.00</td>
+                        <tr className="text-gray-500 italic">
+                            <td className="p-1 text-right pr-4 text-[10px] uppercase">Tax (9.5%):</td>
+                            <td className="p-1 text-right pr-4 text-[10px]">{formatCurrency(taxAmount)}</td>
                         </tr>
-                        {/* Final Total Row */}
-                        <tr className="font-bold border-b-2 border-black">
-                            <td className="p-2 text-right text-gray-900">Total:</td>
-                            <td className="p-2 text-right text-black">{formatCurrency(b?.finalClientTotal)}</td>
+                        <tr className="border-t-2 border-black font-bold text-sm bg-gray-50">
+                            <td className="p-2 text-right pr-4 uppercase">Total for {screen.name}:</td>
+                            <td className="p-2 text-right pr-4 text-[#0A52EF]">{formatCurrency(total)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -155,132 +186,158 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     return (
         <ProposalLayout data={data}>
             {/* 1. HEADER (Summary Page) - Refined for ABCDE Layout */}
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex justify-between items-start mb-10 px-4 pt-4 break-inside-avoid">
                 {/* Logo Left */}
                 <div className="w-1/2">
-                    <LogoSelector theme={forceWhiteLogo ? "dark" : "light"} width={180} height={100} />
+                    <LogoSelector theme={forceWhiteLogo ? "dark" : "light"} width={160} height={80} />
                 </div>
                 {/* Title Right */}
                 <div className="w-1/2 text-right">
-                    <h1 className="text-2xl font-bold text-[#0A52EF] leading-tight mb-1">{data.details.proposalName || "Project Name"}</h1>
-                    <h2 className="text-xl font-bold text-gray-800 leading-none">Sales Quotation</h2>
+                    <h1 className="text-2xl font-bold text-[#0A52EF] uppercase leading-tight mb-0">
+                        {receiver?.name || "Client Name"}
+                    </h1>
+                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
+                        {docLabel}
+                    </h2>
                 </div>
             </div>
 
-            {/* Intro Paragraph (Dynamic Header Injection per Architect Directive) */}
-            <div className="mb-10 text-xs text-gray-600 text-justify leading-relaxed mx-1">
+            {/* Intro Paragraph */}
+            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4">
                 <p>
-                    This Sales Quotation will set forth the terms by which {receiver.name} (“Purchaser”) located at {receiver.address} and ANC Sports Enterprises, LLC (“ANC”) located at {sender.address} (collectively, the “Parties”) agree that ANC will provide following Display System and services (“the Display System”) described below for the {details.location || details.proposalName || "Project"}.
+                    This Sales Quotation will set forth the terms by which {receiver?.name || "Purchaser"} (“Purchaser”) located at {receiver?.address || "[Client Address]"} and ANC Sports Enterprises, LLC (“ANC”) located at {sender?.address || "2 Manhattanville Road, Suite 402, Purchase, NY 10577"} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (the “Display System”) described below for {details?.location || details?.proposalName || "the project"}.
                 </p>
             </div>
 
             {/* 2. SPECIFICATIONS SECTION */}
-            <SectionHeader title="SPECIFICATIONS" />
+            <div className="px-4">
+                <SectionHeader title="SPECIFICATIONS" />
+                {screens && screens.length > 0 ? (
+                    screens.map((screen: any, idx: number) => (
+                        <SpecTable key={idx} screen={screen} />
+                    ))
+                ) : (
+                    <div className="text-center text-gray-400 italic py-8">No screens configured.</div>
+                )}
+            </div>
 
-            {screens && screens.length > 0 ? (
-                screens.map((screen: any, idx: number) => (
-                    <SpecTable key={idx} screen={screen} />
-                ))
-            ) : (
-                <div className="text-center text-gray-400 italic py-8">No screens configured.</div>
-            )}
+            <div className="break-before-page px-4">
+                {/* 3. PRICING SECTION */}
+                <SectionHeader title="PRICING" />
+                {screens && screens.length > 0 ? (
+                    screens.map((screen: any, idx: number) => (
+                        <PricingTable key={idx} screen={screen} />
+                    ))
+                ) : null}
 
-            <div className="break-before-page"></div>
-
-            {/* 3. PRICING SECTION */}
-            <SectionHeader title="Pricing Breakdown" />
-
-            {screens && screens.length > 0 ? (
-                screens.map((screen: any, idx: number) => (
-                    <PricingTable key={idx} screen={screen} />
-                ))
-            ) : null}
-
-            {/* 4. TOTALS SUMMARY */}
-            <div className="mt-8 border-t-4 border-[#0A52EF] pt-4">
-                <div className="flex justify-end">
+                {/* PROJECT GRAND TOTAL */}
+                <div className="mt-8 border-t-4 border-[#0A52EF] pt-4 flex justify-end">
                     <div className="w-1/2">
-                        <div className="flex justify-between py-2 border-b border-gray-300">
-                            <span className="font-bold text-gray-700">PROJECT TOTAL</span>
-                            <span className="font-bold text-gray-900">{formatCurrency(totals?.finalClientTotal || details?.totalAmount || 0)}</span>
+                        <div className="flex justify-between items-center py-2 border-b-2 border-black">
+                            <span className="font-bold text-sm uppercase text-black">Project Grand Total</span>
+                            <span className="font-bold text-lg text-black">
+                                {formatCurrency(isSharedView ? details?.totalAmount || 0 : totals?.finalClientTotal || details?.totalAmount || 0)}
+                            </span>
                         </div>
-                        {/* Payment Terms? */}
-                        {details.paymentTerms && (
-                            <div className="mt-4 text-xs text-gray-500 text-right">
-                                <p className="font-bold text-gray-700">Payment Terms</p>
-                                <p>{details.paymentTerms}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 6. STATEMENT OF WORK */}
+            <div className="break-before-page px-4">
+                <SectionHeader title="STATEMENT OF WORK" />
+                <div className="space-y-6 text-[10px] leading-relaxed text-gray-700">
+                    <section className="break-inside-avoid">
+                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">1. PHYSICAL INSTALLATION</h4>
+                        <div className="px-2 space-y-2">
+                            <p>ANC assumes all base building structure is to be provided by others or is existing and is of sufficient capacity to support the proposed display systems.</p>
+                            <p>ANC assumes reasonable access will be provided to the installation team and any unknown site conditions such as lane closures, site protection, permitting, etc. is not currently in this proposal.</p>
+                        </div>
+                    </section>
+
+                    <section className="break-inside-avoid">
+                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">2. ELECTRICAL & DATA INSTALLATION</h4>
+                        <div className="px-2 space-y-2">
+                            <p>ANC assumes primary power feed will be provided by others or is existing, within 5' of the display location with sufficient amps; typically 208v 3-phase.</p>
+                            <p>ANC will provide data cabling and labor to pull cable from control location to the display(s).</p>
+                        </div>
+                    </section>
+
+                    <section className="break-inside-avoid">
+                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">3. CONTROL SYSTEM</h4>
+                        <div className="px-2 space-y-2">
+                            <p>Installation and commissioning of the ANC vSOFT™ Control System or specified CMS platform.</p>
+                            <p>Includes configuration of screen layouts and zones per project specifications.</p>
+                        </div>
+                    </section>
+
+                    <section className="break-inside-avoid">
+                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">4. GENERAL CONDITIONS</h4>
+                        <div className="px-2 space-y-2">
+                            <p>Price includes one (1) round of submittals and engineering shop drawings.</p>
+                            <p>ANC has not included bonding of any kind unless specifically noted.</p>
+                            <p>Shipping included at current market rates; subject to change due to global logistics impacts.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            {/* 7. SIGNATURES - FORCED TO END */}
+            <div className="break-before-page px-4">
+                <div className="mt-12 break-inside-avoid">
+                    <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
+                    
+                    <div className="space-y-10">
+                        {/* ANC Signature Block */}
+                        <div>
+                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC (“ANC”)</p>
+                            <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
+                            <div className="flex gap-6">
+                                <div className="flex-[2]">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
                             </div>
-                        )}
+                        </div>
+
+                        {/* Purchaser Signature Block */}
+                        <div>
+                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} (“PURCHASER”)</p>
+                            <p className="text-[10px] text-gray-500 mb-4">
+                                {receiver?.address || "Address Line 1"}, {receiver?.city || "City"}, {receiver?.zipCode || "Zip"}
+                            </p>
+                            <div className="flex gap-6">
+                                <div className="flex-[2]">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* 6. STATEMENT OF WORK (DYNAMTIC HEADER) */}
-            <div className="break-before-page"></div>
-            <div className="pt-8">
-                <SectionHeader title={`STATEMENT OF WORK: ${details.proposalName || "PROJECT"}`} />
-
-                <div className="space-y-8 text-[11px] leading-relaxed text-gray-700">
-                    <section>
-                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 tracking-wide">1. PHYSICAL INSTALLATION</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>ANC will furnish and install necessary structural secondary steel/aluminum framing for LED display mounting.</li>
-                            <li>Installation includes mounting of all LED display cabinets, internal cabling, and module populating.</li>
-                            <li>Includes final alignment, seam adjustments, and physical cleaning of display surfaces.</li>
-                            <li>Assumes standard union/non-union labor rates as defined in the project scope document.</li>
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 tracking-wide">2. ELECTRICAL & DATA INSTALLATION</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>ANC will provide internal DC power and data distribution within the LED display system.</li>
-                            <li>Client/Purchaser to provide primary AC power (breakers/panels) and permanent data conduit to the ANC head-end.</li>
-                            <li>Includes installation of ANC-specified fiber/CAT6 data backhaul from control room to display location.</li>
-                            <li>Integration of all display processors, switchers, and monitoring hardware in the centralized rack.</li>
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 tracking-wide">3. CONTROL SYSTEM</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>Installation and commissioning of the ANC vSOFT™ Control System or specified CMS platform.</li>
-                            <li>Configuration of screen layouts, zones, and content mapping per project specifications.</li>
-                            <li>System on-site training for two (2) client operators (approx. 4 hours total).</li>
-                            <li>Network configuration for remote monitoring and diagnostics support via ANC Proactive.</li>
-                        </ul>
-                    </section>
-
-                    <section>
-                        <h4 style={{ color: PDF_COLORS.FRENCH_BLUE }} className="font-bold border-b border-gray-100 pb-1 mb-2 tracking-wide">4. GENERAL CONDITIONS</h4>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>Price includes one (1) round of submittals and engineering shop drawings.</li>
-                            <li>ANC to maintain standard Liability and Workers Comp insurance during on-site performance.</li>
-                            <li>Site access, lift equipment, and storage staging areas to be provided by Purchaser unless specifically cited as an ANC line item.</li>
-                            <li>Final acceptance based on "No-Fault" commissioning of 99.9% pixel integrity.</li>
-                        </ul>
-                    </section>
-                </div>
-            </div>
-
-            {/* 7. SIGNATURE (Moved below SOW for finality) */}
-            <div className="mt-12 break-inside-avoid">
-                <div className="border-t-2 border-gray-300 pt-8 flex justify-between gap-12">
-                    <div className="flex-1">
-                        <p className="font-bold text-[#0A52EF] mb-12">Agreed To And Accepted By:</p>
-                        <div className="border-b border-black mb-2"></div>
-                        <p className="text-xs font-bold text-gray-600">Signature</p>
-
-                        <div className="border-b border-black mb-2 mt-8"></div>
-                        <p className="text-xs font-bold text-gray-600">Date</p>
-                    </div>
-                    <div className="flex-1">
-                        <p className="font-bold text-[#0A52EF] mb-12">{receiver.name}</p>
-                        <div className="border-b border-black mb-2"></div>
-                        <p className="text-xs font-bold text-gray-600">Printed Name</p>
-
-                        <div className="border-b border-black mb-2 mt-8"></div>
-                        <p className="text-xs font-bold text-gray-600">Title</p>
+                {/* ANC STANDARDIZED FOOTER */}
+                <div className="mt-16 pt-6 border-t border-gray-100 text-center">
+                    <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
+                    <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
+                    <div className="flex justify-center mt-6 opacity-20">
+                        <BrandSlashes count={3} width={50} height={15} />
                     </div>
                 </div>
             </div>

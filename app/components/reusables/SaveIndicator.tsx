@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Check, Cloud, CloudOff, Loader2 } from "lucide-react";
+import type { AutoSaveStatus } from "@/lib/useAutoSave";
 
-type SaveStatus = "idle" | "saving" | "saved" | "error";
+type SaveStatus = AutoSaveStatus;
 
 interface SaveIndicatorProps {
     status: SaveStatus;

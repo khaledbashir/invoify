@@ -19,8 +19,14 @@ const config: Config = {
           foreground: '#ffffff',
         },
         navy: {
-          DEFAULT: '#003366', // ANC Deep Navy
+          DEFAULT: '#002C73', // ANC Blue Opal (Updated from deep navy)
           foreground: '#ffffff',
+        },
+        brand: {
+          blue: '#0A52EF',     // French Blue
+          splash: '#03B8FF',   // Splish Splash
+          malibu: '#0385DD',   // Malibu Blue
+          opal: '#002C73',     // Blue Opal
         },
         accent: {
           DEFAULT: '#C4D600', // ANC Lime Green

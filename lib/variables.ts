@@ -185,6 +185,13 @@ export const FORM_DEFAULT_VALUES = {
     documentType: "First Round" as "LOI" | "First Round",
     pricingType: "Budget" as "Hard Quoted" | "Budget",
     pdfTemplate: 1,
+    screens: [],
+    internalAudit: {},
+    clientSummary: {},
+    mirrorMode: false,
+    calculationMode: "INTELLIGENCE" as "MIRROR" | "INTELLIGENCE",
+    taxRateOverride: 0,
+    bondRateOverride: 0,
   },
 };
 

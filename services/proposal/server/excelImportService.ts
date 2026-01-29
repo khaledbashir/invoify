@@ -39,13 +39,14 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
     const getCol = (name: string) => headers.findIndex(h => typeof h === 'string' && h.toLowerCase().includes(name.toLowerCase()));
 
     const colIdx = {
-        name: getCol('Display Name') !== -1 ? getCol('Display Name') : 0,
-        pitch: getCol('Pixel Pitch') !== -1 ? getCol('Pixel Pitch') : 4,
-        height: getCol('Height') !== -1 ? getCol('Height') : 5,
-        width: getCol('Width') !== -1 ? getCol('Width') : 6,
-        pixelsH: getCol('Pixel H') !== -1 ? getCol('Pixel H') : 7,
-        pixelsW: getCol('Pixel W') !== -1 ? getCol('Pixel W') : 9,
-        brightness: getCol('Brightness') !== -1 ? getCol('Brightness') : 12,
+        name: getCol('Display Name') !== -1 ? getCol('Display Name') : 0,    // Column A
+        pitch: getCol('Pixel Pitch') !== -1 ? getCol('Pixel Pitch') : 4,    // Column E (Actually Pixel Count in prompt, but pitch in code)
+        height: getCol('Height') !== -1 ? getCol('Height') : 5,             // Column F
+        width: getCol('Width') !== -1 ? getCol('Width') : 6,               // Column G
+        pixelsH: getCol('Pixel H') !== -1 ? getCol('Pixel H') : 7,          // Column H
+        pixelsW: getCol('Pixel W') !== -1 ? getCol('Pixel W') : 9,          // Column J
+        brightnessNits: getCol('Brightness') !== -1 ? getCol('Brightness') : 12, // Column M
+        hdrStatus: getCol('HDR') !== -1 ? getCol('HDR') : -1,               // Search for HDR column
         hardwareCost: getCol('LED Price') !== -1 ? getCol('LED Price') : 16,
         installCost: getCol('Install') !== -1 ? getCol('Install') : 17,
         otherCost: getCol('Other') !== -1 ? getCol('Other') : 18,
@@ -66,6 +67,11 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
         // Valid project row usually has a name and dimensions
         if (typeof projectName === 'string' && projectName.trim() !== "" && row[colIdx.pitch]) {
+            // BYPASS LOGIC: Ignore "Alternate" rows as per estimation standards
+            if (projectName.toLowerCase().includes('alternate') || projectName.toLowerCase().includes('alt.')) {
+                continue;
+            }
+
             const pitch = row[colIdx.pitch];
             const heightFt = row[colIdx.height];
             const widthFt = row[colIdx.width];
@@ -73,10 +79,13 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
             const pixelsW = row[colIdx.pixelsW];
 
             // Brightness Row-Hide Logic
-            let brightness = row[colIdx.brightness];
+            let brightness = row[colIdx.brightnessNits];
             if (brightness === undefined || brightness === null || brightness === 0 || brightness === '0' || String(brightness).toUpperCase() === 'N/A' || String(brightness).trim() === '') {
                 brightness = undefined;
             }
+
+            const hdrValue = colIdx.hdrStatus !== -1 ? row[colIdx.hdrStatus] : null;
+            const isHDR = hdrValue === true || String(hdrValue).toLowerCase() === 'yes' || String(hdrValue).toLowerCase() === 'true';
 
             // Financial fields
             const hardwareCost = Number(row[colIdx.hardwareCost] || 0);
@@ -96,7 +105,8 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
                 widthFt: formatDimension(widthFt),
                 pixelsH: parseInt(pixelsH) || 0,
                 pixelsW: parseInt(pixelsW) || 0,
-                brightness: brightness,
+                brightnessNits: brightness,
+                isHDR: isHDR,
                 quantity: 1,
                 lineItems: []
             };

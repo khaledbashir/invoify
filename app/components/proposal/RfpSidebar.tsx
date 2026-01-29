@@ -4,8 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { useProposalContext } from "@/contexts/ProposalContext";
 import { ANYTHING_LLM_BASE_URL, ANYTHING_LLM_KEY } from "@/lib/variables";
 import { BaseButton } from "@/app/components";
-import { Send, Sparkles, MessageSquare, Info, History, X } from "lucide-react";
+import { Send, Sparkles, MessageSquare, Info, History, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFormContext } from "react-hook-form";
+import { analyzeGaps, calculateCompletionRate } from "@/lib/gap-analysis";
 
 type Message = {
     role: "user" | "ai";
@@ -20,8 +22,14 @@ const QUICK_PROMPTS = [
 
 const RfpSidebar = () => {
     const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand } = useProposalContext();
+    const { watch } = useFormContext();
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    const formValues = watch();
+    const gaps = analyzeGaps(formValues);
+    const gapCount = gaps.length;
+    const completionRate = calculateCompletionRate(gapCount);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -40,13 +48,32 @@ const RfpSidebar = () => {
     return (
         <div className="flex flex-col h-full bg-zinc-950">
             {/* Header */}
-            <div className="p-4 border-b border-zinc-800 bg-[#0A52EF] text-white flex items-center justify-between">
+            <div className="p-4 border-b border-zinc-800 bg-[#0A52EF] text-white flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 fill-white animate-pulse" />
-                    <h3 className="font-bold tracking-tight text-sm">ANC Intelligence Engine</h3>
+                    <div className="flex flex-col">
+                        <h3 className="font-bold tracking-tight text-sm">ANC Intelligence Engine</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <div className="w-20 h-1 bg-white/20 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-white transition-all duration-500" 
+                                    style={{ width: `${completionRate}%` }} 
+                                />
+                            </div>
+                            <span className="text-[9px] font-bold opacity-80 uppercase tracking-wider">{completionRate}% Match</span>
+                        </div>
+                    </div>
                 </div>
-                <div className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-bold border border-white/30">
-                    RAG-ACTIVE
+                <div className="flex flex-col items-end gap-1">
+                    <div className="px-2 py-0.5 bg-white/20 rounded text-[10px] font-bold border border-white/30">
+                        RAG-ACTIVE
+                    </div>
+                    {gapCount > 0 && (
+                        <div className="flex items-center gap-1 text-[9px] font-bold bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30">
+                            <AlertCircle className="w-2.5 h-2.5" />
+                            {gapCount} GAPS
+                        </div>
+                    )}
                 </div>
             </div>
 

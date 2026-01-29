@@ -50,15 +50,52 @@ export async function PATCH(
     const { id } = await params;
     try {
         const body = await req.json();
-        const { clientName, status, calculationMode, screens } = body;
+        const { 
+            clientName, 
+            proposalName, 
+            status, 
+            calculationMode, 
+            screens,
+            taxRateOverride,
+            bondRateOverride,
+            createSnapshot, // NEW: Flag to create a version snapshot
+            totalSellingPrice, // NEW: For version history
+            averageMargin // NEW: For version history
+        } = body;
 
         const updateData: any = {};
 
-        if (clientName !== undefined) updateData.clientName = clientName;
+        // Map proposalName to clientName if clientName is missing
+        const effectiveClientName = clientName || proposalName;
+        if (effectiveClientName !== undefined) updateData.clientName = effectiveClientName;
+        
         if (status !== undefined) updateData.status = status;
         if (calculationMode !== undefined) updateData.calculationMode = calculationMode;
+        if (taxRateOverride !== undefined) updateData.taxRateOverride = taxRateOverride;
+        if (bondRateOverride !== undefined) updateData.bondRateOverride = bondRateOverride;
 
         const project = await prisma.$transaction(async (tx) => {
+            // Handle snapshot creation if requested
+            if (createSnapshot) {
+                const latestVersion = await tx.bidVersion.findFirst({
+                    where: { proposalId: id },
+                    orderBy: { versionNumber: 'desc' }
+                });
+
+                const nextVersion = (latestVersion?.versionNumber || 0) + 1;
+
+                await tx.bidVersion.create({
+                    data: {
+                        proposalId: id,
+                        versionNumber: nextVersion,
+                        taxRate: taxRateOverride ?? undefined,
+                        bondRate: bondRateOverride ?? undefined,
+                        margin: averageMargin ?? undefined,
+                        totalSellingPrice: totalSellingPrice ?? undefined,
+                    }
+                });
+            }
+
             // Update the main proposal record
             const updated = await tx.proposal.update({
                 where: { id },
@@ -75,19 +112,25 @@ export async function PATCH(
 
                 // Create new screens with correct schema
                 for (const screen of screens) {
+                    // Defensive number conversion helper
+                    const toNum = (val: any, fallback: number = 0) => {
+                        const n = Number(val);
+                        return isNaN(n) ? fallback : n;
+                    };
+
                     await tx.screenConfig.create({
                         data: {
                             proposalId: id,
                             name: screen.name || "Unnamed Screen",
-                            pixelPitch: Number(screen.pixelPitch || screen.pitchMm || 10),
-                            width: Number(screen.width || screen.widthFt || 0),
-                            height: Number(screen.height || screen.heightFt || 0),
+                            pixelPitch: toNum(screen.pixelPitch || screen.pitchMm, 10),
+                            width: toNum(screen.width || screen.widthFt, 0),
+                            height: toNum(screen.height || screen.heightFt, 0),
                             lineItems: {
                                 create: (screen.lineItems || []).map((li: any) => ({
                                     category: li.category || "Other",
-                                    cost: Number(li.cost || 0),
-                                    margin: Number(li.margin || 0),
-                                    price: Number(li.price || 0),
+                                    cost: toNum(li.cost, 0),
+                                    margin: toNum(li.margin, 0),
+                                    price: toNum(li.price, 0),
                                 }))
                             }
                         }

@@ -22,17 +22,19 @@ const ProposalTemplate1 = (data: ProposalType) => {
 	const docLabel = isLOI ? "SALES QUOTATION" : pricingType === "Hard Quoted" ? "SALES QUOTATION" : "BUDGET ESTIMATE";
 
 	// Dynamic Intro Text (SAAS Platform Directive)
-	const headerText = `This Sales Quotation will set forth the terms by which ${receiver.name} (“Purchaser”) located at ${receiver.address || '[Client Address]'} and ANC Sports Enterprises, LLC (“ANC”) located at ${sender.address || '2 Manhattanville Road, Suite 402, Purchase, NY 10577'} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (“the “Display System”) described below for ${details.location || details.proposalName || 'the project'}.`;
+	const headerText = `This Sales Quotation will set forth the terms by which ${receiver?.name || 'Purchaser'} ("Purchaser") located at ${receiver?.address || '[Client Address]'} and ANC Sports Enterprises, LLC ("ANC") located at ${sender?.address || '2 Manhattanville Road, Suite 402, Purchase, NY 10577'} (collectively, the "Parties") agree that ANC will provide following LED Display and services (the "Display System") described below for ${details?.location || details?.proposalName || 'the project'}.`;
 
 	// Group items logic
-	const screensForGrouping: ScreenItem[] = (details.screens || []).map((s: any) => ({
+	const screensForGrouping: ScreenItem[] = (details?.screens || []).map((s: any) => ({
 		id: s.id || Math.random().toString(),
-		name: s.name,
-		group: s.name.includes("-") ? s.name.split("-")[0].trim() : undefined,
-		sellPrice: s.sellPrice || s.finalClientTotal || 0,
+		name: s.name || "Display",
+		group: s.name?.includes("-") ? s.name.split("-")[0].trim() : undefined,
+		sellPrice: s.sellPrice || s.finalClientTotal || (s.lineItems || []).reduce((acc: number, li: any) => acc + (li.price || 0), 0) || 0,
 		specs: {
 			width: s.widthFt ?? s.width ?? 0,
-			height: s.heightFt ?? s.height ?? 0
+			height: s.heightFt ?? s.height ?? 0,
+			pitch: s.pitchMm ?? s.pixelPitch ?? 0,
+			quantity: s.quantity || 1
 		}
 	}));
 
@@ -50,11 +52,11 @@ const ProposalTemplate1 = (data: ProposalType) => {
 				</div>
 				<div className='w-[60%] text-right space-y-1'>
 					<h2 className='text-xl font-bold text-[#0A52EF]' style={{ fontFamily: "Work Sans, sans-serif" }}>
-						{receiver.name || 'Client Name'}
+						{receiver?.name || 'Client Name'}
 					</h2>
-					{(!receiver.name || receiver.name === 'CLIENT NAME') && (
+					{(!receiver?.name || receiver?.name === 'CLIENT NAME') && (
 						<h3 className='text-sm font-bold text-black' style={{ fontFamily: "Work Sans, sans-serif" }}>
-							{details.proposalName || 'Project'} LED Displays {docLabel}
+							{details?.proposalName || 'Project'} LED Displays {docLabel}
 						</h3>
 					)}
 				</div>
@@ -76,9 +78,10 @@ const ProposalTemplate1 = (data: ProposalType) => {
 
 				<div className="w-full">
 					{mainItems.map((item, index) => (
-						<div key={index} className='flex justify-between items-center py-1 px-2 odd:bg-white even:bg-zinc-100'>
+						<div key={index} className='flex justify-between items-center py-2 px-2 odd:bg-white even:bg-zinc-50 border-b border-zinc-100'>
 							<div className='text-[10px] text-zinc-700 font-medium' style={{ fontFamily: "Helvetica Condensed, sans-serif" }}>
-								{item.name} {item.isGroup ? ', Install, CMS, Engineering, Warranty' : ''}
+								<div className="font-bold text-black uppercase">{item.name}</div>
+								<div className="text-zinc-500">{item.description}</div>
 							</div>
 							<div className='text-[10px] font-bold text-zinc-900'>
 								${formatNumberWithCommas(Math.round(item.total))}
@@ -87,11 +90,25 @@ const ProposalTemplate1 = (data: ProposalType) => {
 					))}
 				</div>
 
-				{/* SUBTOTAL FOR MAIN ITEMS */}
-				<div className="flex justify-between items-center mt-2 pt-1 border-t-2 border-black">
-					<div className="text-right w-full text-xs font-bold mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>Subtotal:</div>
-					<div className="text-xs font-bold text-black min-w-[80px] text-right">
-						${formatNumberWithCommas(Math.round(Number(details.subTotal)))}
+				{/* SUBTOTAL, TAX, TOTAL FOR MAIN ITEMS */}
+				<div className="mt-2 space-y-1">
+					<div className="flex justify-between items-center">
+						<div className="text-right w-full text-[10px] font-bold mr-4 text-zinc-500" style={{ fontFamily: "Work Sans, sans-serif" }}>SUBTOTAL:</div>
+						<div className="text-[10px] font-bold text-zinc-700 min-w-[80px] text-right">
+							${formatNumberWithCommas(Math.round(Number(details?.subTotal || 0)))}
+						</div>
+					</div>
+					<div className="flex justify-between items-center">
+						<div className="text-right w-full text-[10px] font-bold mr-4 text-zinc-400 italic" style={{ fontFamily: "Work Sans, sans-serif" }}>TAX (9.5%):</div>
+						<div className="text-[10px] font-bold text-zinc-400 min-w-[80px] text-right">
+							${formatNumberWithCommas(Math.round(Number(details?.subTotal || 0) * 0.095))}
+						</div>
+					</div>
+					<div className="flex justify-between items-center pt-1 border-t-2 border-black">
+						<div className="text-right w-full text-xs font-bold mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>PROJECT TOTAL:</div>
+						<div className="text-xs font-bold text-[#0A52EF] min-w-[80px] text-right">
+							${formatNumberWithCommas(Math.round(Number(details?.subTotal || 0) * 1.095))}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -117,10 +134,24 @@ const ProposalTemplate1 = (data: ProposalType) => {
 							</div>
 						</div>
 					</div>
-					<div className="flex justify-between items-center mt-1 pt-1 border-t-2 border-black">
-						<div className="text-right w-full text-xs font-bold mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>Subtotal:</div>
-						<div className="text-xs font-bold text-black min-w-[80px] text-right">
-							${formatNumberWithCommas(Math.round(opt.total))}
+					<div className="mt-2 space-y-1">
+						<div className="flex justify-between items-center">
+							<div className="text-right w-full text-[10px] font-bold mr-4 text-zinc-500" style={{ fontFamily: "Work Sans, sans-serif" }}>SUBTOTAL:</div>
+							<div className="text-[10px] font-bold text-zinc-700 min-w-[80px] text-right">
+								${formatNumberWithCommas(Math.round(opt.total))}
+							</div>
+						</div>
+						<div className="flex justify-between items-center">
+							<div className="text-right w-full text-[10px] font-bold mr-4 text-zinc-400 italic" style={{ fontFamily: "Work Sans, sans-serif" }}>TAX (9.5%):</div>
+							<div className="text-[10px] font-bold text-zinc-400 min-w-[80px] text-right">
+								${formatNumberWithCommas(Math.round(opt.total * 0.095))}
+							</div>
+						</div>
+						<div className="flex justify-between items-center pt-1 border-t-2 border-black">
+							<div className="text-right w-full text-xs font-bold mr-4" style={{ fontFamily: "Work Sans, sans-serif" }}>OPTION TOTAL:</div>
+							<div className="text-xs font-bold text-[#0A52EF] min-w-[80px] text-right">
+								${formatNumberWithCommas(Math.round(opt.total * 1.095))}
+							</div>
 						</div>
 					</div>
 				</div>
@@ -171,10 +202,10 @@ const ProposalTemplate1 = (data: ProposalType) => {
 
 					{/* CLIENT */}
 					<div>
-						<h5 className="text-[10px] text-zinc-500 mb-4 font-bold">{receiver.name} ("Purchaser")</h5>
+						<h5 className="text-[10px] text-zinc-500 mb-4 font-bold">{receiver?.name || 'Purchaser'} ("Purchaser")</h5>
 						<p className="text-[9px] text-zinc-400 mb-8">
-							{receiver.address || 'Address Line 1'}<br />
-							{receiver.city || 'City'}, {receiver.zipCode || 'Zip'}
+							{receiver?.address || 'Address Line 1'}<br />
+							{receiver?.city || 'City'}, {receiver?.zipCode || 'Zip'}
 						</p>
 						<div className="space-y-6">
 							<div className="flex items-end gap-2 border-b border-black pb-1">
@@ -197,13 +228,13 @@ const ProposalTemplate1 = (data: ProposalType) => {
 			{/* PAGE BREAK FOR SPECS */}
 			<div className="break-before-page px-8 pt-8">
 				<div className="text-center mb-8">
-					<h2 className="text-[#0A52EF] font-bold text-lg uppercase" style={{ fontFamily: "Work Sans, sans-serif" }}>{receiver.name || 'CLIENT'}</h2>
+					<h2 className="text-[#0A52EF] font-bold text-lg uppercase" style={{ fontFamily: "Work Sans, sans-serif" }}>{receiver?.name || 'CLIENT'}</h2>
 					<h3 className="text-zinc-500 text-sm uppercase tracking-widest" style={{ fontFamily: "Work Sans, sans-serif" }}>SPECIFICATIONS</h3>
 				</div>
 
 				<div className="space-y-8">
 					{(() => {
-						return (details.screens || []).map((screen: any, idx: number) => (
+						return (details?.screens || []).map((screen: any, idx: number) => (
 							<div key={idx} className="break-inside-avoid">
 								<h4 className="text-xs font-bold mb-1" style={{ fontFamily: "Work Sans, sans-serif" }}>{screen.name}</h4>
 								<div className="w-full border-t border-black">
@@ -245,25 +276,22 @@ const ProposalTemplate1 = (data: ProposalType) => {
 			</div>
 
 			{/* SOW Page (Page 7) */}
-			{details.additionalNotes && details.additionalNotes.length > 50 && (
+			{details?.additionalNotes && details?.additionalNotes.length > 50 && (
 				<div className="break-before-page px-8 pt-8">
 					<div className="text-center mb-8">
-						<h2 className="text-[#0A52EF] font-bold text-lg uppercase" style={{ fontFamily: "Work Sans, sans-serif" }}>{receiver.name || 'CLIENT'}</h2>
+						<h2 className="text-[#0A52EF] font-bold text-lg uppercase" style={{ fontFamily: "Work Sans, sans-serif" }}>{receiver?.name || 'CLIENT'}</h2>
 						<h3 className="text-zinc-500 text-sm uppercase tracking-widest" style={{ fontFamily: "Work Sans, sans-serif" }}>STATEMENT OF WORK</h3>
 					</div>
 
 					<div className="space-y-6">
-						{/* Custom SOW Renders with Black Headers */}
-						<div className="break-inside-avoid">
-							<h4 className="bg-black text-white text-[10px] font-bold py-1 px-2 mb-2" style={{ fontFamily: "Work Sans, sans-serif" }}>PHYSICAL INSTALLATION</h4>
-							<div className="text-[10px] leading-relaxed text-zinc-700 px-2 whitespace-pre-wrap" style={{ fontFamily: "Helvetica Condensed, Arial, sans-serif" }}>
-								ANC assumes all base building structure is to be provided by others or is existing and is of sufficient capacity to support the proposed display systems.
-								<br />
-								ANC assumes that shelving and floor casing and millwork will be provided by others for the custom round displays in the atrium area.
-								<br />
-								ANC assumes reasonable access will be provided to the installation team and any unknown site conditions such as lane closures, site protection, permitting, etc. is not currently in this ROM Proposal.
+						{generateSOWContent(details.additionalNotes).map((section: any, idx: number) => (
+							<div key={idx} className="break-inside-avoid">
+								<h4 className="bg-black text-white text-[10px] font-bold py-1 px-2 mb-2" style={{ fontFamily: "Work Sans, sans-serif" }}>{section.title}</h4>
+								<div className="text-[10px] leading-relaxed text-zinc-700 px-2 whitespace-pre-wrap" style={{ fontFamily: "Helvetica Condensed, Arial, sans-serif" }}>
+									{section.content}
+								</div>
 							</div>
-						</div>
+						))}
 
 						<div className="break-inside-avoid">
 							<h4 className="bg-black text-white text-[10px] font-bold py-1 px-2 mb-2" style={{ fontFamily: "Work Sans, sans-serif" }}>ELECTRICAL & DATA INSTALLATION</h4>

@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { BrandSlashes } from "@/app/components/reusables/BrandGraphics";
 import { LayoutDashboard, MessageSquare, Table, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import AiCommandBar from "@/app/components/proposal/AiCommandBar";
+import ModeToggle from "@/app/components/reusables/ModeToggle";
+import { IntelligenceSidebar } from "@/app/components/proposal/IntelligenceSidebar";
 
 interface StudioLayoutProps {
     /** Header content (Logo | Stepper | Actions) */
@@ -33,6 +35,7 @@ export function StudioLayout({
 }: StudioLayoutProps) {
     const [viewMode, setViewMode] = useState<ViewMode>("form");
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isHealthSidebarVisible, setIsHealthSidebarVisible] = useState(false);
     const [isAiExpanded, setIsAiExpanded] = useState(false);
 
     const navItems = [
@@ -70,16 +73,16 @@ export function StudioLayout({
                                     className={cn(
                                         "h-10 mx-2 px-3 rounded-lg flex items-center gap-3 transition-all group relative",
                                         isActive
-                                            ? "bg-blue-600 text-white"
+                                            ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/20"
                                             : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
                                     )}
                                 >
-                                    <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-white" : "group-hover:text-blue-400")} />
+                                    <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-white" : "group-hover:text-brand-blue")} />
                                     {!isSidebarCollapsed && (
                                         <span className="text-sm font-medium truncate">{item.label}</span>
                                     )}
                                     {isActive && isSidebarCollapsed && (
-                                        <div className="absolute right-0 w-1 h-6 bg-blue-500 rounded-l-full" />
+                                        <div className="absolute right-0 w-1 h-6 bg-brand-blue rounded-l-full" />
                                     )}
                                 </button>
                             );
@@ -96,19 +99,38 @@ export function StudioLayout({
                 </aside>
 
                 {/* THE STUDIO GRID (50/50 Split) */}
-                <main className="flex-1 overflow-hidden flex">
+                <main className="flex-1 overflow-hidden grid grid-cols-2">
                     {/* THE HUB (Left Pane: 50vw) */}
-                    <section className="w-1/2 flex flex-col overflow-hidden bg-zinc-950/40 border-r border-zinc-900 anc-slash-bg">
-                        <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            <div className="h-full">
-                                {viewMode === "form" && (
-                                    <div className="animate-in fade-in slide-in-from-left-4 duration-500 h-full">
+                    <section className="relative flex flex-col overflow-hidden bg-zinc-950/40 border-r border-zinc-900 anc-slash-bg">
+                        {/* Mode Toggle - Top Anchored */}
+                        <ModeToggle 
+                            mode={viewMode === "ai" ? "ai" : "form"} 
+                            onChange={(m) => setViewMode(m as ViewMode)} 
+                        />
+
+                        {/* Stacked Panels with CSS Visibility Toggle */}
+                        <div className="flex-1 flex overflow-hidden">
+                            <div className="flex-1 relative overflow-hidden">
+                                {/* Drafting Form Panel */}
+                                <div 
+                                    className={cn(
+                                        "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
+                                        viewMode === "form" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                                    )}
+                                >
+                                    <div className="min-h-full animate-in fade-in slide-in-from-left-4 duration-500">
                                         {formContent}
                                     </div>
-                                )}
+                                </div>
 
-                                {viewMode === "ai" && (
-                                    <div className="animate-in fade-in slide-in-from-left-4 duration-500 h-full p-6">
+                                {/* Intelligence Engine Panel (AI Chat) */}
+                                <div 
+                                    className={cn(
+                                        "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
+                                        viewMode === "ai" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                                    )}
+                                >
+                                    <div className="min-h-full animate-in fade-in slide-in-from-left-4 duration-500 p-6">
                                         {aiContent || (
                                             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-zinc-900/20 rounded-2xl border border-zinc-800 border-dashed">
                                                 <MessageSquare className="w-12 h-12 text-zinc-700 mb-4" />
@@ -117,10 +139,16 @@ export function StudioLayout({
                                             </div>
                                         )}
                                     </div>
-                                )}
+                                </div>
 
-                                {viewMode === "audit" && (
-                                    <div className="animate-in fade-in slide-in-from-left-4 duration-500 h-full p-6">
+                                {/* Financial Audit Panel */}
+                                <div 
+                                    className={cn(
+                                        "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
+                                        viewMode === "audit" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+                                    )}
+                                >
+                                    <div className="min-h-full animate-in fade-in slide-in-from-left-4 duration-500 p-6">
                                         {auditContent || (
                                             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-zinc-900/20 rounded-2xl border border-zinc-800 border-dashed">
                                                 <Table className="w-12 h-12 text-zinc-700 mb-4" />
@@ -129,22 +157,32 @@ export function StudioLayout({
                                             </div>
                                         )}
                                     </div>
-                                )}
+                                </div>
                             </div>
+
+                            {/* REQ-26: Project Health Sidebar */}
+                            {viewMode === "form" && (
+                                <IntelligenceSidebar 
+                                    isVisible={isHealthSidebarVisible} 
+                                    onToggle={() => setIsHealthSidebarVisible(!isHealthSidebarVisible)} 
+                                />
+                            )}
                         </div>
 
                         {/* Persistent AI Shortcut / Quick Bar */}
-                        <div className="h-14 shrink-0 border-t border-zinc-900 bg-zinc-950/80 px-4 flex items-center">
-                            <AiCommandBar
-                                isExpanded={false}
-                                onToggle={() => setViewMode("ai")}
-                            />
-                        </div>
+                        {viewMode !== "ai" && (
+                            <div className="h-14 shrink-0 border-t border-zinc-900 bg-zinc-950/80 px-4 flex items-center">
+                                <AiCommandBar
+                                    isExpanded={false}
+                                    onToggle={() => setViewMode("ai")}
+                                />
+                            </div>
+                        )}
                     </section>
 
                     {/* THE ANCHOR (Right Pane: 50vw) */}
-                    <section className="w-1/2 relative bg-[#090909] overflow-hidden flex flex-col anc-slash-bg">
-                        <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                    <section className="relative bg-slate-200 overflow-hidden flex flex-col">
+                        <div className="flex-1 overflow-y-auto p-12 custom-scrollbar flex items-start justify-center">
                             {/* Brand Signature Slashes in background */}
                             <BrandSlashes
                                 className="absolute -top-20 -right-20 pointer-events-none transition-opacity duration-1000"
@@ -154,17 +192,18 @@ export function StudioLayout({
                                 count={12}
                             />
 
-                            <div className="relative z-10 mx-auto w-full max-w-[850px] transform-gpu transition-all duration-500">
-                                <div className="bg-white shadow-2xl rounded-md overflow-hidden border border-zinc-800">
-                                    {pdfContent}
-                                </div>
+                            <div className="relative z-10 w-full max-w-[850px]">
+                                {pdfContent}
                             </div>
                         </div>
 
                         {/* Footer Status for PDF */}
-                        <div className="h-9 border-t border-zinc-800 bg-zinc-900/60 backdrop-blur-sm flex items-center justify-between px-6 text-xs text-zinc-500">
-                            <span>Live Preview</span>
-                            <span className="text-zinc-600">PDF Engine</span>
+                        <div className="h-9 border-t border-slate-300 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                            <span className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Live Preview Engine
+                            </span>
+                            <span className="text-slate-400">ANC IDENTITY PROTECTION ACTIVE</span>
                         </div>
                     </section>
                 </main>

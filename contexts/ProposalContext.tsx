@@ -181,12 +181,17 @@ export const ProposalContextProvider = ({
 
   useEffect(() => {
     let savedProposalsDefault;
-    if (typeof window !== undefined) {
+    if (typeof window !== "undefined") {
       // Saved proposals variables
       const savedProposalsJSON = window.localStorage.getItem("savedProposals");
-      savedProposalsDefault = savedProposalsJSON
-        ? JSON.parse(savedProposalsJSON)
-        : [];
+      try {
+        savedProposalsDefault = savedProposalsJSON && savedProposalsJSON.trim() !== ""
+          ? JSON.parse(savedProposalsJSON)
+          : [];
+      } catch (e) {
+        console.error("Error parsing savedProposals from localStorage:", e);
+        savedProposalsDefault = [];
+      }
       setSavedProposals(savedProposalsDefault);
     }
   }, []);
@@ -214,29 +219,47 @@ export const ProposalContextProvider = ({
 
       // Map Prisma model to Form structure
       // Ensure we explicitly map JSON fields
-      const details = typeof d.detailsData === 'string' ? JSON.parse(d.detailsData) : d.detailsData || {};
-      const sender = typeof d.senderData === 'string' ? JSON.parse(d.senderData) : d.senderData || {};
-      const receiver = typeof d.receiverData === 'string' ? JSON.parse(d.receiverData) : d.receiverData || {};
+      let details: any = {};
+      let sender: any = {};
+      let receiver: any = {};
+
+      try {
+        details = typeof d.detailsData === 'string' && d.detailsData.trim() !== "" ? JSON.parse(d.detailsData) : d.detailsData || {};
+      } catch (e) {
+        console.error("Error parsing detailsData:", e);
+      }
+
+      try {
+        sender = typeof d.senderData === 'string' && d.senderData.trim() !== "" ? JSON.parse(d.senderData) : d.senderData || {};
+      } catch (e) {
+        console.error("Error parsing senderData:", e);
+      }
+
+      try {
+        receiver = typeof d.receiverData === 'string' && d.receiverData.trim() !== "" ? JSON.parse(d.receiverData) : d.receiverData || {};
+      } catch (e) {
+        console.error("Error parsing receiverData:", e);
+      }
 
       const mappedData: ProposalType = {
         sender: {
-          name: sender.name || "",
-          address: sender.address || "",
-          zipCode: sender.zipCode || "",
-          city: sender.city || "",
-          country: sender.country || "",
-          email: sender.email || "",
-          phone: sender.phone || "",
+          name: sender.name || FORM_DEFAULT_VALUES.sender.name,
+          address: sender.address || FORM_DEFAULT_VALUES.sender.address,
+          zipCode: sender.zipCode || FORM_DEFAULT_VALUES.sender.zipCode,
+          city: sender.city || FORM_DEFAULT_VALUES.sender.city,
+          country: sender.country || FORM_DEFAULT_VALUES.sender.country,
+          email: sender.email || FORM_DEFAULT_VALUES.sender.email,
+          phone: sender.phone || FORM_DEFAULT_VALUES.sender.phone,
           customInputs: sender.customInputs || [],
         },
         receiver: {
-          name: receiver.name || "",
-          address: receiver.address || "",
-          zipCode: receiver.zipCode || "",
-          city: receiver.city || "",
-          country: receiver.country || "",
-          email: receiver.email || "",
-          phone: receiver.phone || "",
+          name: receiver.name || FORM_DEFAULT_VALUES.receiver.name,
+          address: receiver.address || FORM_DEFAULT_VALUES.receiver.address,
+          zipCode: receiver.zipCode || FORM_DEFAULT_VALUES.receiver.zipCode,
+          city: receiver.city || FORM_DEFAULT_VALUES.receiver.city,
+          country: receiver.country || FORM_DEFAULT_VALUES.receiver.country,
+          email: receiver.email || FORM_DEFAULT_VALUES.receiver.email,
+          phone: receiver.phone || FORM_DEFAULT_VALUES.receiver.phone,
           customInputs: receiver.customInputs || [],
         },
         details: {
@@ -248,11 +271,11 @@ export const ProposalContextProvider = ({
           items: details.items || [],
           currency: details.currency || "USD",
           language: "English",
-          taxDetails: details.taxDetails,
-          discountDetails: details.discountDetails,
-          shippingDetails: details.shippingDetails,
-          paymentInformation: details.paymentInformation,
-          additionalNotes: details.additionalNotes,
+          taxDetails: details.taxDetails || FORM_DEFAULT_VALUES.details.taxDetails,
+          discountDetails: details.discountDetails || FORM_DEFAULT_VALUES.details.discountDetails,
+          shippingDetails: details.shippingDetails || FORM_DEFAULT_VALUES.details.shippingDetails,
+          paymentInformation: details.paymentInformation || FORM_DEFAULT_VALUES.details.paymentInformation,
+          additionalNotes: details.additionalNotes || "",
           paymentTerms: details.paymentTerms || "Net 30", // Default if missing
           pdfTemplate: details.pdfTemplate || 1,
           subTotal: details.subTotal || 0,
@@ -269,12 +292,14 @@ export const ProposalContextProvider = ({
           clientName: d.clientName || "",
           workspaceId: d.workspaceId || "",
           aiWorkspaceSlug: d.aiWorkspaceSlug || null, // Hydrate the workspace slug!
-          internalAudit: details.internalAudit || null,
-          clientSummary: details.clientSummary || null,
+          internalAudit: details.internalAudit || FORM_DEFAULT_VALUES.details.internalAudit,
+          clientSummary: details.clientSummary || FORM_DEFAULT_VALUES.details.clientSummary,
           documentType: d.documentType || "First Round",
           pricingType: d.pricingType || "Budget",
-          mirrorMode: d.mirrorMode ?? false,
-          calculationMode: d.calculationMode || "INTELLIGENCE", // Hydrate calculation mode
+          mirrorMode: d.mirrorMode ?? FORM_DEFAULT_VALUES.details.mirrorMode,
+          calculationMode: d.calculationMode || FORM_DEFAULT_VALUES.details.calculationMode, // Hydrate calculation mode
+          taxRateOverride: d.taxRateOverride ?? details.taxRateOverride ?? FORM_DEFAULT_VALUES.details.taxRateOverride,
+          bondRateOverride: d.bondRateOverride ?? details.bondRateOverride ?? FORM_DEFAULT_VALUES.details.bondRateOverride,
         },
       };
 
@@ -349,6 +374,8 @@ export const ProposalContextProvider = ({
             screens: currentValues.details.screens, // This might need special handling endpoint side
             aiWorkspaceSlug: currentValues.details.aiWorkspaceSlug,
             calculationMode: calculationMode, // Sync calculation mode to database
+            taxRateOverride: currentValues.details.taxRateOverride,
+            bondRateOverride: currentValues.details.bondRateOverride,
           };
 
           // Using specific endpoint for auto-save
@@ -387,6 +414,8 @@ export const ProposalContextProvider = ({
         quantity: Number(s.quantity ?? 1),
         pitchMm: Number(s.pitchMm ?? s.pixelPitch ?? 10),
         costPerSqFt: Number(s.costPerSqFt || 120),
+        brightness: Number(s.brightness || 0),
+        isHDR: !!s.isHDR,
         desiredMargin: s.desiredMargin,
         serviceType: s.serviceType,
         formFactor: s.formFactor,
@@ -395,7 +424,10 @@ export const ProposalContextProvider = ({
         includeSpareParts: s.includeSpareParts !== false,
       }));
 
-      const { clientSummary, internalAudit } = calculateProposalAudit(normalized);
+      const { clientSummary, internalAudit } = calculateProposalAudit(normalized, {
+        taxRate: getValues("details.taxRateOverride"),
+        bondPct: getValues("details.bondRateOverride"),
+      });
 
       // Update internal state without triggering infinite loop (only if changed)
       const currentAudit = getValues("details.internalAudit");
@@ -428,7 +460,10 @@ export const ProposalContextProvider = ({
 
       // Recalculate audit
       try {
-        const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens);
+        const { clientSummary, internalAudit } = calculateProposalAudit(updatedScreens, {
+          taxRate: getValues("details.taxRateOverride"),
+          bondPct: getValues("details.bondRateOverride"),
+        });
         setValue("details.internalAudit", internalAudit);
         setValue("details.clientSummary", clientSummary);
       } catch (e) { }
@@ -525,7 +560,10 @@ export const ProposalContextProvider = ({
       }));
 
       // Compute deterministic audit before generating PDF
-      const audit = calculateProposalAudit(screens);
+      const audit = calculateProposalAudit(screens, {
+        taxRate: getValues("details.taxRateOverride"),
+        bondPct: getValues("details.bondRateOverride"),
+      });
 
       const payload = {
         ...data,
@@ -616,9 +654,15 @@ export const ProposalContextProvider = ({
       if (getValues) {
         // Retrieve the existing array from local storage or initialize an empty array
         const savedProposalsJSON = localStorage.getItem("savedProposals");
-        const savedProposals = savedProposalsJSON
-          ? JSON.parse(savedProposalsJSON)
-          : [];
+        let savedProposals = [];
+        try {
+          savedProposals = savedProposalsJSON && savedProposalsJSON.trim() !== ""
+            ? JSON.parse(savedProposalsJSON)
+            : [];
+        } catch (e) {
+          console.error("Error parsing savedProposals from localStorage during save:", e);
+          savedProposals = [];
+        }
 
         const formValues = getValues();
 
@@ -648,7 +692,10 @@ export const ProposalContextProvider = ({
             desiredMargin: s.desiredMargin,
           }));
 
-          const audit = calculateProposalAudit(screens);
+          const audit = calculateProposalAudit(screens, {
+            taxRate: getValues("details.taxRateOverride"),
+            bondPct: getValues("details.bondRateOverride"),
+          });
           // store under a non-typed key to avoid type mismatch with Zod/ProposalType
           (formValues as any)._internalAudit = audit.internalAudit;
           (formValues as any)._clientSummary = audit.clientSummary;
@@ -897,7 +944,10 @@ export const ProposalContextProvider = ({
           const updatedScreens = [...screens, newScreen];
 
           // Calculate audit for the new screen set
-          const audit = calculateProposalAudit(updatedScreens);
+          const audit = calculateProposalAudit(updatedScreens, {
+            taxRate: getValues("details.taxRateOverride"),
+            bondPct: getValues("details.bondRateOverride"),
+          });
           const internalAudit = audit.internalAudit;
 
           // Sync line items for PDF template
@@ -939,7 +989,10 @@ export const ProposalContextProvider = ({
 
           // Recalculate audit and persist into form for live audit view
           try {
-            const { clientSummary, internalAudit } = calculateProposalAudit(normalizedScreens);
+            const { clientSummary, internalAudit } = calculateProposalAudit(normalizedScreens, {
+              taxRate: getValues("details.taxRateOverride"),
+              bondPct: getValues("details.bondRateOverride"),
+            });
             setValue("details.internalAudit", internalAudit);
             setValue("details.clientSummary", clientSummary);
 
@@ -1000,7 +1053,10 @@ export const ProposalContextProvider = ({
 
             // Recalculate audit
             try {
-              const { clientSummary, internalAudit } = calculateProposalAudit(updated);
+              const { clientSummary, internalAudit } = calculateProposalAudit(updated, {
+                taxRate: getValues("details.taxRateOverride"),
+                bondPct: getValues("details.bondRateOverride"),
+              });
               setValue("details.internalAudit", internalAudit);
               setValue("details.clientSummary", clientSummary);
 
@@ -1298,7 +1354,10 @@ export const ProposalContextProvider = ({
 
                   // Immediately recalculate audit for the new screens
                   try {
-                    const { clientSummary, internalAudit } = calculateProposalAudit(normalized);
+                    const { clientSummary, internalAudit } = calculateProposalAudit(normalized, {
+                      taxRate: getValues("details.taxRateOverride"),
+                      bondPct: getValues("details.bondRateOverride"),
+                    });
                     setValue("details.internalAudit", internalAudit);
                     setValue("details.clientSummary", clientSummary);
                   } catch (e) { }

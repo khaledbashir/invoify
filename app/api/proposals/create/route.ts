@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
         workspaceId: body.workspaceId,
         clientName: body.clientName,
         status: "DRAFT",
-        internalAudit: audit.internalAudit,
-        clientSummary: audit.clientSummary,
+        internalAudit: JSON.stringify(audit.internalAudit),
+        clientSummary: JSON.stringify(audit.clientSummary),
         screens: {
           create: await Promise.all(
             audit.internalAudit.perScreen.map(async (screenAudit, idx) => {
@@ -79,21 +79,21 @@ export async function POST(request: NextRequest) {
               // Build line items
               const li = screenAudit.breakdown;
               const lineItemsData = [
-                { category: "Hardware", cost: String(li.hardware), margin: String(desiredMargin), price: String(roundToCents(li.hardware * (1 + desiredMargin))) },
-                { category: "Structure", cost: String(li.structure), margin: String(desiredMargin), price: String(roundToCents(li.structure * (1 + desiredMargin))) },
-                { category: "Install", cost: String(li.install), margin: String(desiredMargin), price: String(roundToCents(li.install * (1 + desiredMargin))) },
-                { category: "Power", cost: String(li.power), margin: String(desiredMargin), price: String(roundToCents(li.power * (1 + desiredMargin))) },
-                { category: "Shipping", cost: String(li.shipping), margin: String(desiredMargin), price: String(roundToCents(li.shipping * (1 + desiredMargin))) },
-                { category: "Labor", cost: String(li.labor), margin: String(desiredMargin), price: String(roundToCents(li.labor * (1 + desiredMargin))) },
-                { category: "PM", cost: String(li.pm), margin: String(desiredMargin), price: String(roundToCents(li.pm * (1 + desiredMargin))) },
-                { category: "General Conditions", cost: String(li.generalConditions), margin: String(desiredMargin), price: String(roundToCents(li.generalConditions * (1 + desiredMargin))) },
-                { category: "Travel", cost: String(li.travel), margin: String(desiredMargin), price: String(roundToCents(li.travel * (1 + desiredMargin))) },
-                { category: "Submittals", cost: String(li.submittals), margin: String(desiredMargin), price: String(roundToCents(li.submittals * (1 + desiredMargin))) },
-                { category: "Engineering", cost: String(li.engineering), margin: String(desiredMargin), price: String(roundToCents(li.engineering * (1 + desiredMargin))) },
-                { category: "Permits", cost: String(li.permits), margin: String(desiredMargin), price: String(roundToCents(li.permits * (1 + desiredMargin))) },
-                { category: "CMS", cost: String(li.cms), margin: String(desiredMargin), price: String(roundToCents(li.cms * (1 + desiredMargin))) },
-                { category: "Bond", cost: String(li.bondCost), margin: String(0), price: String(li.bondCost) },
-                { category: "ANC Margin", cost: String(0), margin: String(0), price: String(li.ancMargin) },
+                { category: "Hardware", cost: Number(li.hardware), margin: Number(desiredMargin), price: roundToCents(li.hardware * (1 + desiredMargin)) },
+                { category: "Structure", cost: Number(li.structure), margin: Number(desiredMargin), price: roundToCents(li.structure * (1 + desiredMargin)) },
+                { category: "Install", cost: Number(li.install), margin: Number(desiredMargin), price: roundToCents(li.install * (1 + desiredMargin)) },
+                { category: "Power", cost: Number(li.power), margin: Number(desiredMargin), price: roundToCents(li.power * (1 + desiredMargin)) },
+                { category: "Shipping", cost: Number(li.shipping), margin: Number(desiredMargin), price: roundToCents(li.shipping * (1 + desiredMargin)) },
+                { category: "Labor", cost: Number(li.labor), margin: Number(desiredMargin), price: roundToCents(li.labor * (1 + desiredMargin)) },
+                { category: "PM", cost: Number(li.pm), margin: Number(desiredMargin), price: roundToCents(li.pm * (1 + desiredMargin)) },
+                { category: "General Conditions", cost: Number(li.generalConditions), margin: Number(desiredMargin), price: roundToCents(li.generalConditions * (1 + desiredMargin)) },
+                { category: "Travel", cost: Number(li.travel), margin: Number(desiredMargin), price: roundToCents(li.travel * (1 + desiredMargin)) },
+                { category: "Submittals", cost: Number(li.submittals), margin: Number(desiredMargin), price: roundToCents(li.submittals * (1 + desiredMargin)) },
+                { category: "Engineering", cost: Number(li.engineering), margin: Number(desiredMargin), price: roundToCents(li.engineering * (1 + desiredMargin)) },
+                { category: "Permits", cost: Number(li.permits), margin: Number(desiredMargin), price: roundToCents(li.permits * (1 + desiredMargin)) },
+                { category: "CMS", cost: Number(li.cms), margin: Number(desiredMargin), price: roundToCents(li.cms * (1 + desiredMargin)) },
+                { category: "Bond", cost: Number(li.bondCost), margin: 0, price: Number(li.bondCost) },
+                { category: "ANC Margin", cost: 0, margin: 0, price: Number(li.ancMargin) },
               ];
 
               return {

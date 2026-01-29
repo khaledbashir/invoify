@@ -6,6 +6,7 @@ import { Wizard, useWizard } from "react-use-wizard";
 
 // Components
 import StudioLayout from "@/app/components/layout/StudioLayout";
+import { StudioHeader } from "@/app/components/layout/StudioHeader";
 import PdfViewer from "@/app/components/proposal/actions/PdfViewer";
 import RfpSidebar from "@/app/components/proposal/RfpSidebar";
 import LogoSelector from "@/app/components/reusables/LogoSelector";
@@ -50,16 +51,20 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
   const { handleSubmit, setValue, reset, control } = useFormContext<ProposalType>();
   const { onFormSubmit, importANCExcel, excelImportLoading } = useProposalContext();
   const wizard = useWizard();
+  const { activeStep } = wizard;
 
   // Initialize form with server data
+  // Normalize projectId: treat the literal 'new' as no project
+  const normalizedProjectId = projectId && projectId !== "new" ? projectId : null;
+
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     }
-    if (projectId) {
-      setValue("details.proposalId" as any, projectId);
+    if (normalizedProjectId) {
+      setValue("details.proposalId" as any, normalizedProjectId);
     }
-  }, [initialData, projectId, reset, setValue]);
+  }, [initialData, normalizedProjectId, reset, setValue]);
 
   // Auto-Save
   const { status: saveStatus } = useAutoSave({
@@ -69,33 +74,13 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
 
   // Header: Logo | Stepper (center) | Actions
   const HeaderContent = (
-    <div className="h-full w-full flex items-center justify-between px-6">
-      {/* Logo Guard: Blue header = White Logo */}
-      <div className="flex items-center shrink-0 w-64">
-        <LogoSelector theme="dark" width={100} height={40} className="p-0" />
-      </div>
-
-      {/* Wizard Stepper (centered) */}
-      <div className="flex-1 flex justify-center max-w-2xl">
-        <WizardStepper wizard={wizard} />
-      </div>
-
-      {/* Right Actions - Strict: Save and Finalize only */}
-      <div className="flex items-center gap-4 shrink-0 w-64 justify-end">
-        <SaveIndicator
-          status={saveStatus}
-          lastSavedAt={(initialData as any)?.lastSavedAt ? new Date((initialData as any).lastSavedAt) : undefined}
-        />
-
-        <Button
-          size="sm"
-          onClick={() => handleSubmit(onFormSubmit)()}
-          className="bg-blue-600 hover:bg-blue-500 text-white font-semibold h-10 px-6 rounded-lg transition-all shadow-md active:scale-[0.98]"
-        >
-          Finish Proposal
-        </Button>
-      </div>
-    </div>
+    <StudioHeader
+      saveStatus={saveStatus}
+      initialData={initialData}
+      excelImportLoading={excelImportLoading}
+      onImportExcel={importANCExcel}
+      onExportPdf={() => handleSubmit(onFormSubmit)()}
+    />
   );
 
   // Form Content (The Hub - Drafting Mode)
@@ -107,18 +92,26 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
       </div>
 
       <div className="flex-1 overflow-auto custom-scrollbar">
-        <WizardStep>
-          <Step1Ingestion />
-        </WizardStep>
-        <WizardStep>
-          <Step2Intelligence />
-        </WizardStep>
-        <WizardStep>
-          <Step3Math />
-        </WizardStep>
-        <WizardStep>
-          <Step4Export />
-        </WizardStep>
+        {activeStep === 0 && (
+          <WizardStep>
+            <Step1Ingestion />
+          </WizardStep>
+        )}
+        {activeStep === 1 && (
+          <WizardStep>
+            <Step2Intelligence />
+          </WizardStep>
+        )}
+        {activeStep === 2 && (
+          <WizardStep>
+            <Step3Math />
+          </WizardStep>
+        )}
+        {activeStep === 3 && (
+          <WizardStep>
+            <Step4Export />
+          </WizardStep>
+        )}
       </div>
     </div>
   );
@@ -152,7 +145,7 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
 
   // PDF Content (The Anchor)
   const PDFContent = (
-    <div className="animate-in fade-in zoom-in-95 duration-700">
+    <div className="w-full h-full">
       <PdfViewer />
     </div>
   );

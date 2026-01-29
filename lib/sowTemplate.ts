@@ -77,34 +77,59 @@ export interface SOWOptions {
 /**
  * Generate the full SOW text with dynamic clauses
  */
-export function generateSOWContent(options: SOWOptions = {}): string {
-    let content = "";
+export function generateSOWContent(options: SOWOptions | string = {}): { title: string, content: string }[] {
+    const sections: { title: string, content: string }[] = [];
 
     // Add standard sections
     Object.entries(SOW_SECTIONS).forEach(([key, section]) => {
         if (typeof section === "object" && "title" in section) {
-            content += `\n**${section.title}**\n${section.content}\n`;
+            sections.push({
+                title: section.title,
+                content: section.content
+            });
         }
     });
 
+    const opts = typeof options === 'string' ? {} : options;
+
     // Add dynamic clauses based on AI detection
-    if (options.includeUnionLabor) {
-        content += `\n**Union Labor Requirements**\n${SOW_SECTIONS.unionLaborClause}\n`;
+    if (opts.includeUnionLabor) {
+        sections.push({
+            title: "Union Labor Requirements",
+            content: SOW_SECTIONS.unionLaborClause
+        });
     }
 
-    if (options.includeReplacement) {
-        content += `\n**Equipment Replacement**\n${SOW_SECTIONS.replacementClause}\n`;
+    if (opts.includeReplacement) {
+        sections.push({
+            title: "Equipment Replacement",
+            content: SOW_SECTIONS.replacementClause
+        });
     }
 
-    if (options.includePrevailingWage) {
-        content += `\n**Prevailing Wage**\n${SOW_SECTIONS.prevailingWageClause}\n`;
+    if (opts.includePrevailingWage) {
+        sections.push({
+            title: "Prevailing Wage",
+            content: SOW_SECTIONS.prevailingWageClause
+        });
     }
 
-    if (options.customExclusions?.length) {
-        content += `\n**Additional Exclusions**\n${options.customExclusions.map(e => `• ${e}`).join("\n")}\n`;
+    if (opts.customExclusions?.length) {
+        sections.push({
+            title: "Additional Exclusions",
+            content: opts.customExclusions.map(e => `• ${e}`).join("\n")
+        });
     }
 
-    return content;
+    // If options is a string and not empty, add it as additional notes
+    if (typeof options === 'string' && options.length > 0) {
+        sections.push({
+            title: "Additional Project Notes",
+            content: options
+        });
+    }
+
+    return sections;
 }
 
 export default SOW_SECTIONS;

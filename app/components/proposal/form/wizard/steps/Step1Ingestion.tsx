@@ -1,289 +1,144 @@
 "use client";
 
-import { useFormContext, useWatch } from "react-hook-form";
-import { Building2, Upload, Loader2 } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Upload, FileSpreadsheet, Sparkles, Shield, ArrowRight, Zap, Search, FileText } from "lucide-react";
 import { useProposalContext } from "@/contexts/ProposalContext";
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BillFromSection, BillToSection, ImportJsonButton } from "@/app/components";
-import { ProposalType } from "@/types";
-import CalculationModePathCards from "./CalculationModePathCards";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { SlashBox } from "@/app/components/reusables/BrandGraphics";
 
 const Step1Ingestion = () => {
-    const { control, setValue } = useFormContext();
     const { importANCExcel, excelImportLoading } = useProposalContext();
-    const [loading, setLoading] = useState(false);
-    const [creationStep, setCreationStep] = useState(0);
-    const [clientNameInput, setClientNameInput] = useState("");
-    const router = useRouter();
-
-    const steps = [
-        "Provisioning Project Vault...",
-        "Establishing Strategic Context...",
-        "Activating Intelligence Engine...",
-        "Mirroring Success Protocols...",
-        "Redirecting to Command Center..."
-    ];
-
-    // Watch for proposal ID to determine mode
-    const proposalId = useWatch({
-        control,
-        name: "details.proposalId"
-    });
-
-    const isNew = !proposalId || proposalId === 'new';
-    const [selectedPath, setSelectedPath] = useState<"MIRROR" | "STRATEGIC" | null>(null);
-    const [excelFile, setExcelFile] = useState<File | null>(null);
-
-    const handleCreateProject = async () => {
-        if (!clientNameInput || !selectedPath) return;
-        setLoading(true);
-        setCreationStep(0);
-
-        try {
-            const resp = await fetch("/api/workspaces/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: clientNameInput,
-                    userEmail: "noreply@anc.com",
-                    createInitialProposal: true,
-                    clientName: clientNameInput,
-                    calculationMode: selectedPath
-                }),
-            });
-
-            const json = await resp.json();
-
-            if (resp.ok && json && json.proposal) {
-                // Artificial delay for Ferrari feel
-                for (let i = 0; i < steps.length; i++) {
-                    setCreationStep(i);
-                    await new Promise((r) => setTimeout(r, 600));
-                }
-
-                // Redirect!
-                window.location.href = `/projects/${json.proposal.id}`;
-            } else {
-                throw new Error(json.error || "Workspace creation failed");
-            }
-        } catch (e) {
-            console.error("Failed to create workspace:", e);
-            alert(`PROJECT VAULT ERROR: ${e instanceof Error ? e.message : "Check database connection."}`);
-            setLoading(false);
-        }
-    };
-
-    if (isNew) {
-        return (
-            <div className="max-w-4xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="text-center mb-10">
-                    <h1 className="text-2xl font-semibold text-white mb-2">Project Setup</h1>
-                    <p className="text-zinc-500 text-sm">Configure your project settings to begin.</p>
-                </div>
-
-                {!loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full items-stretch">
-                        {/* LEFT: Project Identity */}
-                        <div className="flex flex-col gap-6 p-8 bg-zinc-900/40 border border-zinc-800 rounded-2xl">
-                            <div className="space-y-4">
-                                <label className="text-xs font-medium text-zinc-400">Project Name</label>
-                                <input
-                                    autoFocus
-                                    className="flex h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-base font-medium ring-offset-zinc-950 placeholder:text-zinc-700 focus:border-blue-600 focus:outline-none transition-all text-white shadow-sm"
-                                    placeholder="e.g. Lakers Arena - 2026"
-                                    value={clientNameInput}
-                                    onChange={(e) => setClientNameInput(e.target.value)}
-                                />
-                                <p className="text-xs text-zinc-500 leading-relaxed">
-                                    This name will identify your project in the dashboard and AI context.
-                                </p>
-                            </div>
-
-                            <div className="mt-auto pt-6 border-t border-zinc-800/50">
-                                <button
-                                    onClick={handleCreateProject}
-                                    disabled={!clientNameInput || !selectedPath}
-                                    className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold transition-all focus:outline-none disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-500 h-11 active:scale-[0.98]"
-                                >
-                                    Create Project
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-4">
-                            <label className="text-xs font-medium text-zinc-400 ml-2">Select Mode</label>
-
-                            <div
-                                onClick={() => setSelectedPath("STRATEGIC")}
-                                className={`group p-5 rounded-xl border cursor-pointer transition-all duration-300 ${selectedPath === "STRATEGIC"
-                                    ? "bg-blue-600/10 border-blue-600 shadow-md shadow-blue-500/5"
-                                    : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
-                                    }`}
-                            >
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className={`p-2 rounded-lg ${selectedPath === "STRATEGIC" ? "bg-blue-600 text-white" : "bg-zinc-800 text-zinc-500"}`}>
-                                        <Building2 className="w-5 h-5" />
-                                    </div>
-                                    <h3 className={`font-semibold ${selectedPath === "STRATEGIC" ? "text-white" : "text-zinc-300"}`}>Strategic Mode</h3>
-                                </div>
-                                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
-                                    Full commercial optimization with Natalia Math Engine. Automatic margin logic and AI assistance.
-                                </p>
-                            </div>
-
-                            <div
-                                onClick={() => setSelectedPath("MIRROR")}
-                                className={`group p-5 rounded-xl border cursor-pointer transition-all duration-300 ${selectedPath === "MIRROR"
-                                    ? "bg-emerald-600/10 border-emerald-600 shadow-md shadow-emerald-500/5"
-                                    : "bg-zinc-900/40 border-zinc-800 hover:border-zinc-700"
-                                    }`}
-                            >
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className={`p-2 rounded-lg ${selectedPath === "MIRROR" ? "bg-emerald-600 text-white" : "bg-zinc-800 text-zinc-500"}`}>
-                                        <Upload className="w-5 h-5" />
-                                    </div>
-                                    <h3 className={`font-semibold ${selectedPath === "MIRROR" ? "text-white" : "text-zinc-300"}`}>Mirror Mode</h3>
-                                </div>
-                                <p className="text-xs text-zinc-500 font-medium leading-relaxed">
-                                    Excel Pass-Through. Lock pricing to your uploaded ANC spreadsheet for 1:1 precision.
-                                </p>
-                            </div>
-
-                            {/* Excel Upload - Shows when Mirror Mode is selected */}
-                            {selectedPath === "MIRROR" && (
-                                <div className="p-4 bg-emerald-900/20 border border-emerald-800/50 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <label className="text-xs text-emerald-400 font-medium mb-2 block">Upload ANC Excel</label>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            id="excel-file-new-project"
-                                            type="file"
-                                            accept=".xlsx,.xls"
-                                            className="hidden"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) setExcelFile(file);
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                document.getElementById("excel-file-new-project")?.click();
-                                            }}
-                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-sm font-medium rounded-lg border border-zinc-700 transition-all"
-                                        >
-                                            <Upload className="w-4 h-4" />
-                                            {excelFile ? excelFile.name : "Choose Excel File"}
-                                        </button>
-                                    </div>
-                                    {excelFile && (
-                                        <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
-                                            ✓ File will be imported after project creation
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center gap-6 py-20 bg-zinc-900/30 border border-zinc-800 rounded-3xl backdrop-blur-xl">
-                        <div className="relative">
-                            <div className="w-16 h-16 rounded-full border-4 border-blue-600/20 border-t-blue-600 animate-spin"></div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-8 h-8 rounded-full bg-blue-600/10 animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div className="text-center space-y-2">
-                            <div className="text-xl font-semibold text-white italic">{steps[creationStep]}</div>
-                            <div className="text-zinc-500 text-sm">Setting up your secure project environment...</div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    }
+    const [selectedPath, setSelectedPath] = useState<"MIRROR" | "INTELLIGENCE" | null>(null);
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 px-6 py-8">
-            {/* PRIMARY BRANCH: Calculation Mode */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader>
-                    <CardTitle className="text-zinc-100 text-base">Calculation Mode</CardTitle>
-                    <CardDescription className="text-zinc-500 text-xs">Select your calculation engine</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <CalculationModePathCards />
-                </CardContent>
-            </Card>
+        <div className="h-full flex flex-col p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Header Section */}
+            <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <div className="h-1 w-8 bg-brand-blue rounded-full" />
+                    <span className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.2em]">Phase 1: Ingest</span>
+                </div>
+                <h1 className="text-3xl font-bold text-white tracking-tight">Project Initialization</h1>
+                <p className="text-zinc-500 text-sm max-w-lg">
+                    Begin the ANC Studio journey by feeding the system your project data. 
+                    Choose your workflow below to activate the Intelligence Engine.
+                </p>
+            </div>
 
-            {/* Actions: Import */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#0A52EF]/20">
-                            <Upload className="w-5 h-5 text-[#0A52EF]" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Path 1: Mirror Mode (Excel-to-PDF) */}
+                <SlashBox className="group">
+                    <div
+                        onClick={() => setSelectedPath("MIRROR")}
+                        className={`p-6 rounded-2xl border cursor-pointer transition-all duration-300 h-full flex flex-col ${selectedPath === "MIRROR"
+                            ? "bg-brand-blue/10 border-brand-blue shadow-2xl shadow-brand-blue/10"
+                            : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
+                            }`}
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <div className={`p-3 rounded-xl ${selectedPath === "MIRROR" ? "bg-brand-blue text-white" : "bg-zinc-800 text-zinc-500"}`}>
+                                <FileSpreadsheet className="w-6 h-6" />
+                            </div>
+                            {selectedPath === "MIRROR" && <Badge className="bg-brand-blue text-white border-none">Selected</Badge>}
                         </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Data Ingestion</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Import from Excel, JSON, or RFP</CardDescription>
+                        
+                        <h3 className={`text-lg font-bold mb-2 ${selectedPath === "MIRROR" ? "text-white" : "text-zinc-300"}`}>Mirror Mode</h3>
+                        <p className="text-zinc-500 text-xs leading-relaxed mb-6 flex-1">
+                            Direct pass-through for "Valid Victory" estimation. Converts ANC Estimator Excel sheets into branded PDF proposals with 1:1 numerical accuracy.
+                        </p>
+
+                        <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${selectedPath === "MIRROR" ? "text-brand-blue" : "text-zinc-600"}`}>
+                            Excel Pass-Through <ArrowRight className="w-3 h-3" />
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex flex-wrap gap-4">
-                        <ImportJsonButton setOpen={() => { }} />
+                </SlashBox>
 
-                        <div className="relative">
-                            <button
-                                onClick={() => document.getElementById("excel-import-input-step1")?.click()}
-                                disabled={excelImportLoading}
-                                className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-emerald-500/20"
-                            >
-                                {excelImportLoading ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Upload className="w-4 h-4" />
-                                )}
-                                <span>Import ANC Excel</span>
-                            </button>
+                {/* Path 2: Intelligence Mode (RAG/AI) */}
+                <div
+                    onClick={() => setSelectedPath("INTELLIGENCE")}
+                    className={`p-6 rounded-2xl border cursor-pointer transition-all duration-300 h-full flex flex-col ${selectedPath === "INTELLIGENCE"
+                        ? "bg-brand-blue/10 border-brand-blue shadow-2xl shadow-brand-blue/10"
+                        : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700"
+                        }`}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <div className={`p-3 rounded-xl ${selectedPath === "INTELLIGENCE" ? "bg-brand-blue text-white" : "bg-zinc-800 text-zinc-500"}`}>
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        {selectedPath === "INTELLIGENCE" && <Badge className="bg-brand-blue text-white border-none">Active</Badge>}
+                    </div>
+                    
+                    <h3 className={`text-lg font-bold mb-2 ${selectedPath === "INTELLIGENCE" ? "text-white" : "text-zinc-300"}`}>Intelligence Engine</h3>
+                    <p className="text-zinc-500 text-xs leading-relaxed mb-6 flex-1">
+                        Utilize RAG to scan 2,500+ page construction manuals. Extract "Division 11" specs and display schedules automatically via AI.
+                    </p>
+
+                    <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${selectedPath === "INTELLIGENCE" ? "text-brand-blue" : "text-zinc-600"}`}>
+                        RAG Spec Extraction <ArrowRight className="w-3 h-3" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Upload Area for Mirror Mode */}
+            {selectedPath === "MIRROR" && (
+                <div className="p-8 bg-zinc-900/80 border border-brand-blue/30 rounded-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <Shield className="w-32 h-32 text-brand-blue" />
+                    </div>
+                    
+                    <div className="text-center space-y-4 relative z-10">
+                        <div className="mx-auto w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center mb-2">
+                            <Upload className="w-6 h-6 text-brand-blue" />
+                        </div>
+                        <div>
+                            <h4 className="text-white font-semibold">Upload ANC Estimator Excel</h4>
+                            <p className="text-zinc-500 text-xs mt-1">Supports standard .xlsx formats from the Estimating Team</p>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-4 pt-2">
                             <input
-                                id="excel-import-input-step1"
                                 type="file"
-                                accept=".xlsx,.xls"
+                                id="excel-upload"
                                 className="hidden"
-                                onChange={(e) => {
+                                accept=".xlsx, .xls"
+                                onChange={async (e) => {
                                     const file = e.target.files?.[0];
-                                    if (file) importANCExcel(file);
+                                    if (file) {
+                                        await importANCExcel(file);
+                                    }
                                 }}
                             />
+                            <label
+                                htmlFor="excel-upload"
+                                className={`px-6 py-2.5 rounded-xl bg-brand-blue text-white font-bold text-sm cursor-pointer hover:bg-brand-blue/90 transition-all flex items-center gap-2 shadow-lg shadow-brand-blue/20 ${excelImportLoading ? "opacity-50 pointer-events-none" : ""}`}
+                            >
+                                {excelImportLoading ? (
+                                    <><Zap className="w-4 h-4 animate-pulse" /> Processing...</>
+                                ) : (    
+                                    <><FileSpreadsheet className="w-4 h-4" /> Select Master File</>
+                                )}
+                            </label>
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            )}
 
-            {/* Parties */}
-            <Card className="bg-zinc-900/50 border-zinc-800/50">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#0A52EF]/20">
-                            <Building2 className="w-5 h-5 text-[#0A52EF]" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-zinc-100 text-base">Project Parties</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">Who is this proposal for?</CardDescription>
+            {/* RAG Placeholder for Intelligence Mode */}
+            {selectedPath === "INTELLIGENCE" && (
+                <div className="p-8 bg-zinc-900/80 border border-zinc-800 rounded-2xl animate-in zoom-in-95 duration-300 flex items-center justify-center gap-6 group hover:border-brand-blue/20 transition-all">
+                    <div className="p-4 rounded-2xl bg-zinc-800 text-zinc-500 group-hover:bg-brand-blue/10 group-hover:text-brand-blue transition-all">
+                        <Search className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h4 className="text-white font-semibold">Drop RFP Documents or Links</h4>
+                        <p className="text-zinc-500 text-xs mt-1">RAG Engine will automatically index and extract Display Schedules.</p>
+                        <div className="mt-4 flex gap-2">
+                            <Badge variant="outline" className="text-[10px] border-zinc-800 text-zinc-500">Division 11</Badge>
+                            <Badge variant="outline" className="text-[10px] border-zinc-800 text-zinc-500">Section 11 63 10</Badge>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <BillFromSection />
-                        <BillToSection />
-                    </div>
-                </CardContent>
-            </Card>
+                </div>
+            )}
         </div>
     );
 };

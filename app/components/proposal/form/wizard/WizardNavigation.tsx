@@ -23,7 +23,7 @@ const WizardNavigation = () => {
     const { watch } = useFormContext<ProposalType>();
 
     // Watch client name to enable Next step from Step 1
-    const clientName = watch("receiver.name");
+    const clientName = watch("details.clientName");
     const isNextDisabled = isLastStep || (isFirstStep && !clientName);
 
     const { _t } = useTranslationContext();

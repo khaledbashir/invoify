@@ -3,12 +3,31 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 
-type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
+export type AutoSaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface UseAutoSaveOptions {
     projectId: string | null;
     debounceMs?: number;
     onStatusChange?: (status: AutoSaveStatus) => void;
+}
+
+/**
+ * Validate that a project ID is safe to use for API calls.
+ * Rejects reserved route names like "new", "create", etc.
+ */
+function isValidProjectId(id: string | null): id is string {
+    if (!id) return false;
+    // Reject reserved route segments that could be mistaken for IDs
+    const reserved = ["new", "create", "edit", "delete", "api", "assets"];
+    if (reserved.includes(id.toLowerCase())) return false;
+    // Must look like a real ID (cuid, uuid, or numeric)
+    // CUID: starts with letter, 25 chars
+    // UUID: 36 chars with dashes
+    // Numeric: all digits
+    const isCuid = /^[a-z][a-z0-9]{24}$/i.test(id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const isNumeric = /^\d+$/.test(id);
+    return isCuid || isUuid || isNumeric;
 }
 
 /**
@@ -37,7 +56,7 @@ export function useAutoSave({
     }, [onStatusChange]);
 
     const saveToVault = useCallback(async () => {
-        if (!projectId) return;
+        if (!isValidProjectId(projectId)) return;
 
         const formData = getValues();
         const dataHash = JSON.stringify(formData);
@@ -57,6 +76,8 @@ export function useAutoSave({
                     senderData: formData.sender,
                     receiverData: formData.receiver,
                     proposalName: formData.details?.proposalName,
+                    status: formData.details?.status,
+                    calculationMode: formData.details?.calculationMode,
                     screens: formData.details?.screens, // Deep sync screens
                 }),
             });
@@ -83,7 +104,7 @@ export function useAutoSave({
 
     // Debounced save on form changes
     useEffect(() => {
-        if (!projectId) return;
+        if (!isValidProjectId(projectId)) return;
 
         const subscription = watch(() => {
             // Clear any pending save
