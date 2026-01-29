@@ -175,28 +175,28 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
 
         // 4. TAX & BOND INPUTS (DYNAMIC)
         currentRow++;
-        const taxRow = currentRow;
-        sheet.getCell(`A${currentRow}`).value = 'SALES TAX';
-        sheet.getCell(`D${currentRow}`).value = 'Sell Price * Tax Rate';
-        sheet.getCell(`H${currentRow}`).value = 0.095; // Default 9.5% tax
-        sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
-        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
-        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${taxRow}` };
-        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
-
-        currentRow++;
-        const bondRow = currentRow;
+        const bondRow = currentRow; // Swap order: Bond comes before or parallel to tax, but calculation requires Sell Price first.
         sheet.getCell(`A${currentRow}`).value = 'PERFORMANCE BOND (1.5%)';
         sheet.getCell(`D${currentRow}`).value = 'Sell Price * Bond Rate';
         sheet.getCell(`H${currentRow}`).value = 0.015; // Default 1.5% bond
         sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
         sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
-        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${bondRow}` };
+        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${bondRow}` }; // Bond Value = Sell Price * Rate
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+
+        currentRow++;
+        const taxRow = currentRow;
+        sheet.getCell(`A${currentRow}`).value = 'SALES TAX';
+        sheet.getCell(`D${currentRow}`).value = '(Sell Price + Bond) * Tax Rate';
+        sheet.getCell(`H${currentRow}`).value = 0.095; // Default 9.5% tax
+        sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
+        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
+        sheet.getCell(`I${currentRow}`).value = { formula: `(G${sellPriceRow}+I${bondRow})*H${taxRow}` }; // Tax on (Sell + Bond)
         sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
 
         currentRow++;
         sheet.getCell(`A${currentRow}`).value = 'FINAL CLIENT TOTAL';
-        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}+I${taxRow}+I${bondRow}` };
+        sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}+I${bondRow}+I${taxRow}` }; // Total = Sell + Bond + Tax
         sheet.getCell(`I${currentRow}`).font = { bold: true, size: 12 };
         sheet.getCell(`I${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD4EDDA' } };
         sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';

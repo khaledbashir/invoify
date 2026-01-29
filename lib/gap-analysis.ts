@@ -1,6 +1,9 @@
+import { PDF_PLACEHOLDERS } from "./pdfPlaceholders";
+
 /**
  * analyzeGaps - Project Health & Completion Logic
  * Identifies missing fields in the proposal to drive completion rates.
+ * Implements "17/20 Logic": 80% AI fill rate target.
  */
 
 export type GapItem = {
@@ -9,76 +12,116 @@ export type GapItem = {
     screenIndex?: number;
     priority: "high" | "medium" | "low";
     description: string;
+    section?: string;
 };
+
+// The 20 Critical Fields for a Ferrari-Level Proposal
+const CRITICAL_FIELDS_COUNT = 20;
 
 export function analyzeGaps(formValues: any): GapItem[] {
     const gaps: GapItem[] = [];
     const screens = formValues?.details?.screens || [];
+    const details = formValues?.details || {};
+    const sender = formValues?.sender || {};
+    const receiver = formValues?.receiver || {};
 
-    // Check for Section 11 specific requirements (Division 11)
+    // 1. Division 11 / Extraction Accuracy
     if (formValues?.extractionAccuracy !== "High") {
         gaps.push({
             id: "division-11-missing",
             field: "Division 11 Data",
             priority: "medium",
-            description: "Section 11 63 10 not detected. Manual verification required."
+            description: "Section 11 63 10 not detected. Manual verification required.",
+            section: "Confidence"
         });
     }
 
-    // Check for missing screen information
-    screens.forEach((screen: any, index: number) => {
-        if (!screen.name || screen.name === "") {
-            gaps.push({
-                id: `screen-${index}-name`,
-                field: "Screen Name",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} needs a name`
-            });
-        }
-        if (!screen.widthFt || screen.widthFt === 0) {
-            gaps.push({
-                id: `screen-${index}-width`,
-                field: "Width",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} missing width`
-            });
-        }
-        if (!screen.heightFt || screen.heightFt === 0) {
-            gaps.push({
-                id: `screen-${index}-height`,
-                field: "Height",
-                screenIndex: index,
-                priority: "high",
-                description: `Screen ${index + 1} missing height`
-            });
-        }
-        if (!screen.pitchMm || screen.pitchMm === 0) {
-            gaps.push({
-                id: `screen-${index}-pitch`,
-                field: "Pitch",
-                screenIndex: index,
-                priority: "medium",
-                description: `Screen ${index + 1} missing pitch`
-            });
-        }
-    });
+    // 2. Client Info
+    if (!receiver.name || receiver.name === PDF_PLACEHOLDERS.CLIENT_NAME) {
+        gaps.push({ id: "client-name", field: "Client Name", priority: "high", description: "Missing client name", section: "Client" });
+    }
+    if (!receiver.address) {
+        gaps.push({ id: "client-addr", field: "Client Address", priority: "medium", description: "Missing client address", section: "Client" });
+    }
 
-    // Check receiver info
-    if (!formValues?.receiver?.name) {
-        gaps.push({
-            id: "receiver-name",
-            field: "Client Name",
-            priority: "high",
-            description: "Client/Receiver name is missing"
+    // 3. Sender Info (should be auto-filled but good to check)
+    if (!sender.name) {
+        gaps.push({ id: "sender-name", field: "Sender Name", priority: "low", description: "Missing sender identity", section: "Sender" });
+    }
+
+    // 4. Critical Rules / Rules Detected
+    const rules = formValues?.rulesDetected || {};
+    // If we haven't even run AI, rules might be missing entirely
+
+    // 5. Screen Specs (The Meat)
+    if (screens.length === 0) {
+        gaps.push({ id: "no-screens", field: "Screens", priority: "high", description: "No displays found in proposal", section: "Screens" });
+    } else {
+        screens.forEach((screen: any, index: number) => {
+            const label = `Screen ${index + 1}`;
+
+            // Name
+            if (!screen.name || screen.name === "Unnamed") {
+                gaps.push({ id: `s${index}-name`, field: "Screen Name", screenIndex: index, priority: "medium", description: `${label} needs a descriptive name`, section: "Screens" });
+            }
+
+            // Dimensions
+            if (!screen.widthFt) gaps.push({ id: `s${index}-w`, field: "Width", screenIndex: index, priority: "high", description: `${label} missing width`, section: "Screens" });
+            if (!screen.heightFt) gaps.push({ id: `s${index}-h`, field: "Height", screenIndex: index, priority: "high", description: `${label} missing height`, section: "Screens" });
+
+            // Pixel Specs
+            if (!screen.pitchMm) gaps.push({ id: `s${index}-pitch`, field: "Pixel Pitch", screenIndex: index, priority: "high", description: `${label} missing pixel pitch`, section: "Screens" });
+
+            // Brightness (HDR/Nits)
+            if (!screen.brightness) {
+                gaps.push({ id: `s${index}-brit`, field: "Brightness", screenIndex: index, priority: "medium", description: `${label} missing nits/brightness`, section: "Screens" });
+            }
+
+            // REQ-33: Tolerance Violation Flags (2% Limit)
+            // We verify if the actual module dimensions match the requested dimensions within 2%
+            if (screen.widthSections && screen.actualWidthFt && screen.widthFt) {
+                const requestedW = Number(screen.widthFt);
+                const actualW = Number(screen.actualWidthFt);
+                const variance = Math.abs((actualW - requestedW) / requestedW);
+
+                if (variance > 0.02) {
+                    gaps.push({
+                        id: `s${index}-tol-w`,
+                        field: "Tolerance Violation",
+                        screenIndex: index,
+                        priority: "high",
+                        description: `${label} width variance ${(variance * 100).toFixed(1)}% exceeds 2% limit`,
+                        section: "Engineering"
+                    });
+                }
+            }
+
+            // Margin / Financials (Internal only, but critical for completeness)
+            if (!screen.costPerSqFt && details.pricingType !== "Budget") { // Only critical if hard quoting
+                gaps.push({ id: `s${index}-cost`, field: "Cost Basis", screenIndex: index, priority: "high", description: `${label} missing cost basis`, section: "Financials" });
+            }
         });
     }
+
+    // 6. Project Metadata
+    if (!details.proposalName) {
+        gaps.push({ id: "prop-name", field: "Project Name", priority: "medium", description: "Missing project title", section: "General" });
+    }
+    if (!details.paymentTerms) {
+        gaps.push({ id: "pay-terms", field: "Payment Terms", priority: "low", description: "Confirm payment terms", section: "Financials" });
+    }
+
+    // 7. Site Rules (Gap if unknown)
+    // We expect these boolean flags to be explicitly set true/false. If undefined, it's a gap.
+    // In our form, they default to false, so it's hard to tell if "unknown" or "no". 
+    // We'll rely on the extraction logic to flag if it successfully ran. 
 
     return gaps;
 }
 
 export function calculateCompletionRate(gapCount: number): number {
     // 20 fields total is the baseline for 100% completion
-    return Math.max(0, Math.min(100, ((20 - gapCount) / 20) * 100));
+    // The "17/20 Logic" means 17 fields filled = 85%
+    const score = Math.max(0, Math.min(100, ((CRITICAL_FIELDS_COUNT - gapCount) / CRITICAL_FIELDS_COUNT) * 100));
+    return Math.round(score);
 }

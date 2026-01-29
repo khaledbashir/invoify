@@ -35,6 +35,9 @@ import { ExportTypes, ProposalType } from "@/types";
 // Estimator / Audit
 import { calculateProposalAudit } from "@/lib/estimator";
 
+// Risk Detector
+import { detectRisks, RiskItem } from "@/services/risk-detector";
+
 const defaultProposalContext = {
   proposalPdf: new Blob(),
   proposalPdfLoading: false,
@@ -89,6 +92,11 @@ const defaultProposalContext = {
   // Calculation Mode
   calculationMode: "INTELLIGENCE" as "MIRROR" | "INTELLIGENCE",
   setCalculationMode: (mode: "MIRROR" | "INTELLIGENCE") => { },
+  // Risk State
+  risks: [] as RiskItem[],
+  setRisks: (risks: RiskItem[]) => { },
+  rulesDetected: null as any,
+  setRulesDetected: (rules: any) => { },
 };
 
 export const ProposalContext = createContext(defaultProposalContext);
@@ -142,6 +150,8 @@ export const ProposalContextProvider = ({
   const [aiFieldTimestamps, setAiFieldTimestamps] = useState<Record<string, number>>({});
   const [aiMessages, setAiMessages] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [risks, setRisks] = useState<RiskItem[]>([]);
+  const [rulesDetected, setRulesDetected] = useState<any>(null);
 
   // Calculation Mode - THE PRIMARY BRANCH DECISION GATE
   const [calculationMode, setCalculationMode] = useState<"MIRROR" | "INTELLIGENCE">("INTELLIGENCE");
@@ -312,7 +322,7 @@ export const ProposalContextProvider = ({
 
       // Cleanup AI state on project switch
       setAiMessages([]);
-      setAiFields([]);
+      setAiFields(details.metadata?.filledByAI || []); // Hydrate AI fields from metadata
       setProposalPdf(new Blob());
     }
   }, [initialData, reset, setValue]);
@@ -376,6 +386,9 @@ export const ProposalContextProvider = ({
             calculationMode: calculationMode, // Sync calculation mode to database
             taxRateOverride: currentValues.details.taxRateOverride,
             bondRateOverride: currentValues.details.bondRateOverride,
+            metadata: {
+              filledByAI: aiFields, // Persist current AI fields
+            }
           };
 
           // Using specific endpoint for auto-save
@@ -445,6 +458,22 @@ export const ProposalContextProvider = ({
       console.warn("Real-time calculation failed:", e);
     }
   }, [screens, setValue, getValues]);
+
+  // AUTO-DETECT RISKS
+  // Whenever the form values change (specifically location, screens, or if rules exist)
+  // We re-run the risk detector.
+  // We use the full form values for this.
+  const formValues = watch(); // Watch everything for risk detection
+  useEffect(() => {
+    if (!formValues) return;
+    // We only run this if we have some data
+    const detected = detectRisks(formValues, rulesDetected);
+
+    // Only update if changed to avoid loops
+    if (JSON.stringify(detected) !== JSON.stringify(risks)) {
+      setRisks(detected);
+    }
+  }, [formValues, rulesDetected]); // Dependencies: full form or new rules
 
   const duplicateScreen = useCallback((index: number) => {
     const values = getValues();
@@ -1402,6 +1431,11 @@ export const ProposalContextProvider = ({
         // Calculation Mode
         calculationMode,
         setCalculationMode,
+        // Risks
+        risks,
+        setRisks,
+        rulesDetected,
+        setRulesDetected,
       }}
     >
       {children}

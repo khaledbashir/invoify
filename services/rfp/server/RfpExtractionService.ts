@@ -26,6 +26,10 @@ export class RfpExtractionService {
       Specifically, look for the "LED Display Schedule" table to extract quantity, dimensions, and pitch.
       Mark "extractionAccuracy": "High" if these specific sections were located.
 
+      KEYWORD WEIGHTING:
+      - "Display Schedule" acts as the master truth for Quantity and Dimensions.
+      - "Basis of Design" or "Approved Manufacturers" overrides generic specs.
+
       CRITICAL: You must detect specific ANC "Ferrari Level" site rules:
       1. UNION LABOR: Does the RFP require IBEW/Union Labor? (Search for "Labor", "Union", "Collective Bargaining")
       2. WTC LOCATION: Is this project at the World Trade Center (Complexity level 10)?

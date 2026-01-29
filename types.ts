@@ -8,7 +8,11 @@ import { FieldPath, UseFormReturn } from "react-hook-form";
 import { ProposalSchema, ItemSchema } from "@/lib/schemas";
 
 // Form types
-export type ProposalType = z.infer<typeof ProposalSchema>;
+export type ProposalType = z.infer<typeof ProposalSchema> & {
+    metadata?: {
+        filledByAI?: string[]; // Array of field paths
+    };
+};
 export type ItemType = z.infer<typeof ItemSchema>;
 export type FormType = UseFormReturn<ProposalType>;
 export type NameType = FieldPath<ProposalType>;

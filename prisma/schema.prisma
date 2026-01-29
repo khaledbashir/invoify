@@ -49,6 +49,16 @@ model Proposal {
   versions        BidVersion[]
   workspace       Workspace      @relation(fields: [workspaceId], references: [id])
   screens         ScreenConfig[]
+  snapshots       ProposalSnapshot[]
+}
+
+model ProposalSnapshot {
+  id           String   @id @default(cuid())
+  proposalId   String
+  shareHash    String   @unique
+  snapshotData String   // JSON string of the proposal state at time of share
+  createdAt    DateTime @default(now())
+  proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 }
 
 model BidVersion {
