@@ -7,83 +7,25 @@ import LogoSelector from "@/app/components/reusables/LogoSelector";
 const prisma = new PrismaClient();
 
 async function getProjectByHash(hash: string) {
-    const project = await prisma.proposal.findUnique({
-        where: { shareHash: hash },
-        include: {
-            screens: {
-                include: { lineItems: true }
-            }
-        }
+    // REQ-34: Read-Only Share Link Snapshotting
+    // Retrieve the static, sanitized JSON snapshot instead of live data
+    const snapshot = await prisma.proposalSnapshot.findUnique({
+        where: { shareHash: hash }
     });
 
-    if (!project) return null;
+    if (!snapshot) {
+        // Fallback for legacy links? Or return null to force 404?
+        // For now, let's return null to ensure security (only serve snapshots)
+        return null;
+    }
 
-    // Map DB project to ProposalType
-    // SECURITY: We do NOT pass internal audit or raw costs to the client view
-    const mapped: Partial<ProposalType> = {
-        receiver: {
-            name: project.clientName,
-            address: "",
-            zipCode: "",
-            city: "",
-            country: "",
-            email: "",
-            phone: "",
-            customInputs: []
-        },
-        sender: {
-            name: "ANC Sports Enterprises",
-            address: "2 Manhattanville Road, Suite 402",
-            zipCode: "10577",
-            city: "Purchase, NY",
-            country: "United States",
-            email: "info@ancsports.com",
-            phone: "(914) 696-2100",
-            customInputs: []
-        },
-        details: {
-            proposalId: project.id,
-            proposalName: project.clientName,
-            proposalDate: new Date().toISOString(),
-            dueDate: new Date().toISOString(),
-            items: [],
-            currency: "USD",
-            language: "English",
-            taxDetails: { amount: 0, amountType: "amount", taxID: "" },
-            discountDetails: { amount: 0, amountType: "amount" },
-            shippingDetails: { cost: 0, costType: "amount" },
-            paymentInformation: { bankName: "", accountName: "", accountNumber: "" },
-            additionalNotes: "",
-            paymentTerms: "Net 30",
-            pdfTemplate: 2,
-            screens: project.screens.map(s => ({
-                id: s.id,
-                name: s.name,
-                pitchMm: s.pixelPitch,
-                widthFt: s.width,
-                heightFt: s.height,
-                quantity: 1,
-                // Do NOT include cost/margin in shared view
-                lineItems: s.lineItems.map(li => ({
-                    category: li.category,
-                    price: li.price,
-                    // Zero out sensitive data
-                    cost: 0,
-                    margin: 0
-                }))
-            })) as any,
-            totalAmount: 0, // Will be calculated by template or passed
-            totalAmountInWords: "",
-            documentType: "First Round",
-            pricingType: "Budget",
-            proposalNumber: "",
-            subTotal: 0,
-            mirrorMode: false,
-            calculationMode: "INTELLIGENCE"
-        }
-    };
-
-    return mapped;
+    try {
+        const data = JSON.parse(snapshot.snapshotData);
+        return data;
+    } catch (e) {
+        console.error("Failed to parse proposal snapshot", e);
+        return null;
+    }
 }
 
 export default async function SharePage({ params }: { params: Promise<{ hash: string }> }) {
@@ -107,7 +49,7 @@ export default async function SharePage({ params }: { params: Promise<{ hash: st
 
             {/* The Proposal Container */}
             <div className="w-full max-w-[850px] bg-white shadow-2xl min-h-[1100px]">
-                <ProposalTemplate2 {...(project as ProposalType)} />
+                <ProposalTemplate2 {...(project as ProposalType)} isSharedView={true} />
             </div>
 
             {/* Footer */}

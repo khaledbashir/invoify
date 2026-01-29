@@ -40,7 +40,7 @@ export default function ProposalLayout({ data, children }: ProposalLayoutProps) 
         <>
             {head}
             <section style={{ fontFamily: "'Work Sans', 'Helvetica Condensed', sans-serif", position: 'relative' }}>
-                <div className="flex flex-col p-4 sm:p-10 bg-white rounded-xl shadow-2xl min-h-[1056px] text-[#1a1a1a] relative overflow-hidden border border-white/50">
+                <div className="block p-4 sm:p-10 bg-white rounded-xl shadow-2xl min-h-[1056px] text-[#1a1a1a] relative overflow-hidden border border-white/50">
                     {/* Draft Watermark Safeguard */}
                     {details.status === 'DRAFT' && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] rotate-[-45deg] z-0">

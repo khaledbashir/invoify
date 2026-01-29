@@ -278,6 +278,10 @@ const ProposalDetailsSchema = z.object({
     pdfTemplate: z.number(),
     taxRateOverride: z.number().optional(), // e.g., 0.095 for 9.5%
     bondRateOverride: z.number().optional(), // e.g., 0.015 for 1.5%
+    metadata: z.object({
+        filledByAI: z.array(z.string()).optional(),
+        risks: z.array(z.string()).optional(), // Store IDs of detected risks
+    }).optional(),
 });
 
 const ProposalSchema = z.object({
