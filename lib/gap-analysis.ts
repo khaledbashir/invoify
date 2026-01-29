@@ -77,24 +77,7 @@ export function analyzeGaps(formValues: any): GapItem[] {
                 gaps.push({ id: `s${index}-brit`, field: "Brightness", screenIndex: index, priority: "medium", description: `${label} missing nits/brightness`, section: "Screens" });
             }
 
-            // REQ-33: Tolerance Violation Flags (2% Limit)
-            // We verify if the actual module dimensions match the requested dimensions within 2%
-            if (screen.widthSections && screen.actualWidthFt && screen.widthFt) {
-                const requestedW = Number(screen.widthFt);
-                const actualW = Number(screen.actualWidthFt);
-                const variance = Math.abs((actualW - requestedW) / requestedW);
 
-                if (variance > 0.02) {
-                    gaps.push({
-                        id: `s${index}-tol-w`,
-                        field: "Tolerance Violation",
-                        screenIndex: index,
-                        priority: "high",
-                        description: `${label} width variance ${(variance * 100).toFixed(1)}% exceeds 2% limit`,
-                        section: "Engineering"
-                    });
-                }
-            }
 
             // Margin / Financials (Internal only, but critical for completeness)
             if (!screen.costPerSqFt && details.pricingType !== "Budget") { // Only critical if hard quoting

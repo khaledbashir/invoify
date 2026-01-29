@@ -97,7 +97,9 @@ export async function POST(
                 subTotal: 0,
                 mirrorMode: false,
                 calculationMode: "INTELLIGENCE",
-                // Ensure internalAudit is explicitly null
+                // SECURITY: Strictly nullify internal financial logic
+                bondRateOverride: undefined,
+                taxRateOverride: undefined,
                 internalAudit: undefined
             }
         };

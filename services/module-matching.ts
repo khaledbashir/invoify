@@ -59,7 +59,7 @@ export function matchModules(
         // If half-module delta is smaller, use it.
         // For LG, users explicitly requested "Half-Module Heuristic Preference".
         // Use a slight bias? No, just pure math "closest wins" is usually what they mean.
-        if (halfDelta < wholeDelta) {
+        if (halfDelta <= wholeDelta) {
             countW = halfCountW;
             countH = halfCountH;
         } else {

@@ -21,14 +21,17 @@ export class RfpExtractionService {
       Analyze the RFP document(s) in this workspace and extract a complete set of technical specifications and project metadata.
       
       CRITICAL FOCUS (Division 11): 
-      Prioritize and isolate "Section 11 63 10" (LED Display and Control Systems) and "Section 11 06 60" (LED Display Schedule).
-      If these sections are found, ensure they are used as the primary source of truth.
-      Specifically, look for the "LED Display Schedule" table to extract quantity, dimensions, and pitch.
-      Mark "extractionAccuracy": "High" if these specific sections were located.
-
-      KEYWORD WEIGHTING:
-      - "Display Schedule" acts as the master truth for Quantity and Dimensions.
-      - "Basis of Design" or "Approved Manufacturers" overrides generic specs.
+      You MUST prioritize and search for "SECTION 11 63 10" (LED Display Systems) and "SECTION 11 06 60" (Display Schedule).
+      These sections are the "Master Truth". Data found here overrides all other sections.
+      
+      SPECIFIC EXTRACTION TARGETS:
+      1. LOCATE the "LED Display Schedule" table in Section 11 06 60.
+      2. EXTRACT the following rows for each display type:
+         - "Quantity" or "Qty"
+         - "Active Area" or "Dimensions" (Width x Height)
+         - "Pixel Pitch" (e.g., 4mm, 6mm, 10mm)
+         - "Resolution" (if Dimensions are missing)
+      3. IF "Section 11 06 60" is found, set "extractionAccuracy" to "High".
 
       CRITICAL: You must detect specific ANC "Ferrari Level" site rules:
       1. UNION LABOR: Does the RFP require IBEW/Union Labor? (Search for "Labor", "Union", "Collective Bargaining")
@@ -62,7 +65,9 @@ export class RfpExtractionService {
         ],
         "rulesDetected": {
            "requiresUnionLabor": boolean,
-           "isWtcLocation": boolean
+           "isWtcLocation": boolean,
+           "requiresSpareParts": boolean,
+           "requiresBond": boolean
         }
       }
     `;

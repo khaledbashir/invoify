@@ -69,5 +69,29 @@ export function detectRisks(data: ProposalType, rulesDetected?: any): RiskItem[]
         });
     }
 
+    // 5. DIMENSIONAL TOLERANCE (HIGH RISK)
+    // Check if "Actual" module dimensions deviate > 2% from "Requested" RFP dimensions
+    screens.forEach((screen, index) => {
+        const s = screen as any; // Cast to access calculated props
+        if (s.widthSections && s.actualWidthFt && s.widthFt) { // Check if we have calculated data
+            const requestedW = Number(s.widthFt);
+            const actualW = Number(s.actualWidthFt);
+            // Avoid div by zero
+            if (requestedW > 0) {
+                const variance = Math.abs((actualW - requestedW) / requestedW);
+                if (variance > 0.02) {
+                    risks.push({
+                        id: `risk-tol-w-${index}`,
+                        risk: `Tolerance Violation (Screen ${index + 1})`,
+                        trigger: `Actual width ${actualW.toFixed(2)}' varies >2% from requested ${requestedW.toFixed(2)}'`,
+                        impact: "Display may not fit structural opening.",
+                        priority: "HIGH",
+                        actionRequired: "Review module layout or request structure mod."
+                    });
+                }
+            }
+        }
+    });
+
     return risks;
 }
