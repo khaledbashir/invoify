@@ -201,9 +201,20 @@ export async function POST(req: NextRequest) {
     let extractedData = null;
     try {
       const aiResponse = await queryVault(workspaceSlug, extractionPrompt, "chat");
+      console.log(`[RFP Upload] AI Response Length: ${aiResponse.length}`);
+      
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        extractedData = JSON.parse(jsonMatch[0]);
+        try {
+            extractedData = JSON.parse(jsonMatch[0]);
+        } catch (parseErr) {
+            console.warn("[RFP Upload] JSON Parse Warning:", parseErr);
+            // Try to repair common JSON issues if needed, or just proceed without data
+            // Attempt simple repair for truncated JSON
+            try {
+                extractedData = JSON.parse(jsonMatch[0] + "}");
+            } catch (e) { /* ignore */ }
+        }
       }
     } catch (e) {
       console.error("[RFP Upload] AI Extraction failed", e);

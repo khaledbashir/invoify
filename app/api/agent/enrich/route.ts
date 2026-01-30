@@ -38,7 +38,9 @@ export async function POST(req: NextRequest) {
         };
 
         const keysJson = JSON.stringify(fields);
-        const prompt = `@agent search for the official corporate headquarters address and location details of "${query}". 
+        // Remove @agent to avoid raw tool calls leaking into the response
+        // We rely on AnythingLLM's auto-detection or default behavior
+        const prompt = `Search for the official corporate headquarters address and location details of "${query}". 
         
 Return the results as a JSON object with these exact keys: ${keysJson}. 
 Each value must be a string. If you cannot find a specific detail, return an empty string for that key.
@@ -62,13 +64,36 @@ Example output format:
                 return NextResponse.json({ ok: false, error: "AI response was not JSON" }, { status: 404 });
             }
 
-            const parsed = JSON.parse(
-                jsonText
-                    .replace(/[“”]/g, '"')
-                    .replace(/[‘’]/g, "'")
-            ) as unknown;
+            // Attempt to repair truncated JSON if it looks like a tool call or just broken
+            let safeJsonText = jsonText
+                .replace(/[“”]/g, '"')
+                .replace(/[‘’]/g, "'");
+            
+            // Simple repair: if it ends with " or similar, try to close it
+            // (This is a basic heuristic, better to rely on robust AI response)
+
+            let parsed: unknown;
+            try {
+                parsed = JSON.parse(safeJsonText);
+            } catch (e) {
+                console.warn("[Enrich] JSON parse failed, trying to repair...", safeJsonText);
+                // Try appending braces if it looks like it's missing them
+                try {
+                     parsed = JSON.parse(safeJsonText + "}");
+                } catch (e2) {
+                    try {
+                        parsed = JSON.parse(safeJsonText + "}}");
+                    } catch (e3) {
+                         throw e; // Original error
+                    }
+                }
+            }
 
             if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+                // Check if it's a tool call response that we should ignore or handle
+                if ((parsed as any)?.name && (parsed as any)?.arguments) {
+                     return NextResponse.json({ ok: false, error: "AI is performing a search, please try again in a moment." }, { status: 404 });
+                }
                 return NextResponse.json({ ok: false, error: "AI response was not an object" }, { status: 404 });
             }
 
