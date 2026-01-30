@@ -630,9 +630,9 @@ export const ProposalContextProvider = ({
    * @returns {Promise<void>} - A promise that resolves when the PDF is successfully generated.
    * @throws {Error} - If an error occurs during the PDF generation process.
    */
-  const generatePdf = useCallback(async (data: ProposalType) => {
+  const generatePdf = useCallback(async (data: ProposalType): Promise<Blob> => {
     setProposalPdfLoading(true);
-    let generated: Blob | null = null;
+    let generated: Blob = new Blob();
 
     try {
       // Sanitize screens into the estimator's expected shape
@@ -681,8 +681,8 @@ export const ProposalContextProvider = ({
     } finally {
       setProposalPdfLoading(false);
     }
-    return generated;
-  }, []);
+    return generated as Blob;
+  }, [getValues, pdfGenerationSuccess]);
 
   /**
    * Removes the final PDF file and switches to Live Preview
