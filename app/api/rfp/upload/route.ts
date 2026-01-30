@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadDocument, addToWorkspace, queryVault } from "@/lib/anything-llm";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const proposalId = searchParams.get("proposalId");
+
+    if (!proposalId) {
+      return NextResponse.json({ error: "proposalId required" }, { status: 400 });
+    }
+
+    const docs = await prisma.rfpDocument.findMany({
+      where: { proposalId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return NextResponse.json({ docs });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,16 +46,31 @@ export async function POST(req: NextRequest) {
     const docPath = uploadRes.data.documents[0].location;
     console.log(`[RFP Upload] File uploaded to ${docPath}`);
 
-    // 2. Add to Workspace (Embed)
+    // 2. Persist to Database (Vault)
+    if (proposalId && proposalId !== "new") {
+      try {
+        await prisma.rfpDocument.create({
+          data: {
+            name: file.name,
+            url: docPath,
+            proposalId: proposalId
+          }
+        });
+        console.log(`[RFP Vault] Saved document record for proposal ${proposalId}`);
+      } catch (e) {
+        console.error("[RFP Vault] Failed to save DB record:", e);
+      }
+    }
+
+    // 3. Add to Workspace (Embed)
     console.log(`[RFP Upload] Adding to workspace ${workspaceSlug}...`);
     const embedRes = await addToWorkspace(workspaceSlug, docPath);
     
     if (!embedRes.success) {
       console.warn("[RFP Upload] Embedding failed, but continuing...", embedRes);
-      // We continue because we can still return the URL, though AI might not know about it yet
     }
 
-    // 3. Extract Data (AI Analysis)
+    // 4. Extract Data (AI Analysis)
     console.log(`[RFP Upload] Analyzing document for extraction...`);
     const extractionPrompt = `
       Analyze the uploaded RFP document "${file.name}" and extract the following technical specifications into a JSON object.
@@ -59,12 +95,7 @@ export async function POST(req: NextRequest) {
 
     let extractedData = null;
     try {
-      // We use "chat" mode to ensure it uses the context of the newly uploaded doc if possible
-      // Note: Embedding might take a moment, so this might be a hit or miss immediately.
-      // But we'll try.
       const aiResponse = await queryVault(workspaceSlug, extractionPrompt, "chat");
-      
-      // Extract JSON from response
       const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         extractedData = JSON.parse(jsonMatch[0]);

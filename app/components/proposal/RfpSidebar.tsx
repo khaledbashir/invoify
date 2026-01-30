@@ -21,7 +21,7 @@ const QUICK_PROMPTS = [
 ];
 
 const RfpSidebar = () => {
-    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, rfpDocumentUrl } = useProposalContext();
+    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, rfpDocumentUrl, rfpDocuments } = useProposalContext();
     const { watch } = useFormContext();
     const [input, setInput] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -112,6 +112,30 @@ const RfpSidebar = () => {
                     )}
                 </label>
             </div>
+
+            {/* RFP Vault List */}
+            {rfpDocuments && rfpDocuments.length > 0 && (
+                <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/30">
+                    <p className="text-[10px] font-bold text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-1">
+                        <History className="w-3 h-3" /> Vault ({rfpDocuments.length})
+                    </p>
+                    <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+                        {rfpDocuments.map(doc => (
+                            <a 
+                                key={doc.id} 
+                                href={doc.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 p-1.5 rounded hover:bg-zinc-800 transition-colors group"
+                            >
+                                <FileText className="w-3 h-3 text-zinc-500 group-hover:text-blue-400" />
+                                <span className="text-xs text-zinc-300 truncate flex-1" title={doc.name}>{doc.name}</span>
+                                <span className="text-[9px] text-zinc-600">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Chat Area */}
             <div

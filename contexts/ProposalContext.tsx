@@ -96,6 +96,8 @@ const defaultProposalContext = {
   lowMarginAlerts: [] as any[],
   // RFP functions
   rfpDocumentUrl: null as string | null,
+  rfpDocuments: [] as Array<{ id: string; name: string; url: string; createdAt: string }>,
+  refreshRfpDocuments: async () => { },
   aiWorkspaceSlug: null as string | null,
   rfpQuestions: [] as Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>,
   uploadRfpDocument: (file: File) => Promise.resolve(),
@@ -172,6 +174,7 @@ export const ProposalContextProvider = ({
 
   // RFP state
   const [rfpDocumentUrl, setRfpDocumentUrl] = useState<string | null>(null);
+  const [rfpDocuments, setRfpDocuments] = useState<Array<{ id: string; name: string; url: string; createdAt: string }>>([]);
   const [rfpQuestions, setRfpQuestions] = useState<Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>>([]);
   const [aiFields, setAiFields] = useState<string[]>([]);
   const [aiFieldTimestamps, setAiFieldTimestamps] = useState<Record<string, number>>({});
@@ -179,6 +182,22 @@ export const ProposalContextProvider = ({
   const [aiLoading, setAiLoading] = useState(false);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [rulesDetected, setRulesDetected] = useState<any>(null);
+
+  // RFP Vault Refresh
+  const refreshRfpDocuments = useCallback(async () => {
+    const pid = getValues("details.proposalId");
+    if (!pid || pid === "new") return;
+    
+    try {
+      const res = await fetch(`/api/rfp/upload?proposalId=${pid}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.docs) setRfpDocuments(data.docs);
+      }
+    } catch (e) {
+      console.error("Failed to refresh RFP docs:", e);
+    }
+  }, [getValues]);
 
   // Calculation Mode - THE PRIMARY BRANCH DECISION GATE
   const [calculationMode, setCalculationMode] = useState<"MIRROR" | "INTELLIGENCE">("INTELLIGENCE");
@@ -267,12 +286,36 @@ export const ProposalContextProvider = ({
     return () => subscription.unsubscribe();
   }, [watch]);
 
+  // Real-time Risk Detection
+  useEffect(() => {
+    const subscription = watch(() => {
+      const currentValues = getValues();
+      const detected = detectRisks(currentValues, rulesDetected);
+      
+      // Simple deep equality check to prevent loops
+      if (JSON.stringify(detected) !== JSON.stringify(risks)) {
+        setRisks(detected);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, rulesDetected, risks]);
+
   // Hydrate from initialData if provided (Server Component support)
   useEffect(() => {
     // @ts-ignore
     if (initialData && typeof reset === 'function') {
       const d = initialData;
       console.log("Hydrating ProposalContext from Server Data:", d.id);
+
+      // Fetch RFP documents
+      if (d.id && d.id !== "new") {
+        fetch(`/api/rfp/upload?proposalId=${d.id}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.docs) setRfpDocuments(data.docs);
+          })
+          .catch(e => console.error("Failed to load RFP docs:", e));
+      }
 
       // Map Prisma model to Form structure
       // Ensure we explicitly map JSON fields
@@ -1590,10 +1633,12 @@ export const ProposalContextProvider = ({
         // Alerts
         lowMarginAlerts,
         // RFP functions
-        rfpDocumentUrl,
-        aiWorkspaceSlug,
-        rfpQuestions,
-        uploadRfpDocument: async (file: File) => {
+    rfpDocumentUrl,
+    rfpDocuments,
+    refreshRfpDocuments,
+    aiWorkspaceSlug,
+    rfpQuestions,
+    uploadRfpDocument: async (file: File) => {
           const formData = new FormData();
           formData.append("file", file);
           if (getValues().details.proposalId) {
@@ -1606,6 +1651,9 @@ export const ProposalContextProvider = ({
             if (data.ok) {
               setRfpDocumentUrl(data.url);
               if (data.questions) setRfpQuestions(data.questions);
+              
+              // Refresh the vault list
+              refreshRfpDocuments();
 
               // Apply AI extracted data if available
               if (data.extractedData) {
@@ -1624,6 +1672,11 @@ export const ProposalContextProvider = ({
                 if (ext.rulesDetected?.reinforcingTonnage) {
                   setValue("details.metadata.reinforcingTonnage", Number(ext.rulesDetected.reinforcingTonnage));
                   aiPopulated.push("details.metadata.reinforcingTonnage");
+                }
+
+                // CRITICAL: Set detected rules for Risk Engine
+                if (ext.rulesDetected) {
+                  setRulesDetected(ext.rulesDetected);
                 }
 
                 if (ext.details?.screens && Array.isArray(ext.details.screens)) {
