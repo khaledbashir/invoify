@@ -484,7 +484,8 @@ export const ProposalContextProvider = ({
   // AUTO-SAVE LOGIC (Debounced)
   const bondRateOverride = watch("details.bondRateOverride");
   const taxRateOverride = watch("details.taxRateOverride");
-  const globalMargin = watch("details.globalMargin");
+  const details = watch("details");
+  const globalMargin = details?.globalMargin;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
