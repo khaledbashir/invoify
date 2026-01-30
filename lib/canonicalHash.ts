@@ -157,7 +157,7 @@ export function hasObjectChanged(original: any, current: any): boolean {
 // EXPORTS
 // ============================================================================
 
-export default {
+const CanonicalHash = {
     canonicalJsonStringify,
     canonicalJsonHash,
     canonicalHashEqual,
@@ -170,3 +170,5 @@ export default {
     deepEqualByHash,
     hasObjectChanged,
 };
+
+export default CanonicalHash;
