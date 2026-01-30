@@ -15,30 +15,14 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
     const completionRate = calculateCompletionRate(gaps.length);
     const isHighAccuracy = formValues?.extractionAccuracy === "High";
 
+    // Check for Empty/Reset State to avoid "Bid Ready" false positive
+    const isDefaultClient = !formValues?.receiver?.name || formValues?.receiver?.name === "Client Name";
+    const isNoScreens = (formValues?.details?.screens || []).length === 0;
+    const isNoProjectName = !formValues?.details?.proposalName;
+    const isEmptyState = isDefaultClient && isNoScreens && isNoProjectName;
+
     // RISK DETECTION
-    // We expect the context to have injected 'rulesDetected' into metadata or separate state, 
-    // but for now we can infer from the formValues details if we mapped them there, 
-    // OR we can rely on a simpler 'metadata.risks' if we decided to persist IDs.
-    // However, the cleanest way based on the plan is to run detection live here or passed in.
-    // Since 'detectRisks' is fast, we can run it client-side if we have the rules.
-    // NOTE: 'rulesDetected' isn't currently top-level in ProposalType formValues in standard schema.
-    // We will attempt to read it from where RfpExtraction puts it (likely hidden field or separate context).
-    // For this step, we will assume `formValues.details.aiSource` might contain it or we check the new metadata.
-    // Let's implement a safe fallback to check 'metadata.risks' if we stored them, or just use detected keywords if we want to be robust.
-
-    // Actually, implementing proper detection requires the rules. 
-    // Let's look for "rulesDetected" in `formValues` if we extended the schema or just passed it.
-    // The previous RfpExtractionService plan returned it in JSON but didn't explicitly map it to a field.
-    // Let's assume for now we read `formValues.details.metadata?.risks` which we added to schema.
-
-    // Wait, the plan said "ProposalContext: Add risks state". I haven't done that part yet.
-    // I should do that first or mock it here.
-    // Let's use the 'detectRisks' directly if we can access the triggering data.
-    // Ideally, IntelligenceSidebar should just receive 'risks' from props or Context.
-    // I'll stick to the plan: Update Context to have 'risks'.
-    // BUT, for now, I will modify this component to be READY to receive/calculate them.
-
-    // Let's rely on useProposalContext to get the risks.
+    // Real-time detection from ProposalContext
     const { risks } = useProposalContext();
 
     if (!isVisible) {
@@ -78,7 +62,7 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                 {isHighAccuracy && (
                     <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 w-fit mb-4 animate-pulse">
                         <Zap className="w-3 h-3 fill-emerald-500" />
-                        HIGH ACCURACY MODE (Blue Glow Locked)
+                        HIGH ACCURACY MODE (Section 11 Detected)
                     </div>
                 )}
 
@@ -182,6 +166,16 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                             </div>
                         ))}
                     </>
+                ) : isEmptyState ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                        <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
+                            <Info className="w-6 h-6 text-zinc-500" />
+                        </div>
+                        <h4 className="text-sm font-bold text-zinc-200">Awaiting Input</h4>
+                        <p className="text-xs text-zinc-500 mt-2">
+                            Upload an RFP or manually enter project details to begin analysis.
+                        </p>
+                    </div>
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center p-6">
                         <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
@@ -200,7 +194,7 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-brand-blue/5 border border-brand-blue/10">
                     <Info className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
                     <p className="text-[10px] text-zinc-500 leading-normal">
-                        <span className="text-zinc-300 font-medium">Pro-Tip:</span> Uploading a "Display Schedule" PDF improves extraction accuracy by 45%.
+                        <span className="text-zinc-300 font-medium">Pro-Tip:</span> Uploading a "Display Schedule" PDF significantly improves extraction accuracy.
                     </p>
                 </div>
             </div>

@@ -32,7 +32,7 @@ const Step2Intelligence = () => {
                         <div className="flex items-center gap-2 mb-4">
                             <Badge className="bg-brand-blue text-white hover:bg-brand-blue/90 px-3 py-1">
                                 <Sparkles className="w-3 h-3 mr-1.5 fill-white" />
-                                Intelligence Engine Active
+                                Project Data Loaded
                             </Badge>
                         </div>
                         

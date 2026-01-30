@@ -36,8 +36,16 @@ export function StudioHeader({
     
     // Watch form values for real-time gap analysis
     const formValues = useWatch({ control });
+
+    // Check for Empty/Reset State to ensure correct completion rate
+    const isDefaultClient = !formValues?.receiver?.name || formValues?.receiver?.name === "Client Name";
+    const isNoScreens = (formValues?.details?.screens || []).length === 0;
+    const isNoProjectName = !formValues?.details?.proposalName;
+    const isEmptyState = isDefaultClient && isNoScreens && isNoProjectName;
+
     const gaps = analyzeGaps(formValues);
-    const completionRate = calculateCompletionRate(gaps.length);
+    // If empty state, force 0% completion instead of 100% (since gaps is empty array)
+    const completionRate = isEmptyState ? 0 : calculateCompletionRate(gaps.length);
 
     const handleShare = async () => {
         const projectId = getValues("details.proposalId");
@@ -73,59 +81,63 @@ export function StudioHeader({
     };
 
     return (
-        <div className="h-full w-full flex items-center justify-between px-8">
+        <div className="h-full w-full flex items-center justify-between px-4 md:px-8 gap-4">
             {/* Logo & Health Score */}
-            <div className="flex items-center shrink-0 w-80 gap-4">
+            <div className="flex items-center shrink-0 gap-4 flex-1">
                 <LogoSelector theme="dark" width={110} height={40} className="p-0" />
                 
-                <div className="h-8 w-px bg-zinc-800 mx-1" />
+                <div className="hidden md:block h-8 w-px bg-zinc-800 mx-1" />
                 
-                <Badge
-                    className="bg-[#0A52EF] hover:bg-[#0A52EF]/90 text-white font-['Work_Sans'] border-none px-3 py-1 flex items-center gap-2"
-                >
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
-                        Bid Health: {Math.round(completionRate)}%
-                    </span>
-                </Badge>
-
-                {excelValidationOk && (
+                <div className="hidden md:flex items-center gap-2">
                     <Badge
-                        className="bg-emerald-500/15 hover:bg-emerald-500/20 text-emerald-300 font-['Work_Sans'] border border-emerald-500/20 px-3 py-1 flex items-center gap-2"
+                        className="bg-[#0A52EF] hover:bg-[#0A52EF]/90 text-white font-['Work_Sans'] border-none px-3 py-1 flex items-center gap-2"
                     >
                         <CheckCircle2 className="w-3 h-3" />
                         <span className="text-[10px] font-bold uppercase tracking-wider">
-                            Excel Verified
+                            {Math.round(completionRate)}% Match
                         </span>
                     </Badge>
-                )}
+
+                    {excelValidationOk && (
+                        <Badge
+                            className="bg-emerald-500/15 hover:bg-emerald-500/20 text-emerald-300 font-['Work_Sans'] border border-emerald-500/20 px-3 py-1 flex items-center gap-2"
+                        >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider">
+                                Excel Verified
+                            </span>
+                        </Badge>
+                    )}
+                </div>
             </div>
 
             {/* Wizard Stepper (center-aligned) */}
-            <div className="flex-1 flex justify-center max-w-2xl">
+            <div className="flex-1 flex justify-center max-w-xl hidden lg:flex">
                 <WizardStepper wizard={wizard} />
             </div>
 
             {/* Right Actions - Global Controls */}
-            <div className="flex items-center gap-3 shrink-0 w-80 justify-end">
+            <div className="flex items-center gap-3 shrink-0 flex-1 justify-end">
                 <SaveIndicator
                     status={saveStatus}
                     lastSavedAt={initialData?.lastSavedAt ? new Date(initialData.lastSavedAt) : undefined}
                 />
 
-                <div className="h-8 w-px bg-zinc-800 mx-2" />
-
-                <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 font-bold uppercase tracking-widest text-[10px] px-3 h-9"
-                    onClick={handleShare}
-                >
-                    <Share2 className="w-3.5 h-3.5 mr-2 text-brand-blue" />
-                    Share
-                </Button>
+                <div className="h-8 w-px bg-zinc-800 mx-2 hidden sm:block" />
 
                 <div className="flex items-center gap-1 bg-zinc-900/50 border border-zinc-800 p-1 rounded-lg">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-zinc-400 hover:text-white font-bold uppercase tracking-widest text-[10px] px-3 h-7"
+                        onClick={handleShare}
+                    >
+                        <Share2 className="w-3.5 h-3.5 mr-2 text-brand-blue" />
+                        Share
+                    </Button>
+                    
+                    <div className="h-4 w-px bg-zinc-800" />
+                    
                     <Button
                         size="sm"
                         variant="ghost"
@@ -135,7 +147,9 @@ export function StudioHeader({
                         <FileSpreadsheet className="w-3 h-3 mr-2 text-emerald-500" />
                         Audit
                     </Button>
+                    
                     <div className="h-4 w-px bg-zinc-800" />
+                    
                     <Button
                         size="sm"
                         variant="ghost"

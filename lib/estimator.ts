@@ -1,7 +1,13 @@
 /**
  * ANC Estimator Logic
  * Calculates screen pricing based on dimensions, pixel pitch, and environment
+ * 
+ * UPDATED: Uses Decimal.js for deterministic financial calculations
+ * Reference: VERIFICATION_REFINED_DESIGN.md
  */
+
+import Decimal from "@/lib/decimal";
+import { roundToCents, roundCategoryTotal } from "@/lib/decimal";
 
 export interface ScreenPriceBreakdown {
   led: number;
@@ -19,15 +25,20 @@ export interface ScreenPriceBreakdown {
  */
 export function calculateTotalWithBond(cost: number, marginPct: number) {
   // Natalia Math Divisor Model: P = C / (1 - M)
-  const sellPrice = cost / (1 - (marginPct / 100));
+  const dCost = new Decimal(cost);
+  const dMarginPct = new Decimal(marginPct);
+  
+  // sellPrice = cost / (1 - (marginPct / 100))
+  const sellPrice = dCost.div(new Decimal(1).minus(dMarginPct.div(100)));
+  
   // Bond is 1.5% of the Sell Price
-  const bond = sellPrice * 0.015;
-  const total = sellPrice + bond;
+  const bond = sellPrice.times(0.015);
+  const total = sellPrice.plus(bond);
 
   return {
-    sellPrice: Math.round(sellPrice * 100) / 100,
-    bond: Math.round(bond * 100) / 100,
-    total: Math.round(total * 100) / 100
+    sellPrice: roundToCents(sellPrice).toNumber(),
+    bond: roundToCents(bond).toNumber(),
+    total: roundToCents(total).toNumber()
   };
 }
 
@@ -45,30 +56,32 @@ export function calculateScreenPrice(
   pitch: number,
   isOutdoor: boolean = false
 ): ScreenPriceBreakdown {
+  const dWidth = new Decimal(width);
+  const dHeight = new Decimal(height);
+  
   // LED Cost calculation
   // Formula: (Width * Height) * (isOutdoor ? 150 : 80)
-  // Price per square meter: $150 for outdoor, $80 for indoor
-  const area = width * height;
+  const area = dWidth.times(dHeight);
   const pricePerSquareMeter = isOutdoor ? 150 : 80;
-  const ledCost = area * pricePerSquareMeter;
+  const ledCost = area.times(pricePerSquareMeter);
 
   // Structure Cost: 20% of LED cost
-  const structureCost = ledCost * 0.20;
+  const structureCost = ledCost.times(0.20);
 
   // Install Cost: Flat fee of $5000
-  const installCost = 5000;
+  const installCost = new Decimal(5000);
 
   // Power Cost: 15% of LED cost
-  const powerCost = ledCost * 0.15;
+  const powerCost = ledCost.times(0.15);
 
-  const total = ledCost + structureCost + installCost + powerCost;
+  const total = ledCost.plus(structureCost).plus(installCost).plus(powerCost);
 
   return {
-    led: Math.round(ledCost),
-    structure: Math.round(structureCost),
-    install: Math.round(installCost),
-    power: Math.round(powerCost),
-    total: Math.round(total),
+    led: Math.round(ledCost.toNumber()),
+    structure: Math.round(structureCost.toNumber()),
+    install: Math.round(installCost.toNumber()),
+    power: Math.round(powerCost.toNumber()),
+    total: Math.round(total.toNumber()),
   };
 }
 
@@ -259,24 +272,7 @@ export type ClientSummary = {
 /**
  * calculatePerScreenAudit
  * Deterministic formula based on ANC Excel guidance.
- * - Structure: 20% of hardware
- * - Install: flat fee (default $5000)
- * - Labor: 15% of hardware
- * - Power: 15% of hardware
- * - Shipping: area-based (default 0.14 per sq ft)
- * - PM: area-based (default 0.5 per sq ft)
- * - General Conditions / Travel / Submittals / Engineering / CMS: pct of hardware (defaults configurable)
- * - Permits: fixed fee (default $500)
- */
-/**
- * ANC MASTER EXCEL LOGIC IMPLEMENTATION
- * ========================================
- * Calculates screen pricing using:
- * - VLOOKUP pricing from catalog by pixel pitch
- * - Service type branch (Top=10%, Front/Rear=20%)
- * - Outlet distance surcharge (>50ft adds $2,500)
- * - Curved screen multipliers (Structure×1.25, Labor×1.15)
- * - Margin-on-Sell model: Total Cost → Sell Price → Bond → Final
+ * Using Decimal.js for correct financial math.
  */
 export function calculatePerScreenAudit(
   s: ScreenInput,
@@ -326,19 +322,19 @@ export function calculatePerScreenAudit(
   const BOND_PCT = options?.bondPct ?? 0.015;
   const DEMOLITION_FIXED = 5000;
 
-  const qty = s.quantity ?? 1;
+  const qty = new Decimal(s.quantity ?? 1);
   const pitch = s.pitchMm ?? DEFAULT_PITCH_MM;
   const serviceType = s.serviceType ?? DEFAULT_SERVICE_TYPE;
   const formFactor = s.formFactor ?? "Straight";
   const outletDistance = s.outletDistance ?? 0;
-  const desiredMargin = s.desiredMargin ?? DEFAULT_MARGIN;
+  const desiredMargin = new Decimal(s.desiredMargin ?? DEFAULT_MARGIN);
 
   // VLOOKUP: Find matching product by pixel pitch in catalog
   const catalogEntry = catalog?.find(
     (entry: any) => Math.abs(entry.pixel_pitch - pitch) < 0.1
   ) ?? { cost_per_sqft: DEFAULT_COST_PER_SQFT, service_type: DEFAULT_SERVICE_TYPE };
 
-  const costPerSqFt = s.costPerSqFt ?? catalogEntry.cost_per_sqft ?? DEFAULT_COST_PER_SQFT;
+  const costPerSqFt = new Decimal(s.costPerSqFt ?? catalogEntry.cost_per_sqft ?? DEFAULT_COST_PER_SQFT);
 
   // Pixel Matrix Math: (H_mm / Pitch) × (W_mm / Pitch)
   const resolveModuleKey = (productType: string | undefined, pitchMm: number) => {
@@ -374,71 +370,60 @@ export function calculatePerScreenAudit(
     ENGINEERING_PCT = 0.05; // Increase to 5% for site audit/Electrical review
   }
 
-  const height = s.heightFt ?? 0;
-  const width = s.widthFt ?? 0;
-  const area = roundToCents(height * width);
-  const totalArea = roundToCents(area * qty); // Total project area
+  const height = new Decimal(s.heightFt ?? 0);
+  const width = new Decimal(s.widthFt ?? 0);
+  const area = roundToCents(height.times(width));
+  const totalArea = roundToCents(area.times(qty)); // Total project area
 
   // Ferrari Logic 1: Spare Parts (RFP Exhibit A, Page 11) - 5% hardware bake-in
-  const hardwareBase = roundToCents(area * costPerSqFt);
-  const sparePartsCost = s.includeSpareParts ? roundToCents(hardwareBase * 0.05) : 0;
-  const hardwareUnit = roundToCents(hardwareBase + sparePartsCost);
-  const hardware = roundToCents(hardwareUnit * qty);
+  const hardwareBase = roundToCents(area.times(costPerSqFt));
+  const sparePartsCost = s.includeSpareParts ? roundToCents(hardwareBase.times(0.05)) : new Decimal(0);
+  const hardwareUnit = roundToCents(hardwareBase.plus(sparePartsCost));
+  const hardware = roundToCents(hardwareUnit.times(qty));
 
   // Curved Screen Multipliers
   const isCurved = formFactor.toLowerCase() === "curved";
   const structureMultiplier = isCurved ? 1.25 : 1.0;
   const laborMultiplier = isCurved ? 1.15 : 1.0;
 
-  const baseStructure = hardware * STRUCTURE_PCT;
-  const structure = roundToCents(baseStructure * structureMultiplier);
-  const install = roundToCents(INSTALL_FLAT * laborMultiplier);
-  const labor = roundToCents(hardware * LABOR_PCT * laborMultiplier);
-  const power = roundToCents(hardware * POWER_PCT);
-  const shipping = roundToCents(totalArea * SHIPPING_PER_SQFT);
-  const pm = roundToCents(totalArea * PM_PER_SQFT);
-  const generalConditions = roundToCents(hardware * GENERAL_CONDITIONS_PCT);
-  const travel = roundToCents(hardware * TRAVEL_PCT);
-  const submittals = roundToCents(hardware * SUBMITTALS_PCT);
-  const engineering = roundToCents(hardware * ENGINEERING_PCT);
+  const baseStructure = hardware.times(STRUCTURE_PCT);
+  const structure = roundToCents(baseStructure.times(structureMultiplier));
+  const install = roundToCents(new Decimal(INSTALL_FLAT).times(laborMultiplier));
+  const labor = roundToCents(hardware.times(LABOR_PCT).times(laborMultiplier));
+  const power = roundToCents(hardware.times(POWER_PCT));
+  const shipping = roundToCents(totalArea.times(SHIPPING_PER_SQFT));
+  const pm = roundToCents(totalArea.times(PM_PER_SQFT));
+  const generalConditions = roundToCents(hardware.times(GENERAL_CONDITIONS_PCT));
+  const travel = roundToCents(hardware.times(TRAVEL_PCT));
+  const submittals = roundToCents(hardware.times(SUBMITTALS_PCT));
+  const engineering = roundToCents(hardware.times(ENGINEERING_PCT));
   const permits = roundToCents(PERMITS_FIXED);
-  const cms = roundToCents(hardware * CMS_PCT);
+  const cms = roundToCents(hardware.times(CMS_PCT));
 
-  const demolition = s.isReplacement ? roundToCents(DEMOLITION_FIXED) : 0;
+  const demolition = s.isReplacement ? roundToCents(DEMOLITION_FIXED) : new Decimal(0);
 
   // Outlet Distance Surcharge: If > 50ft, add $2,500 to Power
   const outletSurcharge = outletDistance > 50 ? 2500 : 0;
-  const adjustedPower = roundToCents(power + outletSurcharge);
+  const adjustedPower = roundToCents(power.plus(outletSurcharge));
 
   // Total Cost (C): Sum of all line items EXCLUDING Bond
   const totalCost = roundToCents(
-    hardware +
-    structure +
-    install +
-    labor +
-    adjustedPower +
-    shipping +
-    pm +
-    generalConditions +
-    travel +
-    submittals +
-    engineering +
-    permits +
-    cms +
-    demolition
+    hardware.plus(structure).plus(install).plus(labor).plus(adjustedPower)
+      .plus(shipping).plus(pm).plus(generalConditions).plus(travel)
+      .plus(submittals).plus(engineering).plus(permits).plus(cms)
+      .plus(demolition)
   );
 
   // REQ-110: Margin Validation - Prevent division by zero
-  // Natalia Math Divisor Model requires margin < 100% to avoid infinite pricing
-  if (desiredMargin >= 1.0) {
-    throw new Error(`Invalid margin: ${desiredMargin * 100}%. Margin must be less than 100% for Divisor Margin model.`);
+  if (desiredMargin.gte(1.0)) {
+    throw new Error(`Invalid margin: ${desiredMargin.times(100)}%. Margin must be less than 100% for Divisor Margin model.`);
   }
 
   // Natalia Math Divisor Model: P = C / (1 - M)
-  const sellPrice = roundToCents(totalCost / (1 - desiredMargin));
+  const sellPrice = roundToCents(totalCost.div(new Decimal(1).minus(desiredMargin)));
 
   // Bond Fee: 1.5% applied ON TOP of the Sell Price (calculated against Sell Price)
-  const bondCost = roundToCents(sellPrice * BOND_PCT);
+  const bondCost = roundToCents(sellPrice.times(BOND_PCT));
 
   // REQ-81: Morgantown/WVU B&O Tax (2% of Sell Price + Bond)
   const boTaxRate = shouldApplyMorgantownBoTax({
@@ -447,47 +432,47 @@ export function calculatePerScreenAudit(
   })
     ? MORGANTOWN_BO_TAX
     : 0;
-  const boTaxCost = roundToCents((sellPrice + bondCost) * boTaxRate);
+  const boTaxCost = roundToCents(sellPrice.plus(bondCost).times(boTaxRate));
 
-  const finalClientTotal = roundToCents(sellPrice + bondCost + boTaxCost);
+  const finalClientTotal = roundToCents(sellPrice.plus(bondCost).plus(boTaxCost));
 
   // ANC Margin (Profit): Sell Price - Total Cost
-  const ancMargin = roundToCents(sellPrice - totalCost);
+  const ancMargin = roundToCents(sellPrice.minus(totalCost));
 
   // Selling SqFt: Final Client Total / Total Sq Ft
-  const sellingPricePerSqFt = totalArea > 0 ? roundToCents(finalClientTotal / totalArea) : 0;
+  const sellingPricePerSqFt = totalArea.gt(0) ? roundToCents(finalClientTotal.div(totalArea)) : new Decimal(0);
 
   return {
     name: s.name,
     productType: s.productType ?? "",
-    quantity: qty,
-    areaSqFt: roundToCents(totalArea),
+    quantity: qty.toNumber(),
+    areaSqFt: roundToCents(totalArea).toNumber(),
     pixelResolution,
     pixelMatrix,
     serviceType,
     breakdown: {
-      hardware,
-      structure,
-      install,
-      labor,
-      power: adjustedPower,
-      shipping,
-      pm,
-      generalConditions,
-      travel,
-      submittals,
-      engineering,
-      permits,
-      cms,
-      demolition,
-      totalCost,
-      ancMargin,
-      sellPrice,
-      bondCost,
-      finalClientTotal,
-      sellingPricePerSqFt,
-      boTaxCost,
-      marginAmount: ancMargin, // Alias for backwards compatibility
+      hardware: hardware.toNumber(),
+      structure: structure.toNumber(),
+      install: install.toNumber(),
+      labor: labor.toNumber(),
+      demolition: demolition.toNumber(),
+      power: adjustedPower.toNumber(),
+      shipping: shipping.toNumber(),
+      pm: pm.toNumber(),
+      generalConditions: generalConditions.toNumber(),
+      travel: travel.toNumber(),
+      submittals: submittals.toNumber(),
+      engineering: engineering.toNumber(),
+      permits: permits.toNumber(),
+      cms: cms.toNumber(),
+      ancMargin: ancMargin.toNumber(),
+      sellPrice: sellPrice.toNumber(),
+      bondCost: bondCost.toNumber(),
+      marginAmount: ancMargin.toNumber(),
+      totalCost: totalCost.toNumber(),
+      finalClientTotal: finalClientTotal.toNumber(),
+      sellingPricePerSqFt: sellingPricePerSqFt.toNumber(),
+      boTaxCost: boTaxCost.toNumber(),
     },
   };
 }
@@ -517,33 +502,41 @@ export function calculateANCProject(
     totalPrice: ps.breakdown.finalClientTotal, // Corrected: only one totalPrice field
   }));
 
-  const totals = {
-    hardware: 0,
-    shipping: 0,
-    labor: 0,
-    pm: 0,
-    bond: 0,
-    margin: 0,
-    totalCost: 0,
-    totalPrice: 0,
-  };
+  // Aggregate totals using Decimal for precision
+  let hardware = new Decimal(0);
+  let shipping = new Decimal(0);
+  let labor = new Decimal(0);
+  let pm = new Decimal(0);
+  let bond = new Decimal(0);
+  let margin = new Decimal(0);
+  let totalCost = new Decimal(0);
+  let totalPrice = new Decimal(0);
 
   for (const it of items) {
-    totals.hardware += it.hardware;
-    totals.shipping += it.shipping;
-    totals.labor += it.labor;
-    totals.pm += it.pm;
-    totals.bond += it.bond;
-    totals.margin += it.marginAmount;
-    totals.totalCost += it.totalCost;
-    totals.totalPrice += it.totalPrice;
+    hardware = hardware.plus(it.hardware);
+    shipping = shipping.plus(it.shipping);
+    labor = labor.plus(it.labor);
+    pm = pm.plus(it.pm);
+    bond = bond.plus(it.bond);
+    margin = margin.plus(it.marginAmount);
+    totalCost = totalCost.plus(it.totalCost);
+    totalPrice = totalPrice.plus(it.totalPrice);
   }
 
-  for (const k of Object.keys(totals) as Array<keyof typeof totals>) {
-    totals[k] = roundToCents(totals[k]);
-  }
-
-  return { items, totals };
+  // Round final aggregated totals (though they should already be clean if inputs are)
+  return {
+    items,
+    totals: {
+      hardware: roundToCents(hardware).toNumber(),
+      shipping: roundToCents(shipping).toNumber(),
+      labor: roundToCents(labor).toNumber(),
+      pm: roundToCents(pm).toNumber(),
+      bond: roundToCents(bond).toNumber(),
+      margin: roundToCents(margin).toNumber(),
+      totalCost: roundToCents(totalCost).toNumber(),
+      totalPrice: roundToCents(totalPrice).toNumber(),
+    }
+  };
 }
 
 /**
@@ -571,22 +564,23 @@ export function calculateProposalAudit(
     reinforcingTonnage: options?.reinforcingTonnage
   }));
 
-  const totalTonnage = (options?.structuralTonnage ?? 0) + (options?.reinforcingTonnage ?? 0);
-  const tonnageCost = roundToCents(totalTonnage * STEEL_PRICE_PER_TON);
+  const totalTonnage = new Decimal(options?.structuralTonnage ?? 0).plus(options?.reinforcingTonnage ?? 0);
+  const tonnageCost = roundToCents(totalTonnage.times(STEEL_PRICE_PER_TON));
 
-  if (tonnageCost > 0 && perScreen.length > 0) {
-    const weights = perScreen.map((ps) => Number(ps.breakdown.structure) || 0);
-    const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+  if (tonnageCost.gt(0) && perScreen.length > 0) {
+    const weights = perScreen.map((ps) => new Decimal(ps.breakdown.structure));
+    const totalWeight = weights.reduce((acc, w) => acc.plus(w), new Decimal(0));
 
     const allocationsUnrounded =
-      totalWeight > 0
-        ? weights.map((w) => tonnageCost * (w / totalWeight))
-        : perScreen.map(() => tonnageCost / perScreen.length);
+      totalWeight.gt(0)
+        ? weights.map((w) => tonnageCost.times(w.div(totalWeight)))
+        : perScreen.map(() => tonnageCost.div(perScreen.length));
 
     const allocations = allocationsUnrounded.map((a) => roundToCents(a));
-    const sumAllocations = allocations.reduce((acc, a) => acc + a, 0);
-    const diff = roundToCents(tonnageCost - sumAllocations);
-    allocations[allocations.length - 1] = roundToCents(allocations[allocations.length - 1] + diff);
+    const sumAllocations = allocations.reduce((acc, a) => acc.plus(a), new Decimal(0));
+    const diff = roundToCents(tonnageCost.minus(sumAllocations));
+    // Adjust last allocation with difference
+    allocations[allocations.length - 1] = roundToCents(allocations[allocations.length - 1].plus(diff));
 
     const boTaxRate = shouldApplyMorgantownBoTax({
       projectAddress: options?.projectAddress,
@@ -598,127 +592,150 @@ export function calculateProposalAudit(
     for (let i = 0; i < perScreen.length; i++) {
       const ps = perScreen[i];
       const b = ps.breakdown;
-      const oldStructure = Number(b.structure) || 0;
-      const newStructure = allocations[i] ?? 0;
-      if (oldStructure === newStructure) continue;
+      const oldStructure = new Decimal(b.structure);
+      const newStructure = allocations[i] ?? new Decimal(0);
+      if (oldStructure.equals(newStructure)) continue;
 
-      const oldTotalCost = Number(b.totalCost) || 0;
-      const newTotalCost = roundToCents(oldTotalCost - oldStructure + newStructure);
+      const oldTotalCost = new Decimal(b.totalCost);
+      const newTotalCost = roundToCents(oldTotalCost.minus(oldStructure).plus(newStructure));
 
-      const oldSellPrice = Number(b.sellPrice) || 0;
-      const oldBondCost = Number(b.bondCost) || 0;
-      const desiredMargin = oldSellPrice > 0 ? 1 - oldTotalCost / oldSellPrice : (options?.defaultDesiredMargin ?? 0.25);
-      const bondPct = oldSellPrice > 0 ? oldBondCost / oldSellPrice : (options?.bondPct ?? 0.015);
+      const oldSellPrice = new Decimal(b.sellPrice);
+      const oldBondCost = new Decimal(b.bondCost);
+      
+      const desiredMargin = oldSellPrice.gt(0) 
+        ? new Decimal(1).minus(oldTotalCost.div(oldSellPrice)) 
+        : new Decimal(options?.defaultDesiredMargin ?? 0.25);
+        
+      const bondPct = oldSellPrice.gt(0) 
+        ? oldBondCost.div(oldSellPrice) 
+        : new Decimal(options?.bondPct ?? 0.015);
 
-      if (desiredMargin >= 1.0) {
-        throw new Error(`Invalid margin: ${desiredMargin * 100}%. Margin must be less than 100% for Divisor Margin model.`);
+      if (desiredMargin.gte(1.0)) {
+        throw new Error(`Invalid margin: ${desiredMargin.times(100)}%. Margin must be less than 100% for Divisor Margin model.`);
       }
 
-      const sellPrice = roundToCents(newTotalCost / (1 - desiredMargin));
-      const bondCost = roundToCents(sellPrice * bondPct);
-      const boTaxCost = roundToCents((sellPrice + bondCost) * boTaxRate);
-      const finalClientTotal = roundToCents(sellPrice + bondCost + boTaxCost);
-      const ancMargin = roundToCents(sellPrice - newTotalCost);
-      const sellingPricePerSqFt = ps.areaSqFt > 0 ? roundToCents(finalClientTotal / ps.areaSqFt) : 0;
+      const sellPrice = roundToCents(newTotalCost.div(new Decimal(1).minus(desiredMargin)));
+      const bondCost = roundToCents(sellPrice.times(bondPct));
+      const boTaxCost = roundToCents(sellPrice.plus(bondCost).times(boTaxRate));
+      const finalClientTotal = roundToCents(sellPrice.plus(bondCost).plus(boTaxCost));
+      const ancMargin = roundToCents(sellPrice.minus(newTotalCost));
+      const sellingPricePerSqFt = ps.areaSqFt > 0 ? roundToCents(finalClientTotal.div(ps.areaSqFt)) : new Decimal(0);
 
-      b.structure = newStructure;
-      b.totalCost = newTotalCost;
-      b.sellPrice = sellPrice;
-      b.bondCost = bondCost;
-      b.boTaxCost = boTaxCost;
-      b.finalClientTotal = finalClientTotal;
-      b.ancMargin = ancMargin;
-      b.marginAmount = ancMargin;
-      b.sellingPricePerSqFt = sellingPricePerSqFt;
+      b.structure = newStructure.toNumber();
+      b.totalCost = newTotalCost.toNumber();
+      b.sellPrice = sellPrice.toNumber();
+      b.bondCost = bondCost.toNumber();
+      b.boTaxCost = boTaxCost.toNumber();
+      b.finalClientTotal = finalClientTotal.toNumber();
+      b.ancMargin = ancMargin.toNumber();
+      b.marginAmount = ancMargin.toNumber();
+      b.sellingPricePerSqFt = sellingPricePerSqFt.toNumber();
     }
   }
 
+  // Aggregate totals
   const totals = {
-    hardware: 0,
-    structure: 0,
-    install: 0,
-    labor: 0,
-    power: 0,
-    shipping: 0,
-    pm: 0,
-    generalConditions: 0,
-    travel: 0,
-    submittals: 0,
-    engineering: 0,
-    permits: 0,
-    cms: 0,
-    ancMargin: 0,
-    sellPrice: 0,
-    bondCost: 0,
-    margin: 0,
-    totalCost: 0,
-    boTaxCost: 0,
-    finalClientTotal: 0,
-    sellingPricePerSqFt: 0,
-    demolition: 0,
+    hardware: new Decimal(0),
+    structure: new Decimal(0),
+    install: new Decimal(0),
+    labor: new Decimal(0),
+    power: new Decimal(0),
+    shipping: new Decimal(0),
+    pm: new Decimal(0),
+    generalConditions: new Decimal(0),
+    travel: new Decimal(0),
+    submittals: new Decimal(0),
+    engineering: new Decimal(0),
+    permits: new Decimal(0),
+    cms: new Decimal(0),
+    ancMargin: new Decimal(0),
+    sellPrice: new Decimal(0),
+    bondCost: new Decimal(0),
+    margin: new Decimal(0),
+    totalCost: new Decimal(0),
+    boTaxCost: new Decimal(0),
+    finalClientTotal: new Decimal(0),
+    sellingPricePerSqFt: new Decimal(0),
+    demolition: new Decimal(0),
   };
 
   for (const ps of perScreen) {
     const b = ps.breakdown;
-    totals.hardware += b.hardware;
-    totals.structure += b.structure;
-    totals.install += b.install;
-    totals.labor += b.labor;
-    totals.power += b.power;
-    totals.shipping += b.shipping;
-    totals.pm += b.pm;
-    totals.generalConditions += b.generalConditions;
-    totals.travel += b.travel;
-    totals.submittals += b.submittals;
-    totals.engineering += b.engineering;
-    totals.permits += b.permits;
-    totals.cms += b.cms;
-    totals.ancMargin += b.ancMargin;
-    totals.sellPrice += b.sellPrice;
-    totals.bondCost += b.bondCost;
-    totals.boTaxCost += b.boTaxCost || 0;
-    totals.totalCost += b.totalCost;
-    totals.finalClientTotal += b.finalClientTotal;
-    totals.sellingPricePerSqFt += b.sellingPricePerSqFt * ps.areaSqFt; // Weighted average later
-    totals.margin += b.ancMargin;
-    totals.demolition += b.demolition || 0;
+    totals.hardware = totals.hardware.plus(b.hardware);
+    totals.structure = totals.structure.plus(b.structure);
+    totals.install = totals.install.plus(b.install);
+    totals.labor = totals.labor.plus(b.labor);
+    totals.power = totals.power.plus(b.power);
+    totals.shipping = totals.shipping.plus(b.shipping);
+    totals.pm = totals.pm.plus(b.pm);
+    totals.generalConditions = totals.generalConditions.plus(b.generalConditions);
+    totals.travel = totals.travel.plus(b.travel);
+    totals.submittals = totals.submittals.plus(b.submittals);
+    totals.engineering = totals.engineering.plus(b.engineering);
+    totals.permits = totals.permits.plus(b.permits);
+    totals.cms = totals.cms.plus(b.cms);
+    totals.ancMargin = totals.ancMargin.plus(b.ancMargin);
+    totals.sellPrice = totals.sellPrice.plus(b.sellPrice);
+    totals.bondCost = totals.bondCost.plus(b.bondCost);
+    totals.boTaxCost = totals.boTaxCost.plus(b.boTaxCost || 0);
+    totals.totalCost = totals.totalCost.plus(b.totalCost);
+    totals.finalClientTotal = totals.finalClientTotal.plus(b.finalClientTotal);
+    totals.sellingPricePerSqFt = totals.sellingPricePerSqFt.plus(new Decimal(b.sellingPricePerSqFt).times(ps.areaSqFt)); // Weighted average sum
+    totals.margin = totals.margin.plus(b.ancMargin);
+    totals.demolition = totals.demolition.plus(b.demolition || 0);
   }
 
-  for (const k of Object.keys(totals) as Array<keyof typeof totals>) {
-    totals[k] = roundToCents(totals[k]);
-  }
-
-  for (const k of Object.keys(totals) as Array<keyof typeof totals>) {
-    if (k === 'sellingPricePerSqFt') {
-      // Compute weighted average: divide accumulated weighted sum by total sqft
-      const totalSqFt = totals.totalCost > 0 ? perScreen.reduce((sum, ps) => sum + ps.areaSqFt, 0) : 1;
-      totals[k] = roundToCents(totals[k] / totalSqFt);
-    } else {
-      totals[k] = roundToCents(totals[k]);
-    }
-  }
+  // Compute final weighted average for sellingPricePerSqFt
+  const totalSqFt = totals.totalCost.gt(0) 
+    ? perScreen.reduce((sum, ps) => sum + ps.areaSqFt, 0) 
+    : 1;
+  const weightedSellingPricePerSqFt = roundToCents(totals.sellingPricePerSqFt.div(totalSqFt));
 
   const internalAudit: InternalAudit = {
     perScreen,
-    totals,
+    totals: {
+      hardware: roundToCents(totals.hardware).toNumber(),
+      structure: roundToCents(totals.structure).toNumber(),
+      install: roundToCents(totals.install).toNumber(),
+      labor: roundToCents(totals.labor).toNumber(),
+      power: roundToCents(totals.power).toNumber(),
+      shipping: roundToCents(totals.shipping).toNumber(),
+      pm: roundToCents(totals.pm).toNumber(),
+      generalConditions: roundToCents(totals.generalConditions).toNumber(),
+      travel: roundToCents(totals.travel).toNumber(),
+      submittals: roundToCents(totals.submittals).toNumber(),
+      engineering: roundToCents(totals.engineering).toNumber(),
+      permits: roundToCents(totals.permits).toNumber(),
+      cms: roundToCents(totals.cms).toNumber(),
+      ancMargin: roundToCents(totals.ancMargin).toNumber(),
+      sellPrice: roundToCents(totals.sellPrice).toNumber(),
+      bondCost: roundToCents(totals.bondCost).toNumber(),
+      margin: roundToCents(totals.margin).toNumber(),
+      totalCost: roundToCents(totals.totalCost).toNumber(),
+      boTaxCost: roundToCents(totals.boTaxCost).toNumber(),
+      finalClientTotal: roundToCents(totals.finalClientTotal).toNumber(),
+      sellingPricePerSqFt: weightedSellingPricePerSqFt.toNumber(),
+      demolition: roundToCents(totals.demolition).toNumber(),
+    },
   };
 
   // Apply project tax (default 9.5% or override) to the subtotal to compute grand total
   const subtotal = roundToCents(totals.finalClientTotal);
-  const activeTaxRate = options?.taxRate !== undefined ? options.taxRate : 0.095;
-  const taxAmount = roundToCents(subtotal * activeTaxRate);
-  const grandTotal = roundToCents(subtotal + taxAmount);
+  const activeTaxRate = new Decimal(options?.taxRate !== undefined ? options.taxRate : 0.095);
+  const taxAmount = roundToCents(subtotal.times(activeTaxRate));
+  const grandTotal = roundToCents(subtotal.plus(taxAmount));
 
   const clientSummary: ClientSummary = {
-    subtotal,
-    total: grandTotal,
+    subtotal: subtotal.toNumber(),
+    total: grandTotal.toNumber(),
     breakdown: {
-      hardware: totals.hardware,
-      structure: totals.structure,
-      install: totals.install,
+      hardware: roundToCents(totals.hardware).toNumber(),
+      structure: roundToCents(totals.structure).toNumber(),
+      install: roundToCents(totals.install).toNumber(),
       others: roundToCents(
-        totals.shipping + totals.pm + totals.generalConditions + totals.travel + totals.submittals + totals.engineering + totals.permits + totals.cms + totals.demolition
-      ),
+        totals.shipping.plus(totals.pm).plus(totals.generalConditions).plus(totals.travel)
+          .plus(totals.submittals).plus(totals.engineering).plus(totals.permits).plus(totals.cms).plus(totals.demolition)
+      ).toNumber(),
     },
   };
 
@@ -809,54 +826,58 @@ export function calculateExcelPricing(
 
   const rows: ExcelPricingRow[] = [];
   let totals = {
-    totalDisplayCost: 0,
-    totalShipping: 0,
-    totalCost: 0,
-    totalPrice: 0,
-    totalAncMargin: 0,
-    totalBond: 0,
-    grandTotal: 0,
-    totalSqFt: 0,
+    totalDisplayCost: new Decimal(0),
+    totalShipping: new Decimal(0),
+    totalCost: new Decimal(0),
+    totalPrice: new Decimal(0),
+    totalAncMargin: new Decimal(0),
+    totalBond: new Decimal(0),
+    grandTotal: new Decimal(0),
+    totalSqFt: new Decimal(0),
   };
 
   screens.forEach((screen, index) => {
-    const quantity = screen.quantity ?? 1;
-    const sqFt = screen.widthFeet * screen.heightFeet;
-    const totalSqFt = sqFt * quantity;
+    const quantity = new Decimal(screen.quantity ?? 1);
+    const widthFeet = new Decimal(screen.widthFeet);
+    const heightFeet = new Decimal(screen.heightFeet);
+    
+    const sqFt = widthFeet.times(heightFeet);
+    const totalSqFt = sqFt.times(quantity);
 
     // Calculate pixel dimensions
-    const pitchFeet = screen.pitchMm / 304.8;
-    const heightPixels = Math.round(screen.heightFeet / pitchFeet);
-    const widthPixels = Math.round(screen.widthFeet / pitchFeet);
+    const pitchFeet = new Decimal(screen.pitchMm).div(304.8);
+    const heightPixels = Math.round(screen.heightFeet / pitchFeet.toNumber());
+    const widthPixels = Math.round(screen.widthFeet / pitchFeet.toNumber());
 
     // Display Cost = Total SQ FT × Cost Per Sq Ft
-    const displayCost = roundToCents(totalSqFt * (screen.costPerSqFt ?? 120));
+    const costPerSqFt = new Decimal(screen.costPerSqFt ?? 120);
+    const displayCost = roundToCents(totalSqFt.times(costPerSqFt));
 
     // Shipping (flat fee per location or configurable)
     const shipping = roundToCents(screen.shipping ?? SHIPPING_FLAT);
 
     // Total Cost = Display Cost + Shipping
-    const totalCost = roundToCents(displayCost + shipping);
+    const totalCost = roundToCents(displayCost.plus(shipping));
 
     // Apply margin
-    const margin = screen.margin ?? DEFAULT_MARGIN;
+    const margin = new Decimal(screen.margin ?? DEFAULT_MARGIN);
     // Price = Total Cost ÷ (1 - margin) for margin-based pricing
-    const price = roundToCents(totalCost / (1 - margin));
+    const price = roundToCents(totalCost.div(new Decimal(1).minus(margin)));
 
     // ANC Margin = Price - Total Cost
-    const ancMargin = roundToCents(price - totalCost);
+    const ancMargin = roundToCents(price.minus(totalCost));
 
     // Bond = Price × Bond Rate (1.5%)
-    const bondCost = roundToCents(price * BOND_RATE);
+    const bondCost = roundToCents(price.times(BOND_RATE));
 
     // Total with Bond = Price + Bond Cost
-    const totalWithBond = roundToCents(price + bondCost);
+    const totalWithBond = roundToCents(price.plus(bondCost));
 
     // Selling Price per Sq Ft = Total with Bond ÷ Total SQ FT
-    const sellingSqFt = roundToCents(totalWithBond / totalSqFt);
+    const sellingSqFt = roundToCents(totalWithBond.div(totalSqFt));
 
     // Shipping Sale Price (markup on shipping)
-    const shippingSalePrice = roundToCents(shipping * (1 + margin));
+    const shippingSalePrice = roundToCents(shipping.times(new Decimal(1).plus(margin)));
 
     const row: ExcelPricingRow = {
       option: `${index + 1}`,
@@ -864,44 +885,53 @@ export function calculateExcelPricing(
       vendor: "ANC",
       product: screen.product,
       pitch: `${screen.pitchMm}mm`,
-      heightFeet: roundToCents(screen.heightFeet),
-      widthFeet: roundToCents(screen.widthFeet),
+      heightFeet: roundToCents(heightFeet).toNumber(),
+      widthFeet: roundToCents(widthFeet).toNumber(),
       heightPixels,
       widthPixels,
-      squareFeet: roundToCents(sqFt),
-      quantity,
-      totalSqFt: roundToCents(totalSqFt),
+      squareFeet: roundToCents(sqFt).toNumber(),
+      quantity: quantity.toNumber(),
+      totalSqFt: roundToCents(totalSqFt).toNumber(),
       ledNitRequirement: 3500, // Default from Westfield RFP
       ledServiceRequirement: "Front / Rear",
-      ledCostPerSqFt: screen.costPerSqFt ?? 120,
-      displayCost,
-      shipping,
-      totalCost,
-      margin: margin * 100, // Convert to percentage
-      price,
-      ancMargin,
-      bondCost,
-      totalWithBond,
-      sellingSqFt,
-      shippingSalePrice,
+      ledCostPerSqFt: costPerSqFt.toNumber(),
+      displayCost: displayCost.toNumber(),
+      shipping: shipping.toNumber(),
+      totalCost: totalCost.toNumber(),
+      margin: margin.times(100).toNumber(), // Convert to percentage
+      price: price.toNumber(),
+      ancMargin: ancMargin.toNumber(),
+      bondCost: bondCost.toNumber(),
+      totalWithBond: totalWithBond.toNumber(),
+      sellingSqFt: sellingSqFt.toNumber(),
+      shippingSalePrice: shippingSalePrice.toNumber(),
     };
 
     rows.push(row);
 
     // Accumulate totals
-    totals.totalDisplayCost += displayCost;
-    totals.totalShipping += shipping;
-    totals.totalCost += totalCost;
-    totals.totalPrice += price;
-    totals.totalAncMargin += ancMargin;
-    totals.totalBond += bondCost;
-    totals.grandTotal += totalWithBond;
-    totals.totalSqFt += totalSqFt;
+    totals.totalDisplayCost = totals.totalDisplayCost.plus(displayCost);
+    totals.totalShipping = totals.totalShipping.plus(shipping);
+    totals.totalCost = totals.totalCost.plus(totalCost);
+    totals.totalPrice = totals.totalPrice.plus(price);
+    totals.totalAncMargin = totals.totalAncMargin.plus(ancMargin);
+    totals.totalBond = totals.totalBond.plus(bondCost);
+    totals.grandTotal = totals.grandTotal.plus(totalWithBond);
+    totals.totalSqFt = totals.totalSqFt.plus(totalSqFt);
   });
 
   return {
     rows,
-    totals,
+    totals: {
+      totalDisplayCost: roundToCents(totals.totalDisplayCost).toNumber(),
+      totalShipping: roundToCents(totals.totalShipping).toNumber(),
+      totalCost: roundToCents(totals.totalCost).toNumber(),
+      totalPrice: roundToCents(totals.totalPrice).toNumber(),
+      totalAncMargin: roundToCents(totals.totalAncMargin).toNumber(),
+      totalBond: roundToCents(totals.totalBond).toNumber(),
+      grandTotal: roundToCents(totals.grandTotal).toNumber(),
+      totalSqFt: roundToCents(totals.totalSqFt).toNumber(),
+    },
   };
 }
 
@@ -995,9 +1025,4 @@ export function exportExcelPricingToCSV(pricing: ExcelPricingSheet): string {
   ]);
 
   return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-}
-
-function roundToCents(value: any) {
-  if (typeof value !== 'number') return 0;
-  return Math.round((value + Number.EPSILON) * 100) / 100;
 }

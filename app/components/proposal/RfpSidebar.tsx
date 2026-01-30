@@ -121,17 +121,30 @@ const RfpSidebar = () => {
                     </p>
                     <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                         {rfpDocuments.map(doc => (
-                            <a 
-                                key={doc.id} 
-                                href={doc.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 p-1.5 rounded hover:bg-zinc-800 transition-colors group"
-                            >
-                                <FileText className="w-3 h-3 text-zinc-500 group-hover:text-blue-400" />
-                                <span className="text-xs text-zinc-300 truncate flex-1" title={doc.name}>{doc.name}</span>
-                                <span className="text-[9px] text-zinc-600">{new Date(doc.createdAt).toLocaleDateString()}</span>
-                            </a>
+                            <div key={doc.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-zinc-800 transition-colors group relative">
+                                <a 
+                                    href={doc.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 flex-1 min-w-0"
+                                >
+                                    <FileText className="w-3 h-3 text-zinc-500 group-hover:text-blue-400 shrink-0" />
+                                    <span className="text-xs text-zinc-300 truncate" title={doc.name}>{doc.name}</span>
+                                </a>
+                                <span className="text-[9px] text-zinc-600 shrink-0 group-hover:hidden">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                <button
+                                    onClick={async (e) => {
+                                        e.preventDefault();
+                                        if (confirm("Delete this RFP document?")) {
+                                            await deleteRfpDocument(doc.id);
+                                        }
+                                    }}
+                                    className="hidden group-hover:flex items-center justify-center w-5 h-5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-red-400 transition-colors shrink-0"
+                                    title="Delete from Vault"
+                                >
+                                    <Trash2 className="w-3 h-3" />
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </div>

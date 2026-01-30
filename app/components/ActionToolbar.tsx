@@ -24,45 +24,47 @@ const ActionToolbar = () => {
   const { _t } = useTranslationContext();
 
   return (
-    <div className="flex items-center gap-2 mb-4 p-2 bg-zinc-900/30 border border-zinc-800/50 rounded-xl">
-      <div className="flex items-center gap-1 flex-1">
-        <span className="text-xs text-zinc-500 px-2">Actions</span>
-        <div className="h-4 w-px bg-zinc-800" />
-      </div>
-
+    <div className="flex items-center justify-end gap-1 mb-2 px-2">
       <ProposalLoaderModal>
         <Button
           variant="ghost"
           size="sm"
-          className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
+          className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 h-8 px-2"
           disabled={proposalPdfLoading}
+          title={_t("actions.loadProposal")}
         >
-          <FolderUp className="w-4 h-4 mr-2" />
-          <span className="text-xs">{_t("actions.loadProposal")}</span>
+          <FolderUp className="w-3.5 h-3.5 mr-2" />
+          <span className="text-[10px] font-medium uppercase tracking-wide">{_t("actions.loadProposal")}</span>
         </Button>
       </ProposalLoaderModal>
+
+      <div className="w-px h-3 bg-zinc-800 mx-1" />
 
       <ProposalExportModal>
         <Button
           variant="ghost"
           size="sm"
-          className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
+          className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 h-8 px-2"
           disabled={proposalPdfLoading}
+          title={_t("actions.exportProposal")}
         >
-          <Import className="w-4 h-4 mr-2" />
-          <span className="text-xs">{_t("actions.exportProposal")}</span>
+          <Import className="w-3.5 h-3.5 mr-2" />
+          <span className="text-[10px] font-medium uppercase tracking-wide">{_t("actions.exportProposal")}</span>
         </Button>
       </ProposalExportModal>
+
+      <div className="w-px h-3 bg-zinc-800 mx-1" />
 
       <NewProposalAlert>
         <Button
           variant="ghost"
           size="sm"
-          className="text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50"
+          className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 h-8 px-2"
           disabled={proposalPdfLoading}
+          title={_t("actions.newProposal")}
         >
-          <Plus className="w-4 h-4 mr-2" />
-          <span className="text-xs">{_t("actions.newProposal")}</span>
+          <Plus className="w-3.5 h-3.5 mr-2" />
+          <span className="text-[10px] font-medium uppercase tracking-wide">{_t("actions.newProposal")}</span>
         </Button>
       </NewProposalAlert>
 
@@ -75,11 +77,12 @@ const ActionToolbar = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="text-zinc-400 hover:text-red-400 hover:bg-red-950/50"
+          className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 h-8 px-2"
           disabled={proposalPdfLoading}
+          title="Reset Form"
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          <span className="text-xs">Reset</span>
+          <RotateCcw className="w-3.5 h-3.5 mr-2" />
+          <span className="text-[10px] font-medium uppercase tracking-wide">Reset</span>
         </Button>
       </NewProposalAlert>
     </div>

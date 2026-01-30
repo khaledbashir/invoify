@@ -34,6 +34,8 @@ import { ExportTypes, ProposalType } from "@/types";
 
 // Estimator / Audit
 import { calculateProposalAudit } from "@/lib/estimator";
+import { roundToCents } from "@/lib/decimal";
+import Decimal from "decimal.js";
 
 // Risk Detector
 import { detectRisks, RiskItem } from "@/services/risk-detector";
@@ -98,6 +100,7 @@ const defaultProposalContext = {
   rfpDocumentUrl: null as string | null,
   rfpDocuments: [] as Array<{ id: string; name: string; url: string; createdAt: string }>,
   refreshRfpDocuments: async () => { },
+  deleteRfpDocument: (id: string) => Promise.resolve(false),
   aiWorkspaceSlug: null as string | null,
   rfpQuestions: [] as Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>,
   uploadRfpDocument: (file: File) => Promise.resolve(),
@@ -999,18 +1002,32 @@ export const ProposalContextProvider = ({
 
       const b = audit.breakdown;
       // Grouping logic for "Polished" client-facing PDF
-      const hardwareSell = b.hardware + (b.ancMargin * (b.hardware / (b.totalCost || 1)));
-      const structureSell = b.structure + (b.ancMargin * (b.structure / (b.totalCost || 1)));
-      const laborSell = (b.labor + b.install) + (b.ancMargin * ((b.labor + b.install) / (b.totalCost || 1)));
-      const otherSell = b.finalClientTotal - hardwareSell - structureSell - laborSell;
+      // Use Decimal.js for deterministic distribution of margin
+      const totalCost = new Decimal(b.totalCost || 1); // Avoid division by zero
+      const ancMargin = new Decimal(b.ancMargin || 0);
+      
+      const hardwareCost = new Decimal(b.hardware || 0);
+      const structureCost = new Decimal(b.structure || 0);
+      const laborCost = new Decimal(b.labor || 0);
+      const installCost = new Decimal(b.install || 0);
+      const laborInstallCost = laborCost.plus(installCost);
+
+      // Distribute margin proportionally to cost
+      const hardwareSell = roundToCents(hardwareCost.plus(ancMargin.times(hardwareCost.div(totalCost))));
+      const structureSell = roundToCents(structureCost.plus(ancMargin.times(structureCost.div(totalCost))));
+      const laborSell = roundToCents(laborInstallCost.plus(ancMargin.times(laborInstallCost.div(totalCost))));
+      
+      const finalClientTotal = new Decimal(b.finalClientTotal || 0);
+      // Calculate "Other" as the remainder to ensure the sum exactly matches the total
+      const otherSell = roundToCents(finalClientTotal.minus(hardwareSell).minus(structureSell).minus(laborSell));
 
       return {
         ...screen,
         lineItems: [
-          { id: `hw-${idx}`, category: 'LED Display System', price: hardwareSell },
-          { id: `st-${idx}`, category: 'Structural Materials', price: structureSell },
-          { id: `inst-${idx}`, category: 'Installation & Labor', price: laborSell },
-          { id: `other-${idx}`, category: 'Electrical, Data & Conditions', price: otherSell },
+          { id: `hw-${idx}`, category: 'LED Display System', price: hardwareSell.toNumber() },
+          { id: `st-${idx}`, category: 'Structural Materials', price: structureSell.toNumber() },
+          { id: `inst-${idx}`, category: 'Installation & Labor', price: laborSell.toNumber() },
+          { id: `other-${idx}`, category: 'Electrical, Data & Conditions', price: otherSell.toNumber() },
         ]
       };
     });
@@ -1636,6 +1653,7 @@ export const ProposalContextProvider = ({
     rfpDocumentUrl,
     rfpDocuments,
     refreshRfpDocuments,
+    deleteRfpDocument,
     aiWorkspaceSlug,
     rfpQuestions,
     uploadRfpDocument: async (file: File) => {
