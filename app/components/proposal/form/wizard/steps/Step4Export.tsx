@@ -366,18 +366,6 @@ const Step4Export = () => {
                                     >
                                         {verificationLoading ? "Verifying…" : <span className="inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" />Run Verification</span>}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={ensurePdfPreview}
-                                        className={cn(
-                                            "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
-                                            proposalPdfLoading
-                                                ? "border-zinc-800 bg-zinc-950/40 text-zinc-500 cursor-not-allowed"
-                                                : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-brand-blue/40 hover:text-white"
-                                        )}
-                                    >
-                                        {proposalPdfLoading ? "Generating…" : pdfUrl ? "PDF Ready" : "Generate PDF Preview"}
-                                    </button>
                                 </div>
                             </div>
                         )}
