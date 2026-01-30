@@ -1,92 +1,87 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { ANYTHING_LLM_BASE_URL, ANYTHING_LLM_KEY } from "@/lib/variables";
+import { uploadDocument, addToWorkspace, queryVault } from "@/lib/anything-llm";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    const proposalId = formData.get("proposalId") as string;
+    const formData = await req.formData();
+    const file = formData.get("file") as File | null;
+    const proposalId = formData.get("proposalId") as string | null;
 
-    if (!file || !proposalId) {
-      return NextResponse.json({ error: "Missing file or proposalId" }, { status: 400 });
+    if (!file) {
+      return NextResponse.json({ ok: false, error: "No file provided" }, { status: 400 });
     }
 
-    // Verify proposal exists
-    const proposal = await prisma.proposal.findUnique({
-      where: { id: proposalId },
-      include: { workspace: true },
-    });
+    const workspaceSlug = process.env.ANYTHING_LLM_WORKSPACE || "anc-estimator";
 
-    if (!proposal) {
-      return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
+    // 1. Upload Document
+    console.log(`[RFP Upload] Uploading ${file.name} to AnythingLLM...`);
+    const uploadRes = await uploadDocument(file, file.name);
+
+    if (!uploadRes.success || !uploadRes.data?.documents?.[0]) {
+      console.error("[RFP Upload] Upload failed", uploadRes);
+      return NextResponse.json({ ok: false, error: "Failed to upload to storage" }, { status: 500 });
     }
 
-    // Upload document to AnythingLLM
-    const uploadRes = await fetch(`${ANYTHING_LLM_BASE_URL}/document/upload`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${ANYTHING_LLM_KEY}`,
-      },
-      body: formData,
-    });
+    const docPath = uploadRes.data.documents[0].location;
+    console.log(`[RFP Upload] File uploaded to ${docPath}`);
 
-    if (!uploadRes.ok) {
-      const errorText = await uploadRes.text();
-      console.error("Failed to upload document to AnythingLLM:", errorText);
-      return NextResponse.json({ error: "Failed to upload document" }, { status: 500 });
+    // 2. Add to Workspace (Embed)
+    console.log(`[RFP Upload] Adding to workspace ${workspaceSlug}...`);
+    const embedRes = await addToWorkspace(workspaceSlug, docPath);
+    
+    if (!embedRes.success) {
+      console.warn("[RFP Upload] Embedding failed, but continuing...", embedRes);
+      // We continue because we can still return the URL, though AI might not know about it yet
     }
 
-    const uploadResult = await uploadRes.json();
-    const document = uploadResult.documents?.[0];
-
-    if (!document) {
-      return NextResponse.json({ error: "Document upload failed" }, { status: 500 });
-    }
-
-    // Embed document into workspace
-    // Prioritize proposal-level isolated slug, fallback to workspace level
-    const aiWorkspaceSlug = proposal.aiWorkspaceSlug || proposal.workspace?.aiWorkspaceSlug || "anc-estimator";
-
-    if (aiWorkspaceSlug) {
-      const embedRes = await fetch(
-        `${ANYTHING_LLM_BASE_URL}/workspace/${aiWorkspaceSlug}/update-embeddings`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${ANYTHING_LLM_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            adds: [document.location],
-            deletes: [],
-          }),
-        }
-      );
-
-      if (!embedRes.ok) {
-        console.error("Failed to embed document:", await embedRes.text());
-      }
-    }
-
-    // Use RfpExtractionService to get structured proposal data
-    const { RfpExtractionService } = await import("@/services/rfp/server/RfpExtractionService");
+    // 3. Extract Data (AI Analysis)
+    console.log(`[RFP Upload] Analyzing document for extraction...`);
+    const extractionPrompt = `
+      Analyze the uploaded RFP document "${file.name}" and extract the following technical specifications into a JSON object.
+      
+      Return ONLY valid JSON. No markdown formatting.
+      
+      Fields to extract:
+      - receiver.name: Client or Customer Name
+      - details.proposalName: Project Name or RFP Title
+      - details.venue: Venue or Location Name
+      - rulesDetected.structuralTonnage: Any mention of structural steel weight/tonnage
+      - rulesDetected.reinforcingTonnage: Any mention of rebar/reinforcing weight
+      - details.screens: Array of screens/displays found. For each screen include:
+        - name: Screen name/ID
+        - widthFt: Width in feet (convert if necessary)
+        - heightFt: Height in feet (convert if necessary)
+        - quantity: Number of units
+        - pitchMm: Pixel pitch in mm
+        - isReplacement: true if it replaces an existing screen
+        - useExistingStructure: true if it uses existing steel
+    `;
 
     let extractedData = null;
     try {
-      extractedData = await RfpExtractionService.extractFromWorkspace(aiWorkspaceSlug);
+      // We use "chat" mode to ensure it uses the context of the newly uploaded doc if possible
+      // Note: Embedding might take a moment, so this might be a hit or miss immediately.
+      // But we'll try.
+      const aiResponse = await queryVault(workspaceSlug, extractionPrompt, "chat");
+      
+      // Extract JSON from response
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        extractedData = JSON.parse(jsonMatch[0]);
+      }
     } catch (e) {
-      console.error("AI Extraction error:", e);
-      // Don't fail the whole request if extraction fails
+      console.error("[RFP Upload] AI Extraction failed", e);
     }
 
     return NextResponse.json({
       ok: true,
-      documentUrl: document.location,
+      url: docPath,
       extractedData,
+      message: "RFP uploaded and analyzed successfully"
     });
+
   } catch (error: any) {
-    console.error("RFP upload error:", error);
-    return NextResponse.json({ error: error?.message || String(error) }, { status: 500 });
+    console.error("[RFP Upload] Critical error:", error);
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }

@@ -18,6 +18,7 @@ import { Plus } from "lucide-react";
 
 // Toast
 import { toast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { ProposalType } from "@/types";
 
 const Screens = () => {
@@ -60,18 +61,22 @@ const Screens = () => {
         toast({
             title: "Screen removed",
             description: `"${deletedScreen?.name || 'Untitled Screen'}" has been deleted.`,
-            action: {
-                altText: "Undo",
-                onClick: () => {
-                    // Restore the screen at the original index
-                    append(deletedScreen, { shouldFocus: false });
-                    // Move it back to the original position if needed
-                    const currentScreens = getValues(SCREENS_NAME);
-                    if (currentScreens && index < currentScreens.length - 1) {
-                        move(currentScreens.length - 1, index);
-                    }
-                }
-            },
+            action: (
+                <ToastAction 
+                    altText="Undo"
+                    onClick={() => {
+                        // Restore the screen at the original index
+                        append(deletedScreen, { shouldFocus: false });
+                        // Move it back to the original position if needed
+                        const currentScreens = getValues(SCREENS_NAME);
+                        if (currentScreens && index < currentScreens.length - 1) {
+                            move(currentScreens.length - 1, index);
+                        }
+                    }}
+                >
+                    Undo
+                </ToastAction>
+            ),
         });
     };
 
