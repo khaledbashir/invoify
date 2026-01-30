@@ -25,6 +25,17 @@ export function analyzeGaps(formValues: any): GapItem[] {
     const sender = formValues?.sender || {};
     const receiver = formValues?.receiver || {};
 
+    // 0. Reset State Check
+    // If essential fields are all in their default/empty state, return no gaps.
+    // This prevents "Project Health" from screaming at the user on a fresh load.
+    const isDefaultClient = !receiver.name || receiver.name === PDF_PLACEHOLDERS.CLIENT_NAME;
+    const isNoScreens = screens.length === 0;
+    const isNoProjectName = !details.proposalName;
+
+    if (isDefaultClient && isNoScreens && isNoProjectName) {
+        return [];
+    }
+
     // 1. Division 11 / Extraction Accuracy
     if (formValues?.extractionAccuracy !== "High") {
         gaps.push({

@@ -10,11 +10,18 @@ datasource db {
 // NOTE: Switched to PostgreSQL for production.
 // Ensure DATABASE_URL is set in your .env file.
 
-// enum CalculationMode {
-//   MIRROR
-//   INTELLIGENCE
-// }
-// NOTE: Using a string for local SQLite dev to avoid unsupported enum types.
+enum CalculationMode {
+  MIRROR
+  INTELLIGENCE
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  WARNING
+  ERROR
+  BLOCKED
+}
 
 model Workspace {
   id              String     @id @default(cuid())
@@ -33,23 +40,80 @@ model User {
 }
 
 model Proposal {
-  id              String         @id @default(cuid())
-  workspaceId     String
-  clientName      String
-  status          String         @default("DRAFT")
-  calculationMode String @default("INTELLIGENCE")
-  internalAudit   String?
-  clientSummary   String?
-  aiThreadId      String?
-  aiWorkspaceSlug String?
-  taxRateOverride Float?
-  bondRateOverride Float?
-  shareHash       String?        @unique
-  versions        BidVersion[]
-  workspace       Workspace      @relation(fields: [workspaceId], references: [id])
-  screens         ScreenConfig[]
-  snapshots       ProposalSnapshot[]
-  rfpDocuments    RfpDocument[]
+  id                    String              @id @default(cuid())
+  workspaceId          String
+  clientName           String
+  status               String              @default("DRAFT")
+  calculationMode      String              @default("INTELLIGENCE")
+  internalAudit        String?
+  clientSummary        String?
+  aiThreadId           String?
+  aiWorkspaceSlug      String?
+  taxRateOverride      Decimal?            // Changed from Float to Decimal for money
+  bondRateOverride     Decimal?            // Changed from Float to Decimal for money
+  shareHash            String?             @unique
+  
+  // NEW: Verification fields
+  verificationManifest   Json?
+  reconciliationReport   Json?
+  verificationStatus     VerificationStatus @default(PENDING)
+  lastVerifiedAt         DateTime?
+  
+  // NEW: Manual overrides and versions
+  manualOverrides       ManualOverride[]
+  proposalVersions      ProposalVersion[]
+  
+  // Existing relations
+  versions             BidVersion[]
+  workspace            Workspace           @relation(fields: [workspaceId], references: [id])
+  screens              ScreenConfig[]
+  snapshots            ProposalSnapshot[]
+  rfpDocuments         RfpDocument[]
+}
+
+// NEW: Manual Override model
+model ManualOverride {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id])
+  
+  // What was overridden
+  entityType      String   // "screen", "charge", "proposalTotal"
+  entityId        String   // screen ID or "proposal"
+  field           String   // "unitCost", "subtotal", "finalTotal"
+  
+  // Override details (Decimal for money - never Float)
+  originalValue   Decimal  // Use Decimal type for money
+  overrideValue   Decimal  // Use Decimal type for money
+  reason          String   // "Client discount", "Executive adjustment"
+  approver        String   // Who approved
+  
+  // Audit trail
+  createdBy       String   // User ID
+  createdAt       DateTime @default(now())
+  
+  @@index([proposalId])
+}
+
+// NEW: Proposal Version model (immutable snapshots)
+model ProposalVersion {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id])
+  
+  // Immutable snapshot
+  versionNumber   Int
+  manifest        Json     // VerificationManifest snapshot
+  auditData       Json     // InternalAudit snapshot
+  pdfUrl          String?
+  uglySheetUrl    String?
+  
+  // Version metadata
+  createdAt       DateTime @default(now())
+  createdBy       String
+  changeReason    String   // "Initial import", "Manual edit", "Auto-fix"
+  
+  @@index([proposalId])
 }
 
 model RfpDocument {
@@ -74,10 +138,10 @@ model BidVersion {
   id                String   @id @default(cuid())
   proposalId        String
   versionNumber     Int
-  taxRate           Float?
-  bondRate          Float?
-  margin            Float?
-  totalSellingPrice Float?
+  taxRate           Decimal?  // Changed from Float to Decimal for money
+  bondRate          Decimal?  // Changed from Float to Decimal for money
+  margin            Decimal?  // Changed from Float to Decimal for money
+  totalSellingPrice Decimal?  // Changed from Float to Decimal for money
   createdAt         DateTime @default(now())
   proposal          Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 }
@@ -97,10 +161,8 @@ model CostLineItem {
   id             String       @id @default(cuid())
   screenConfigId String
   category       String
-  cost           Float
-  margin         Float
-  price          Float
+  cost           Decimal
+  margin         Decimal
+  price          Decimal
   screenConfig   ScreenConfig @relation(fields: [screenConfigId], references: [id])
-
-  // NOTE: Using Float for local SQLite dev. Replace with Decimal for production Postgres.
 }
