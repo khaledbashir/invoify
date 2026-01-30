@@ -1,4 +1,4 @@
-const pdf = require('pdf-parse');
+const pdfParse = require('pdf-parse');
 
 // Keywords that indicate "Signal" (Technical/Pricing content)
 const SIGNAL_KEYWORDS = [
@@ -94,7 +94,7 @@ export async function smartFilterPdf(fileBuffer: Buffer): Promise<FilterResult> 
   };
 
   try {
-    const data = await pdf(fileBuffer, optionsWithSideEffect);
+    const data = await pdfParse(fileBuffer, optionsWithSideEffect);
     
     // Now we have pageTexts populated
     let filteredContent = "";

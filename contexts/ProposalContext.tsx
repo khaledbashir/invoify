@@ -1690,6 +1690,9 @@ export const ProposalContextProvider = ({
 
             if (data.ok) {
               setRfpDocumentUrl(data.url);
+              if (data.workspaceSlug) {
+                setValue("details.aiWorkspaceSlug", data.workspaceSlug);
+              }
               if (data.questions) setRfpQuestions(data.questions);
               
               // Refresh the vault list
