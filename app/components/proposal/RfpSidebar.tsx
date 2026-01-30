@@ -21,7 +21,7 @@ const QUICK_PROMPTS = [
 ];
 
 const RfpSidebar = () => {
-    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, rfpDocumentUrl, rfpDocuments } = useProposalContext();
+    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, rfpDocumentUrl, rfpDocuments, deleteRfpDocument } = useProposalContext();
     const { watch } = useFormContext();
     const [input, setInput] = useState("");
     const [isUploading, setIsUploading] = useState(false);
