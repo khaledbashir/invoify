@@ -212,6 +212,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       url: dbUrl,
+      workspaceSlug,
       extractedData,
       filterStats,
       message: "RFP uploaded and analyzed successfully"
