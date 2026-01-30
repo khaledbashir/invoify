@@ -3,13 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// NOTE: This local change sets SQLite for quick local development.
-// For production you should revert to the original PostgreSQL datasource and use
-// DATABASE_URL pointing to your Postgres instance (e.g. in EasyPanel).
+// NOTE: Switched to PostgreSQL for production.
+// Ensure DATABASE_URL is set in your .env file.
 
 // enum CalculationMode {
 //   MIRROR
