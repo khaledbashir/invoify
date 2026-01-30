@@ -10,13 +10,14 @@ interface ParsedANCProposal {
     internalAudit: InternalAudit;
     verificationManifest: VerificationManifest; // NEW: Verification manifest
     exceptions: Exception[]; // NEW: Detected exceptions
+    excelData: any;
 }
 
 /**
  * Parses the ANC Master Excel spreadsheet to extract pre-calculated proposal data.
  * Focuses on 'LED Sheet', 'Install (In-Bowl)', and 'Install (Concourse)' tabs.
  */
-export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> {
+export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<ParsedANCProposal> {
     const workbook = xlsx.read(buffer, { type: 'buffer' });
 
     // 1. Primary Data Source: "LED Sheet" (New format) or "LED Cost Sheet" (Legacy fallback)
@@ -70,6 +71,8 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
     const screens: any[] = [];
     const perScreenAudits: ScreenAudit[] = [];
+    let altRowsSkipped = 0;
+    let blankRowsSkipped = 0;
 
     for (let i = headerRowIndex + 1; i < ledData.length; i++) {
         const row = ledData[i];
@@ -81,6 +84,7 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
             // Prevents "Altitude Display" from being incorrectly skipped
             const normalizedName = projectName.trim().toLowerCase();
             if (normalizedName.startsWith('alt') || normalizedName.startsWith('alternate')) {
+                altRowsSkipped++;
                 continue;
             }
 
@@ -101,6 +105,8 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
             // Financial fields
             const hardwareCost = Number(row[colIdx.hardwareCost] || 0);
+            const installCost = Number(row[colIdx.installCost] || 0);
+            const otherCost = Number(row[colIdx.otherCost] || 0);
             const structureCost = Number(row[colIdx.installCost] || 0) * 0.5; // Heuristic
             const laborCost = Number(row[colIdx.installCost] || 0) * 0.5 + Number(row[colIdx.otherCost] || 0);
             const shippingCost = Number(row[colIdx.shippingCost] || 0);
@@ -112,6 +118,7 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
             const screen: any = {
                 name: projectName,
+                rowIndex: i + 1,
                 pitchMm: formatDimension(pitch),
                 heightFt: formatDimension(heightFt),
                 widthFt: formatDimension(widthFt),
@@ -120,7 +127,16 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
                 brightnessNits: brightness,
                 isHDR: isHDR,
                 quantity: 1,
-                lineItems: []
+                lineItems: [],
+                hardwareCost,
+                installCost,
+                otherCost,
+                shippingCost,
+                totalCost: totalCostBeforeMargin,
+                sellPrice,
+                ancMargin,
+                bondCost,
+                finalTotal: finalClientTotal,
             };
 
             let description = `Resolution: ${screen.pixelsH}h x ${screen.pixelsW}w. `;
@@ -177,6 +193,8 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
 
             screens.push(screen);
             perScreenAudits.push(audit);
+        } else if (typeof projectName === 'string' && projectName.trim() !== "") {
+            blankRowsSkipped++;
         }
     }
 
@@ -204,12 +222,12 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
     // This captures control totals at the source (Excel) stage
     const excelData = {
         proposalId: 'pending', // Will be set when proposal is created
-        fileName: 'import.xlsx', // Will be updated with actual filename
+        fileName: typeof fileName === "string" && fileName.trim() !== "" ? fileName : 'import.xlsx',
         screens,
         rowCount: ledData.length,
         screenCount: screens.length,
-        altRowsSkipped: 0, // TODO: Track ALT rows skipped
-        blankRowsSkipped: 0, // TODO: Track blank rows skipped
+        altRowsSkipped,
+        blankRowsSkipped,
         headerRowIndex,
         sheetsRead: ['LED Sheet', 'Margin Analysis'].filter(Boolean),
     };
@@ -227,6 +245,7 @@ export async function parseANCExcel(buffer: Buffer): Promise<ParsedANCProposal> 
         internalAudit,
         verificationManifest, // NEW: Include verification manifest
         exceptions, // NEW: Include detected exceptions
+        excelData,
     };
 }
 
