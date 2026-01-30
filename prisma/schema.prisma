@@ -50,6 +50,16 @@ model Proposal {
   workspace       Workspace      @relation(fields: [workspaceId], references: [id])
   screens         ScreenConfig[]
   snapshots       ProposalSnapshot[]
+  rfpDocuments    RfpDocument[]
+}
+
+model RfpDocument {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  createdAt  DateTime @default(now())
+  proposalId String?
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
 }
 
 model ProposalSnapshot {
