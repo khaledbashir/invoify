@@ -39,20 +39,20 @@ const Step2Intelligence = () => {
                         <h2 className="text-xl font-bold text-white mb-2">Display Schedule Analysis</h2>
                         <p className="text-zinc-400 text-sm max-w-xl leading-relaxed">
                             {aiWorkspaceSlug ? (
-                                <>I've analyzed the uploaded RFP documents and Excel data. I found <span className="text-white font-semibold underline decoration-brand-blue/50">{screenCount} video screens</span> across the project. Should I proceed with <span className="text-brand-blue font-bold">LG</span> or <span className="text-brand-blue font-bold">Yaham</span> product catalogs for these specifications?</>
+                                <>I've analyzed the uploaded RFP documents and Excel data. I found <span className="text-white font-semibold underline decoration-brand-blue/50">{screenCount} video screens</span> across the project. Should I proceed with <span className="text-brand-blue font-bold">Standard</span> or <span className="text-brand-blue font-bold">Premium</span> product catalogs for these specifications?</>
                             ) : (
-                                <>I've detected <span className="text-white font-semibold underline decoration-brand-blue/50">{screenCount} screen configurations</span> in your draft. I can help you optimize these specs or apply product catalogs from <span className="text-brand-blue font-bold">LG</span> or <span className="text-brand-blue font-bold">Yaham</span>.</>
+                                <>I've detected <span className="text-white font-semibold underline decoration-brand-blue/50">{screenCount} screen configurations</span> in your draft. I can help you optimize these specs or apply product catalogs from <span className="text-brand-blue font-bold">Standard</span> or <span className="text-brand-blue font-bold">Premium</span> vendors.</>
                             )}
                         </p>
                         
                         <div className="flex gap-3 mt-6">
                             <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-medium text-zinc-300 hover:border-brand-blue/50 transition-all flex items-center gap-2">
                                 <Box className="w-4 h-4 text-brand-blue" />
-                                Use LG Catalog
+                                Use Standard Catalog
                             </button>
                             <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-medium text-zinc-300 hover:border-brand-blue/50 transition-all flex items-center gap-2">
                                 <Box className="w-4 h-4 text-brand-blue" />
-                                Use Yaham Catalog
+                                Use Premium Catalog
                             </button>
                         </div>
                     </div>

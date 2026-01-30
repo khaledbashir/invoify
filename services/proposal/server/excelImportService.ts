@@ -120,6 +120,13 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
 
         // Valid project row usually has a name and numeric dimensions/pitch
         const normalizedName = typeof projectName === "string" ? projectName.trim().toLowerCase() : "";
+        const firstColValue = (row[0] ?? "").toString().trim().toUpperCase();
+        
+        // Skip header-like rows that might contain "OPTION" or are clearly not data rows
+        if (firstColValue === "OPTION" || firstColValue === "DISPLAY NAME") {
+            continue;
+        }
+
         const pitchNum = Number(row[colIdx.pitch]);
         const heightNum = Number(row[colIdx.height]);
         const widthNum = Number(row[colIdx.width]);

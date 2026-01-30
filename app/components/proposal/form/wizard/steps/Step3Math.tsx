@@ -25,9 +25,10 @@ import AuditTable from "@/app/components/proposal/AuditTable";
 import { formatCurrency } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { calculateProposalAudit } from "@/lib/estimator";
 
 const Step3Math = () => {
-    const { control, setValue, watch } = useFormContext();
+    const { control, setValue, watch, getValues } = useFormContext();
     const internalAudit = useWatch({
         name: "details.internalAudit",
         control,
@@ -44,21 +45,66 @@ const Step3Math = () => {
     const totals = internalAudit?.totals;
     const sellPricePerSqFt = totals?.sellingPricePerSqFt || 0;
     const totalProjectValue = totals?.finalClientTotal || 0;
-    const structuralLabor = totals?.totalStructuralLabor || 0;
-    const shippingLogistics = totals?.totalShipping || 0;
+    const structuralLabor = totals?.labor || 0;
+    const shippingLogistics = totals?.shipping || 0;
 
     // Apply global margin to all screens
     const applyGlobalMargin = (margin: number) => {
-        screens.forEach((_screen: any, index: number) => {
-            setValue(`details.screens[${index}].desiredMargin`, margin);
-        });
-        setValue("details.globalMargin", margin);
+        const currentScreens = getValues("details.screens") || [];
+        
+        // Update all screens with new margin - FORCE DEEP CLONE
+        const updatedScreens = currentScreens.map((s: any) => ({
+             ...s,
+             desiredMargin: margin,
+             // If we wanted to be extra safe, we could wipe derived values to force recalc
+             // but calculateProposalAudit should handle it based on inputs
+        }));
+
+        console.log("Applying Global Margin:", margin, "to", updatedScreens.length, "screens");
+
+        // Update screens in form - Use object with timestamp to force change detection if needed
+        setValue("details.screens", updatedScreens, { shouldValidate: true, shouldDirty: true });
+        setValue("details.globalMargin", margin, { shouldValidate: true, shouldDirty: true });
+
+        // Recalculate audit IMMEDIATELY to update UI
+        try {
+             const audit = calculateProposalAudit(updatedScreens, {
+                taxRate: getValues("details.taxRateOverride"),
+                bondPct: getValues("details.bondRateOverride"),
+                structuralTonnage: getValues("details.metadata.structuralTonnage"),
+                reinforcingTonnage: getValues("details.metadata.reinforcingTonnage"),
+                projectAddress: `${getValues("receiver.address") ?? ""} ${getValues("receiver.city") ?? ""} ${getValues("receiver.zipCode") ?? ""} ${getValues("details.location") ?? ""}`.trim(),
+                venue: getValues("details.venue"),
+            });
+            setValue("details.internalAudit", audit.internalAudit);
+            setValue("details.clientSummary", audit.clientSummary);
+        } catch (e) {
+            console.error("Audit recalc failed", e);
+        }
     };
 
     // Apply global bond rate
     const applyGlobalBondRate = (rate: number) => {
         setValue("details.bondRate", rate);
         setValue("details.globalBondRate", rate);
+        setValue("details.bondRateOverride", rate);
+
+        // Recalculate audit with new bond rate
+        try {
+             const currentScreens = getValues("details.screens") || [];
+             const audit = calculateProposalAudit(currentScreens, {
+                taxRate: getValues("details.taxRateOverride"),
+                bondPct: rate,
+                structuralTonnage: getValues("details.metadata.structuralTonnage"),
+                reinforcingTonnage: getValues("details.metadata.reinforcingTonnage"),
+                projectAddress: `${getValues("receiver.address") ?? ""} ${getValues("receiver.city") ?? ""} ${getValues("receiver.zipCode") ?? ""} ${getValues("details.location") ?? ""}`.trim(),
+                venue: getValues("details.venue"),
+            });
+            setValue("details.internalAudit", audit.internalAudit);
+            setValue("details.clientSummary", audit.clientSummary);
+        } catch (e) {
+            console.error("Audit recalc failed", e);
+        }
     };
 
     return (
@@ -162,12 +208,12 @@ const Step3Math = () => {
                             </div>
 
                             <h3 className="text-base font-bold text-zinc-200">
-                                {mirrorMode ? "Excel Pass-Through Active" : "ANC Strategic Estimator Active"}
+                                {mirrorMode ? "Excel Pass-Through Active" : "Strategic Estimator Active"}
                             </h3>
                             <p className="text-zinc-500 text-[10px] mt-1 italic font-medium">
                                 {mirrorMode
-                                    ? "Locking values to imported Master Excel for 'Valid Victory' accuracy."
-                                    : "Using Natalia's proprietary margin logic and formulaic overrides."
+                                    ? "Locking values to imported Master Excel for verification accuracy."
+                                    : "Using proprietary margin logic and formulaic overrides."
                                 }
                             </p>
                         </div>

@@ -112,6 +112,33 @@ export default function ExcelViewer({
 
     const grid = activeSheet.grid;
     const hiddenRows = activeSheet.hiddenRows;
+    const headerRow = grid[ledHeaderRowIndex] || [];
+    
+    // Find column indices dynamically
+    const nameColIndex = headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "display name" || c === "display";
+    }) !== -1 ? headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "display name" || c === "display";
+    }) : 0;
+
+    const heightColIndex = headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "height" || c === "h";
+    }) !== -1 ? headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "height" || c === "h";
+    }) : 5;
+
+    const widthColIndex = headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "width" || c === "w";
+    }) !== -1 ? headerRow.findIndex(cell => {
+      const c = normalizeValue(cell).toLowerCase();
+      return c === "width" || c === "w";
+    }) : 6;
+
     let foundActive = 0;
     let foundNumeric = 0;
     let foundProblems = 0;
@@ -124,13 +151,13 @@ export default function ExcelViewer({
       const isHidden = !!hiddenRows[r];
       if (isAlt || isHidden) continue;
 
-      const nameCell = normalizeValue(row[0] || "");
+      const nameCell = normalizeValue(row[nameColIndex] || "");
       if (!nameCell) continue;
       foundActive++;
 
       const errors: string[] = [];
-      const h = normalizeValue(row[5] || "");
-      const w = normalizeValue(row[6] || "");
+      const h = normalizeValue(row[heightColIndex] || "");
+      const w = normalizeValue(row[widthColIndex] || "");
       const isBad = (v: string) => !v || v.toUpperCase().includes("TBD");
       if (isBad(nameCell)) errors.push("Missing Display Name");
       if (isBad(h)) errors.push("Missing/Invalid Height");

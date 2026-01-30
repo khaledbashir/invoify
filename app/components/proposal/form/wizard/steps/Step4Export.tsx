@@ -117,7 +117,7 @@ const Step4Export = () => {
             return;
         }
         if (!excelSourceData) {
-            setVerificationError("No Excel source data found. Import an ANC Excel first.");
+            setVerificationError("No Excel source data found. Import an Estimator Excel first.");
             return;
         }
         if (!internalAudit) {
@@ -410,9 +410,14 @@ const Step4Export = () => {
                                             <CheckCircle2 className="w-3 h-3" /> Verified
                                         </span>
                                     ) : (
-                                        <span className="text-amber-500 font-bold flex items-center gap-1">
-                                            <AlertTriangle className="w-3 h-3" /> Issues Found
-                                        </span>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-amber-500 font-bold flex items-center gap-1">
+                                                <AlertTriangle className="w-3 h-3" /> Issues Found
+                                            </span>
+                                            <span className="text-[10px] text-amber-500/70">
+                                                Check screen dimensions
+                                            </span>
+                                        </div>
                                     )}
                                 </div>
                             </div>

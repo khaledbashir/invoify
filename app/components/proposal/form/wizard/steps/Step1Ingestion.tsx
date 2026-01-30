@@ -24,7 +24,7 @@ const Step1Ingestion = () => {
                 </div>
                 <h1 className="text-3xl font-bold text-white tracking-tight">Project Initialization</h1>
                 <p className="text-zinc-500 text-sm max-w-lg">
-                    Begin the ANC Studio journey by feeding the system your project data. 
+                    Begin the project journey by feeding the system your data. 
                     Choose your workflow below to activate the Intelligence Engine.
                 </p>
             </div>
@@ -116,7 +116,7 @@ const Step1Ingestion = () => {
                         
                         <h3 className={`text-lg font-bold mb-2 ${selectedPath === "MIRROR" ? "text-white" : "text-zinc-300"}`}>Mirror Mode</h3>
                         <p className="text-zinc-500 text-xs leading-relaxed mb-6 flex-1">
-                            Direct pass-through for "Valid Victory" estimation. Converts ANC Estimator Excel sheets into branded PDF proposals with 1:1 numerical accuracy.
+                            Direct pass-through for estimation. Converts Estimator Excel sheets into branded PDF proposals with 1:1 numerical accuracy.
                         </p>
 
                         <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${selectedPath === "MIRROR" ? "text-brand-blue" : "text-zinc-600"}`}>
@@ -170,7 +170,7 @@ const Step1Ingestion = () => {
                                     <FileSpreadsheet className="w-5 h-5" />
                                 </div>
                                 <h4 className="text-white font-semibold">
-                                    {excelPreview ? "Excel File Uploaded" : "Upload ANC Estimator Excel"}
+                                    {excelPreview ? "Excel File Uploaded" : "Upload Estimator Excel"}
                                 </h4>
                             </div>
 

@@ -482,8 +482,12 @@ export const ProposalContextProvider = ({
   const mirrorMode = watch("details.mirrorMode") || false;
 
   // AUTO-SAVE LOGIC (Debounced)
+  const bondRateOverride = watch("details.bondRateOverride");
+  const taxRateOverride = watch("details.taxRateOverride");
+  const globalMargin = watch("details.globalMargin");
+
   useEffect(() => {
-    if (!screens || typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
 
     // Use a ref or simple timeout for debounce
     const handler = setTimeout(async () => {
@@ -533,7 +537,7 @@ export const ProposalContextProvider = ({
     }, 2000); // 2 second debounce
 
     return () => clearTimeout(handler);
-  }, [screens, projectId, getValues, watch]); // Re-run when screens change (primary driver of value)
+  }, [screens, projectId, getValues, watch, bondRateOverride, taxRateOverride, globalMargin]); // Re-run when screens or global settings change
 
 
   useEffect(() => {
@@ -632,12 +636,18 @@ export const ProposalContextProvider = ({
     }
   }, [getValues, setValue]);
 
-  // Get pdf url from blob
-  const pdfUrl = useMemo(() => {
-    if (proposalPdf.size > 0) {
-      return window.URL.createObjectURL(proposalPdf);
+  // PDF URL state with cleanup
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (proposalPdf && proposalPdf.size > 0) {
+      const url = window.URL.createObjectURL(proposalPdf);
+      setPdfUrl(url);
+      return () => {
+        window.URL.revokeObjectURL(url);
+      };
+    } else {
+      setPdfUrl(null);
     }
-    return null;
   }, [proposalPdf]);
 
   /**
@@ -707,6 +717,11 @@ export const ProposalContextProvider = ({
    */
   const generatePdf = useCallback(async (data: ProposalType): Promise<Blob> => {
     setProposalPdfLoading(true);
+    console.log("Generating PDF with data:", {
+      proposalId: data.details?.proposalId,
+      screenCount: data.details?.screens?.length,
+      venue: data.details?.venue
+    });
     let generated: Blob = new Blob();
 
     try {
@@ -732,6 +747,8 @@ export const ProposalContextProvider = ({
         venue: getValues("details.venue"),
       });
 
+      console.log("Audit computed for PDF:", audit.internalAudit.totals);
+
       const payload = {
         ...data,
         _audit: audit, // include both clientSummary and internalAudit for server-side rendering and archive
@@ -743,7 +760,14 @@ export const ProposalContextProvider = ({
         body: JSON.stringify(payload),
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("PDF generation API error:", errorText);
+        throw new Error(`PDF generation failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+
       const result = await response.blob();
+      console.log("PDF generated successfully, size:", result.size);
       generated = result;
       setProposalPdf(result);
 
@@ -752,7 +776,7 @@ export const ProposalContextProvider = ({
         pdfGenerationSuccess();
       }
     } catch (err) {
-      console.log(err);
+      console.error("PDF generation catch error:", err);
     } finally {
       setProposalPdfLoading(false);
     }
@@ -770,13 +794,33 @@ export const ProposalContextProvider = ({
    * Generates a preview of a PDF file and opens it in a new browser tab.
    */
   const previewPdfInTab = async () => {
+    console.log("Previewing PDF in tab...");
     let pdfBlob: Blob | null = proposalPdf;
     if (!(pdfBlob instanceof Blob) || pdfBlob.size === 0) {
+      console.log("No existing PDF blob, generating new one...");
       pdfBlob = await generatePdf(getValues());
     }
+    
     if (pdfBlob instanceof Blob && pdfBlob.size > 0) {
       const url = window.URL.createObjectURL(pdfBlob);
-      window.open(url, "_blank");
+      console.log("Opening blob URL:", url);
+      
+      // Create a hidden link and click it - better for popup blockers
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup after a delay to ensure the browser has time to open it
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+    } else {
+        console.error("Failed to generate PDF blob for preview - blob is empty or null");
     }
   };
 

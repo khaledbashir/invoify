@@ -54,7 +54,7 @@ export default async function SharePage({ params }: { params: Promise<{ hash: st
 
             {/* Footer */}
             <div className="mt-12 text-center text-slate-400 text-[10px] uppercase tracking-widest font-bold">
-                ANC Sports Enterprises • Proprietary & Confidential
+                Proprietary & Confidential
             </div>
         </div>
     );

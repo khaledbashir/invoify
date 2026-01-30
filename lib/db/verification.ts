@@ -231,8 +231,55 @@ async function getCurrentProposalValue(
     entityId: string,
     field: string
 ): Promise<number> {
-    // TODO: Implement based on entityType and field
-    // For now, return 0 as placeholder
+    if (entityType === 'screen') {
+        // Fetch proposal directly to get internalAudit JSON
+        const proposal = await prisma.proposal.findUnique({
+            where: { id: proposalId },
+            select: { 
+                internalAudit: true,
+                bondRateOverride: true, 
+                taxRateOverride: true 
+            }
+        });
+
+        if (!proposal || !proposal.internalAudit) return 0;
+
+        // Parse internalAudit to get screens
+        let screens: any[] = [];
+        try {
+            const audit = typeof proposal.internalAudit === 'string' 
+                ? JSON.parse(proposal.internalAudit) 
+                : proposal.internalAudit;
+            screens = audit.perScreen || [];
+        } catch (e) {
+            console.error("Failed to parse proposal internalAudit", e);
+            return 0;
+        }
+
+        // Find the specific screen by name or ID
+        const screen = screens.find((s: any) => s.id === entityId || s._id === entityId || s.name === entityId);
+        
+        if (!screen) return 0;
+
+        // Helper to get numbers safely from breakdown
+        const breakdown = screen.breakdown || {};
+        const num = (v: any) => Number(v || 0);
+
+        // Calculate based on field - using the already calculated values in internalAudit if available
+        if (field === 'totalCost') {
+            return num(breakdown.totalCost);
+        }
+        
+        if (field === 'sellPrice') {
+            return num(breakdown.sellPrice);
+        }
+        
+        if (field === 'finalTotal') {
+            return num(breakdown.finalClientTotal);
+        }
+    }
+    
+    // Fallback for other entity types or unknown fields
     return 0;
 }
 
