@@ -1,4 +1,4 @@
-"use client";
+think"use client";
 
 import React, { useCallback, useState } from "react";
 
