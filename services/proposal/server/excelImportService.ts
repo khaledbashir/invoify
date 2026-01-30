@@ -3,11 +3,13 @@ import { InternalAudit, ScreenAudit } from '@/lib/estimator';
 import { formatDimension, formatCurrencyInternal } from '@/lib/math';
 import { computeManifest } from '@/lib/verification';
 import { detectExceptions } from '@/lib/exceptions';
-import { VerificationManifest } from '@/types/verification';
+import { VerificationManifest, Exception } from '@/types/verification';
 
 interface ParsedANCProposal {
     formData: any; // Matches ProposalType structure
     internalAudit: InternalAudit;
+    verificationManifest: VerificationManifest; // NEW: Verification manifest
+    exceptions: Exception[]; // NEW: Detected exceptions
 }
 
 /**
