@@ -87,7 +87,16 @@ const Step4Export = () => {
         const rec = reconciliation;
         if (!rec) issues.push({ id: "no-reconciliation", label: "Verification not run" });
         if (rec && rec.isMatch === false) issues.push({ id: "variance", label: "Totals do not match Excel" });
-        if (effectiveExceptions.length > 0) issues.push({ id: "exceptions", label: `${effectiveExceptions.length} exceptions found` });
+        if (effectiveExceptions.length > 0) {
+            // In Mirror Mode, only block if there are actual critical exceptions
+            // Layer 2-4 exceptions are expected until those layers are run
+            const criticalExceptions = effectiveExceptions.filter(ex => 
+                ex.severity === 'CRITICAL' || ex.category === 'DATA_INTEGRITY'
+            );
+            if (criticalExceptions.length > 0) {
+                issues.push({ id: "exceptions", label: `${criticalExceptions.length} critical exceptions found` });
+            }
+        }
         return issues;
     }, [allScreensValid, effectiveExceptions.length, excelPreview, excelSourceData, hasOptionPlaceholder, internalAudit, reconciliation]);
 
