@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queryVault } from "@/lib/anything-llm";
+import { extractJson } from "@/lib/json-utils";
 
 export async function POST(req: NextRequest) {
     try {
@@ -28,14 +29,6 @@ export async function POST(req: NextRequest) {
             }, obj);
         };
 
-        const extractJson = (text: string) => {
-            const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-            const candidate = (fenced?.[1] ?? text).trim();
-            const start = candidate.indexOf("{");
-            const end = candidate.lastIndexOf("}");
-            if (start === -1 || end === -1 || end <= start) return null;
-            return candidate.slice(start, end + 1);
-        };
 
         const keysJson = JSON.stringify(fields);
         // Remove @agent to avoid raw tool calls leaking into the response

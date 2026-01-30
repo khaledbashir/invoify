@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { smartFilterPdf } from "@/services/ingest/smart-filter";
 import { screenshotPdfPage } from "@/services/ingest/pdf-screenshot";
 import { DrawingService } from "@/services/vision/drawing-service";
+import { extractJson } from "@/lib/json-utils";
 
 export async function GET(req: NextRequest) {
   try {
@@ -203,16 +204,16 @@ export async function POST(req: NextRequest) {
       const aiResponse = await queryVault(workspaceSlug, extractionPrompt, "chat");
       console.log(`[RFP Upload] AI Response Length: ${aiResponse.length}`);
       
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
+      const jsonText = extractJson(aiResponse);
+      if (jsonText) {
         try {
-            extractedData = JSON.parse(jsonMatch[0]);
+            extractedData = JSON.parse(jsonText);
         } catch (parseErr) {
             console.warn("[RFP Upload] JSON Parse Warning:", parseErr);
             // Try to repair common JSON issues if needed, or just proceed without data
             // Attempt simple repair for truncated JSON
             try {
-                extractedData = JSON.parse(jsonMatch[0] + "}");
+                extractedData = JSON.parse(jsonText + "}");
             } catch (e) { /* ignore */ }
         }
       }
