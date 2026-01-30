@@ -1775,6 +1775,7 @@ export const ProposalContextProvider = ({
               }
               // Let the user know the magic happened!
               aiExtractionSuccess();
+              return data;
             }
           } catch (e) {
             console.error("RFP upload error", e);

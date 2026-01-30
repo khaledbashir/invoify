@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadDocument, addToWorkspace, queryVault } from "@/lib/anything-llm";
 import { prisma } from "@/lib/prisma";
+import { smartFilterPdf } from "@/services/ingest/smart-filter";
+import { screenshotPdfPage } from "@/services/ingest/pdf-screenshot";
+import { DrawingService } from "@/services/vision/drawing-service";
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,10 +55,89 @@ export async function POST(req: NextRequest) {
     }
 
     const workspaceSlug = process.env.ANYTHING_LLM_WORKSPACE || "anc-estimator";
+    
+    // SMART INGEST PIPELINE
+    let fileToEmbed: Buffer | File = file;
+    let filenameToEmbed = file.name;
+    let originalDocPath = "";
+    let filterStats = null;
 
-    // 1. Upload Document
-    console.log(`[RFP Upload] Uploading ${file.name} to AnythingLLM...`);
-    const uploadRes = await uploadDocument(file, file.name);
+    // 0. Pre-process if PDF
+    if (file.name.toLowerCase().endsWith(".pdf")) {
+      console.log(`[RFP Upload] Smart Filtering PDF: ${file.name}`);
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      
+      try {
+        const filterResult = await smartFilterPdf(buffer);
+        console.log(`[RFP Upload] Filtered ${filterResult.totalPages} pages down to ${filterResult.retainedPages} signal pages.`);
+        
+        // --- AUTO-VISION EXTRACTION ---
+        if (filterResult.drawingCandidates.length > 0) {
+           console.log(`[RFP Upload] Found ${filterResult.drawingCandidates.length} potential drawings. Scanning top 3...`);
+           const drawingService = new DrawingService();
+           const pagesToScan = filterResult.drawingCandidates.slice(0, 3);
+           
+           let visionContext = "\n\n=== VISION EXTRACTION RESULTS (Drawings) ===\n";
+           let visionHits = 0;
+
+           for (const pageNum of pagesToScan) {
+              try {
+                  console.log(`[RFP Upload] Vision scanning page ${pageNum}...`);
+                  const screenshot = await screenshotPdfPage(buffer, pageNum);
+                  
+                  if (screenshot) {
+                      const base64 = `data:image/png;base64,${screenshot.toString('base64')}`;
+                      const results = await drawingService.processDrawingPage(base64);
+                      
+                      if (results.length > 0) {
+                          visionContext += `\n--- Page ${pageNum} Analysis ---\n`;
+                          results.forEach(r => {
+                              visionContext += `- Found ${r.field}: ${r.value} (Confidence: ${Math.round(r.confidence * 100)}%)\n`;
+                          });
+                          visionHits++;
+                      }
+                  }
+              } catch (vErr) {
+                  console.error(`[RFP Upload] Vision failed for page ${pageNum}`, vErr);
+              }
+           }
+
+           if (visionHits > 0) {
+               filterResult.filteredText += visionContext;
+               console.log(`[RFP Upload] Added vision context to embedding.`);
+           }
+        }
+        // ------------------------------
+
+        // Create synthetic text file for embedding (Signal Only)
+        fileToEmbed = Buffer.from(filterResult.filteredText);
+        filenameToEmbed = file.name.replace(/\.pdf$/i, "_signal.txt");
+        
+        filterStats = {
+          originalPages: filterResult.totalPages,
+          keptPages: filterResult.retainedPages,
+          drawingCandidates: filterResult.drawingCandidates
+        };
+        
+        // Upload ORIGINAL for storage/compliance (Archive folder, NO embedding)
+        const originalUpload = await uploadDocument(file, file.name, { folderName: "archive" });
+        if (originalUpload.success && originalUpload.data?.documents?.[0]) {
+           originalDocPath = originalUpload.data.documents[0].location;
+           console.log(`[RFP Upload] Original archived at ${originalDocPath}`);
+        }
+
+      } catch (e) {
+        console.error("[RFP Upload] Smart Filter failed, falling back to full upload", e);
+        // Fallback: Embed the original file
+        fileToEmbed = file;
+        filenameToEmbed = file.name;
+      }
+    }
+
+    // 1. Upload Document (The one to embed - either filtered txt or original)
+    console.log(`[RFP Upload] Uploading ${filenameToEmbed} to AnythingLLM for embedding...`);
+    const uploadRes = await uploadDocument(fileToEmbed, filenameToEmbed);
 
     if (!uploadRes.success || !uploadRes.data?.documents?.[0]) {
       console.error("[RFP Upload] Upload failed", uploadRes);
@@ -66,12 +148,15 @@ export async function POST(req: NextRequest) {
     console.log(`[RFP Upload] File uploaded to ${docPath}`);
 
     // 2. Persist to Database (Vault)
+    // We prefer to link to the ORIGINAL PDF if available, otherwise the uploaded file
+    const dbUrl = originalDocPath || docPath;
+    
     if (proposalId && proposalId !== "new") {
       try {
         await prisma.rfpDocument.create({
           data: {
             name: file.name,
-            url: docPath,
+            url: dbUrl,
             proposalId: proposalId
           }
         });
@@ -90,6 +175,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Extract Data (AI Analysis)
+    // Now running against the FILTERED context, so it should be much faster and more accurate
     console.log(`[RFP Upload] Analyzing document for extraction...`);
     const extractionPrompt = `
       Analyze the uploaded RFP document "${file.name}" and extract the following technical specifications into a JSON object.
@@ -125,8 +211,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      url: docPath,
+      url: dbUrl,
       extractedData,
+      filterStats,
       message: "RFP uploaded and analyzed successfully"
     });
 

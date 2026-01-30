@@ -54,7 +54,17 @@ const RfpSidebar = () => {
 
         setIsUploading(true);
         try {
-            await uploadRfpDocument(file);
+            const result: any = await uploadRfpDocument(file);
+
+            // Handle Smart Ingest Feedback
+            if (result?.filterStats) {
+                const { originalPages, keptPages, drawingCandidates } = result.filterStats;
+                const savings = Math.round((1 - keptPages / (originalPages || 1)) * 100);
+
+                const prompt = `I have uploaded ${file.name}. The Smart Filter reduced it from ${originalPages} to ${keptPages} pages (${savings}% noise reduction). ${drawingCandidates?.length ? `It also detected potential drawings on pages ${drawingCandidates.join(", ")}.` : ""} Please analyze the filtered content and extract the key technical requirements.`;
+                
+                await executeAiCommand(prompt);
+            }
         } catch (error) {
             console.error("Upload failed", error);
         } finally {
