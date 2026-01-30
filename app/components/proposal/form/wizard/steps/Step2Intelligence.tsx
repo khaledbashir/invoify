@@ -46,13 +46,13 @@ const Step2Intelligence = () => {
                         </p>
                         
                         <div className="flex gap-3 mt-6">
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-medium text-zinc-300 hover:border-brand-blue/50 transition-all flex items-center gap-2">
-                                <Box className="w-4 h-4 text-brand-blue" />
-                                Use Standard Catalog
+                            <button disabled className="px-4 py-2 bg-zinc-900/50 border border-zinc-800/50 rounded-lg text-sm font-medium text-zinc-500 cursor-not-allowed flex items-center gap-2">
+                                <Box className="w-4 h-4 text-zinc-600" />
+                                Use Standard Catalog (Coming Soon)
                             </button>
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm font-medium text-zinc-300 hover:border-brand-blue/50 transition-all flex items-center gap-2">
-                                <Box className="w-4 h-4 text-brand-blue" />
-                                Use Premium Catalog
+                            <button disabled className="px-4 py-2 bg-zinc-900/50 border border-zinc-800/50 rounded-lg text-sm font-medium text-zinc-500 cursor-not-allowed flex items-center gap-2">
+                                <Box className="w-4 h-4 text-zinc-600" />
+                                Use Premium Catalog (Coming Soon)
                             </button>
                         </div>
                     </div>
