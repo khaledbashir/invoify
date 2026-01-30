@@ -31,6 +31,7 @@ import {
 
 // Types
 import { ExportTypes, ProposalType } from "@/types";
+import type { VerificationManifest, Exception as VerificationException } from "@/types/verification";
 
 // Estimator / Audit
 import { calculateProposalAudit } from "@/lib/estimator";
@@ -65,6 +66,9 @@ const defaultProposalContext = {
   excelPreviewLoading: false,
   excelPreview: null as ExcelPreview | null,
   excelValidationOk: false,
+  excelSourceData: null as any,
+  verificationManifest: null as VerificationManifest | null,
+  verificationExceptions: [] as VerificationException[],
   loadExcelPreview: (file: File) => Promise.resolve(),
   savedProposals: [] as ProposalType[],
   pdfUrl: null as string | null,
@@ -170,6 +174,9 @@ export const ProposalContextProvider = ({
   const [excelPreviewLoading, setExcelPreviewLoading] = useState<boolean>(false);
   const [excelPreview, setExcelPreview] = useState<ExcelPreview | null>(null);
   const [excelValidationOk, setExcelValidationOk] = useState<boolean>(false);
+  const [excelSourceData, setExcelSourceData] = useState<any | null>(null);
+  const [verificationManifest, setVerificationManifest] = useState<VerificationManifest | null>(null);
+  const [verificationExceptions, setVerificationExceptions] = useState<VerificationException[]>([]);
   const [activeTab, setActiveTab] = useState<string>("client");
 
   // Alerts
@@ -1536,6 +1543,10 @@ export const ProposalContextProvider = ({
 
       const data = await res.json();
 
+      setExcelSourceData(data.excelData ?? null);
+      setVerificationManifest(data.verificationManifest ?? null);
+      setVerificationExceptions(Array.isArray(data.exceptions) ? data.exceptions : []);
+
       if (data.formData) {
         const { formData, internalAudit } = data;
 
@@ -1639,6 +1650,9 @@ export const ProposalContextProvider = ({
         excelPreviewLoading,
         excelPreview,
         excelValidationOk,
+        excelSourceData,
+        verificationManifest,
+        verificationExceptions,
         loadExcelPreview,
         savedProposals,
         pdfUrl,

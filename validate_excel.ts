@@ -13,7 +13,7 @@ async function run() {
 
     try {
         const buffer = fs.readFileSync(filePath);
-        const result = await parseANCExcel(buffer);
+        const result = await parseANCExcel(buffer, path.basename(filePath));
 
         const f = result.formData;
         console.log("=== PARSING RESULT ===");

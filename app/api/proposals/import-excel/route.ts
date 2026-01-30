@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const data = await parseANCExcel(buffer);
+        const data = await parseANCExcel(buffer, file.name);
 
         return NextResponse.json(data);
     } catch (err) {

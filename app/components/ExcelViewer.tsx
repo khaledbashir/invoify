@@ -14,6 +14,12 @@ import {
 
 type MergeKey = `${number}:${number}`;
 
+type ExcelViewerProps = {
+  highlightedRows?: number[];
+  focusedRow?: number | null;
+  onFocusedRowChange?: (row: number) => void;
+};
+
 function normalizeValue(value: string) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
@@ -56,7 +62,11 @@ function makeMergeMaps(merges: ExcelPreviewSheet["merges"]) {
 const LED_HIGHLIGHT_COLS = new Set([0, 4, 5, 6, 12]);
 const LED_BRIGHTNESS_COL_INDEX = 12;
 
-export default function ExcelViewer() {
+export default function ExcelViewer({
+  highlightedRows,
+  focusedRow,
+  onFocusedRowChange,
+}: ExcelViewerProps) {
   const { excelPreview, excelPreviewLoading } = useProposalContext();
   const [activeSheetName, setActiveSheetName] = useState<string | null>(null);
 
@@ -105,6 +115,7 @@ export default function ExcelViewer() {
     let foundActive = 0;
     let foundNumeric = 0;
     let foundProblems = 0;
+    const rowErrors = new Map<number, string[]>();
 
     for (let r = ledHeaderRowIndex + 1; r < grid.length; r++) {
       const row = grid[r] || [];
@@ -117,11 +128,16 @@ export default function ExcelViewer() {
       if (!nameCell) continue;
       foundActive++;
 
+      const errors: string[] = [];
       const h = normalizeValue(row[5] || "");
       const w = normalizeValue(row[6] || "");
       const isBad = (v: string) => !v || v.toUpperCase().includes("TBD");
-      if (isBad(nameCell) || isBad(h) || isBad(w)) {
+      if (isBad(nameCell)) errors.push("Missing Display Name");
+      if (isBad(h)) errors.push("Missing/Invalid Height");
+      if (isBad(w)) errors.push("Missing/Invalid Width");
+      if (errors.length > 0) {
         foundProblems++;
+        rowErrors.set(r, errors);
         continue;
       }
 
@@ -129,13 +145,16 @@ export default function ExcelViewer() {
       const wn = toNumberLoose(w);
       if (!hn || !wn || hn <= 0 || wn <= 0) {
         foundProblems++;
+        if (!hn || hn <= 0) errors.push("Height must be > 0");
+        if (!wn || wn <= 0) errors.push("Width must be > 0");
+        rowErrors.set(r, errors);
         continue;
       }
 
       foundNumeric++;
     }
 
-    return { foundActive, foundNumeric, foundProblems };
+    return { foundActive, foundNumeric, foundProblems, rowErrors };
   }, [activeSheet, isLedCostSheetActive, ledHeaderRowIndex]);
 
   if (excelPreviewLoading) {
@@ -161,6 +180,10 @@ export default function ExcelViewer() {
     if (colIndex === LED_BRIGHTNESS_COL_INDEX) return "AI-Extracted Brightness Field";
     return "AI-Extracted Field";
   };
+
+  const highlightedRowsSet = useMemo(() => {
+    return new Set((highlightedRows || []).filter((r) => Number.isFinite(r)));
+  }, [highlightedRows]);
 
   return (
     <div className="h-full w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 overflow-hidden flex flex-col">
@@ -230,13 +253,27 @@ export default function ExcelViewer() {
                 const isAlt = rowTextUpper.includes("ALT");
                 const isHidden = !!activeSheet.hiddenRows[r];
                 const isGhosted = isAlt || isHidden;
+                const rowErrors = validationSummary?.rowErrors.get(r);
+                const hasError = !!rowErrors && rowErrors.length > 0;
+                const isHighlightedRow = highlightedRowsSet.has(r);
+                const isFocusedRow = typeof focusedRow === "number" && r === focusedRow;
 
                 return (
                   <tr
                     key={r}
+                    onClick={
+                      onFocusedRowChange
+                        ? () => {
+                            onFocusedRowChange(r);
+                          }
+                        : undefined
+                    }
                     className={cn(
                       "hover:bg-zinc-900/40",
-                      isGhosted && "opacity-50"
+                      isGhosted && "opacity-50",
+                      hasError && "bg-red-500/10 hover:bg-red-500/20",
+                      isHighlightedRow && "bg-brand-blue/10 hover:bg-brand-blue/15",
+                      isFocusedRow && "ring-1 ring-brand-blue/60"
                     )}
                   >
                     {row.map((cell, c) => {
@@ -258,24 +295,45 @@ export default function ExcelViewer() {
                         isHighlightedCol && c === 0 && "border-l-[#0A52EF]/35 border-l",
                         isHighlightedCol && "shadow-[inset_0_0_0_1px_rgba(10,82,239,0.20)]",
                         isHeaderRow && "bg-zinc-900/60 text-zinc-100 font-semibold",
-                        isHeaderHighlighted && "bg-blue-50/10"
+                        isHeaderHighlighted && "bg-blue-50/10",
+                        hasError && "border-b-red-500/20"
                       );
 
-                      const content = isHeaderHighlighted ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2">
-                              <span className="truncate">{cellValue}</span>
-                              <span className="text-[9px] font-semibold uppercase tracking-widest text-[#0A52EF]">AI</span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white font-['Work_Sans']">
-                            {getAiExtractedTooltipText(c)}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <div className="whitespace-pre-wrap break-words">{cellValue}</div>
-                      );
+                      let content = <div className="whitespace-pre-wrap break-words">{cellValue}</div>;
+
+                      if (isHeaderHighlighted) {
+                        content = (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2">
+                                <span className="truncate">{cellValue}</span>
+                                <span className="text-[9px] font-semibold uppercase tracking-widest text-[#0A52EF]">AI</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white font-['Work_Sans']">
+                              {getAiExtractedTooltipText(c)}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      } else if (hasError && c === 0) {
+                         // Show error tooltip on first column
+                         content = (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+                                <span className="truncate text-red-200">{cellValue}</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="bg-red-950 border-red-900 text-red-200 font-['Work_Sans']">
+                                <div className="font-bold mb-1">Row {r + 1} Issues:</div>
+                                <ul className="list-disc pl-4 space-y-0.5">
+                                    {rowErrors.map((e, i) => <li key={i}>{e}</li>)}
+                                </ul>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      }
 
                       return (
                         <td
