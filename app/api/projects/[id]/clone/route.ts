@@ -28,6 +28,18 @@ export async function POST(
       return NextResponse.json({ error: "Proposal not found" }, { status: 404 });
     }
 
+    // REQ-126: Validate that only APPROVED/SIGNED/CLOSED proposals can be cloned
+    // DRAFT and PENDING_REVIEW should be edited directly, not cloned
+    const cloneableStates = ["APPROVED", "SIGNED", "CLOSED"];
+    if (!cloneableStates.includes(original.status as string)) {
+      return NextResponse.json({ 
+        error: `Cannot clone proposal in ${original.status} state. Only APPROVED, SIGNED, or CLOSED proposals can be cloned.`,
+        currentStatus: original.status,
+        allowedStates: cloneableStates,
+        suggestion: "Edit the proposal directly instead of cloning."
+      }, { status: 400 });
+    }
+
     // 2. Prepare clone data
     const { cloneData, newVersion } = prepareCloneData(
       original,

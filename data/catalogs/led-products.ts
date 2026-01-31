@@ -18,7 +18,21 @@ export interface Catalog {
     [key: string]: LedModule;
 }
 
+/**
+ * REQ-126: Expanded LED Module Catalog (Pro-Tool Building Blocks)
+ * 
+ * Per Eric Gruner's mandate: "module-by-module building blocks" with
+ * specific attributes for Pitch, Height (mm), Width (mm), and Half-Module support.
+ * 
+ * Catalog organized by:
+ * - Indoor Fine Pitch (≤4mm) - Conference rooms, lobbies
+ * - Indoor Standard (4-10mm) - Arenas, concourses  
+ * - Outdoor (≥10mm) - Stadiums, facades
+ */
 export const LED_MODULES: Catalog = {
+    // ============================================
+    // DEFAULT FALLBACK
+    // ============================================
     "DEFAULT": {
         id: "default-1",
         manufacturer: "Generic",
@@ -33,35 +47,225 @@ export const LED_MODULES: Catalog = {
         maxPowerWatts: 150,
         supportsHalfModule: false
     },
-    // LG GSQA - The "Ferrari" Choice
-    "LG-GSQA-040": {
-        id: "lg-gsqa-040",
+
+    // ============================================
+    // LG PRODUCTS (Ferrari-Grade)
+    // ============================================
+    
+    // LG GSQA Series - Indoor Fine Pitch
+    "LG-GSQA-039": {
+        id: "lg-gsqa-039",
         manufacturer: "LG",
-        name: "GSQA 3.9mm",
-        widthMm: 250,  // Verified from Curry/Eric cheat sheet
+        name: "GSQA 3.9mm Indoor",
+        widthMm: 250,
         heightMm: 250,
-        widthInches: 9.84, // 250 / 25.4
+        widthInches: 9.84,
         heightInches: 9.84,
         pitch: 3.9,
-        nits: 7500, // High brightness
-        weightLbs: 4.5, // Lightweight
+        nits: 7500,
+        weightLbs: 4.5,
         maxPowerWatts: 85,
-        supportsHalfModule: true // Native 250mm IS the module (panel is usually 500x500, so this is effectively half-panel)
+        supportsHalfModule: true
     },
-    // Yaham - The "Budget" Choice
-    "YAHAM-S3": {
-        id: "yaham-s3",
+    "LG-GSQA-027": {
+        id: "lg-gsqa-027",
+        manufacturer: "LG",
+        name: "GSQA 2.7mm Fine Pitch",
+        widthMm: 250,
+        heightMm: 250,
+        widthInches: 9.84,
+        heightInches: 9.84,
+        pitch: 2.7,
+        nits: 1200,
+        weightLbs: 4.2,
+        maxPowerWatts: 75,
+        supportsHalfModule: true
+    },
+    "LG-GSQA-019": {
+        id: "lg-gsqa-019",
+        manufacturer: "LG",
+        name: "GSQA 1.9mm Ultra Fine",
+        widthMm: 250,
+        heightMm: 250,
+        widthInches: 9.84,
+        heightInches: 9.84,
+        pitch: 1.9,
+        nits: 800,
+        weightLbs: 4.0,
+        maxPowerWatts: 65,
+        supportsHalfModule: true
+    },
+    
+    // LG LAA Series - Outdoor
+    "LG-LAA-100": {
+        id: "lg-laa-100",
+        manufacturer: "LG",
+        name: "LAA 10mm Outdoor",
+        widthMm: 500,
+        heightMm: 500,
+        widthInches: 19.685,
+        heightInches: 19.685,
+        pitch: 10,
+        nits: 8000,
+        weightLbs: 22,
+        maxPowerWatts: 280,
+        supportsHalfModule: false
+    },
+    "LG-LAA-060": {
+        id: "lg-laa-060",
+        manufacturer: "LG",
+        name: "LAA 6mm Outdoor",
+        widthMm: 500,
+        heightMm: 500,
+        widthInches: 19.685,
+        heightInches: 19.685,
+        pitch: 6,
+        nits: 7000,
+        weightLbs: 20,
+        maxPowerWatts: 250,
+        supportsHalfModule: false
+    },
+
+    // ============================================
+    // YAHAM PRODUCTS (Value-Grade)
+    // ============================================
+    
+    // Yaham S3 Series - Indoor/Outdoor Versatile
+    "YAHAM-S3-100": {
+        id: "yaham-s3-100",
         manufacturer: "Yaham",
-        name: "S3 Series",
-        widthMm: 320, // Verified 320x320
+        name: "S3 10mm Standard",
+        widthMm: 320,
         heightMm: 320,
-        widthInches: 12.6, // 320 / 25.4 = 12.598
+        widthInches: 12.6,
         heightInches: 12.6,
-        pitch: 10, // usually higher pitch
-        nits: 2000, // Standard outdoor/indoor
+        pitch: 10,
+        nits: 5000,
         weightLbs: 12,
         maxPowerWatts: 200,
-        supportsHalfModule: true // Supports 160mm cuts potentially, but let's stick to base module
+        supportsHalfModule: true
+    },
+    "YAHAM-S3-060": {
+        id: "yaham-s3-060",
+        manufacturer: "Yaham",
+        name: "S3 6mm Indoor",
+        widthMm: 320,
+        heightMm: 320,
+        widthInches: 12.6,
+        heightInches: 12.6,
+        pitch: 6,
+        nits: 3000,
+        weightLbs: 11,
+        maxPowerWatts: 180,
+        supportsHalfModule: true
+    },
+    "YAHAM-S3-039": {
+        id: "yaham-s3-039",
+        manufacturer: "Yaham",
+        name: "S3 3.9mm Fine Pitch",
+        widthMm: 320,
+        heightMm: 320,
+        widthInches: 12.6,
+        heightInches: 12.6,
+        pitch: 3.9,
+        nits: 1500,
+        weightLbs: 10,
+        maxPowerWatts: 160,
+        supportsHalfModule: true
+    },
+    
+    // Yaham Outdoor Series
+    "YAHAM-OUT-160": {
+        id: "yaham-out-160",
+        manufacturer: "Yaham",
+        name: "Outdoor 16mm Stadium",
+        widthMm: 500,
+        heightMm: 500,
+        widthInches: 19.685,
+        heightInches: 19.685,
+        pitch: 16,
+        nits: 10000,
+        weightLbs: 25,
+        maxPowerWatts: 350,
+        supportsHalfModule: false
+    },
+    "YAHAM-OUT-100": {
+        id: "yaham-out-100",
+        manufacturer: "Yaham",
+        name: "Outdoor 10mm Stadium",
+        widthMm: 500,
+        heightMm: 500,
+        widthInches: 19.685,
+        heightInches: 19.685,
+        pitch: 10,
+        nits: 8000,
+        weightLbs: 23,
+        maxPowerWatts: 300,
+        supportsHalfModule: false
+    },
+
+    // ============================================
+    // ABSEN PRODUCTS (Mid-Tier)
+    // ============================================
+    "ABSEN-A27": {
+        id: "absen-a27",
+        manufacturer: "Absen",
+        name: "A Series 2.7mm",
+        widthMm: 300,
+        heightMm: 300,
+        widthInches: 11.81,
+        heightInches: 11.81,
+        pitch: 2.7,
+        nits: 1000,
+        weightLbs: 6,
+        maxPowerWatts: 90,
+        supportsHalfModule: true
+    },
+    "ABSEN-A39": {
+        id: "absen-a39",
+        manufacturer: "Absen",
+        name: "A Series 3.9mm",
+        widthMm: 300,
+        heightMm: 300,
+        widthInches: 11.81,
+        heightInches: 11.81,
+        pitch: 3.9,
+        nits: 1500,
+        weightLbs: 6.5,
+        maxPowerWatts: 100,
+        supportsHalfModule: true
+    },
+
+    // ============================================
+    // UNILUMIN PRODUCTS (Premium)
+    // ============================================
+    "UNILUMIN-UTV-P19": {
+        id: "unilumin-utv-p19",
+        manufacturer: "Unilumin",
+        name: "UTV 1.9mm Broadcast",
+        widthMm: 250,
+        heightMm: 250,
+        widthInches: 9.84,
+        heightInches: 9.84,
+        pitch: 1.9,
+        nits: 600,
+        weightLbs: 4,
+        maxPowerWatts: 60,
+        supportsHalfModule: true
+    },
+    "UNILUMIN-UTV-P27": {
+        id: "unilumin-utv-p27",
+        manufacturer: "Unilumin",
+        name: "UTV 2.7mm Indoor",
+        widthMm: 250,
+        heightMm: 250,
+        widthInches: 9.84,
+        heightInches: 9.84,
+        pitch: 2.7,
+        nits: 1000,
+        weightLbs: 4.2,
+        maxPowerWatts: 70,
+        supportsHalfModule: true
     }
 };
 

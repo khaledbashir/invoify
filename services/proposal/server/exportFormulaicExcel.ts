@@ -21,6 +21,9 @@ export interface AuditExcelOptions {
     reinforcingTonnage?: number;
     // For PDF/Excel total matching verification
     pdfTotal?: number;
+    // REQ-126: Financial rate overrides (Master Truth compliance)
+    bondRateOverride?: number;  // Default 0.015 (1.5%)
+    taxRateOverride?: number;   // Default 0.095 (9.5%)
 }
 
 // Standard P&L Categories (Standard Enterprise Gold Standard)
@@ -179,12 +182,15 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         sheet.getCell(`G${currentRow}`).font = { bold: true, color: { argb: 'FF0A52EF' } };
         sheet.getCell(`G${currentRow}`).numFmt = '"$"#,##0.00';
 
-        // 4. TAX & BOND INPUTS (DYNAMIC)
+        // 4. TAX & BOND INPUTS (DYNAMIC) - REQ-126: Use context-bound overrides
+        const effectiveBondRate = options?.bondRateOverride ?? 0.015; // Default 1.5%
+        const effectiveTaxRate = options?.taxRateOverride ?? 0.095;   // Default 9.5%
+        
         currentRow++;
-        const bondRow = currentRow; // Swap order: Bond comes before or parallel to tax, but calculation requires Sell Price first.
-        sheet.getCell(`A${currentRow}`).value = 'PERFORMANCE BOND (1.5%)';
+        const bondRow = currentRow;
+        sheet.getCell(`A${currentRow}`).value = `PERFORMANCE BOND (${(effectiveBondRate * 100).toFixed(1)}%)`;
         sheet.getCell(`D${currentRow}`).value = 'Sell Price * Bond Rate';
-        sheet.getCell(`H${currentRow}`).value = 0.015; // Default 1.5% bond
+        sheet.getCell(`H${currentRow}`).value = effectiveBondRate; // REQ-126: Use override
         sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
         sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
         sheet.getCell(`I${currentRow}`).value = { formula: `G${sellPriceRow}*H${bondRow}` }; // Bond Value = Sell Price * Rate
@@ -202,9 +208,9 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
 
         currentRow++;
         const taxRow = currentRow;
-        sheet.getCell(`A${currentRow}`).value = 'SALES TAX';
+        sheet.getCell(`A${currentRow}`).value = `SALES TAX (${(effectiveTaxRate * 100).toFixed(1)}%)`;
         sheet.getCell(`D${currentRow}`).value = '(Sell Price + Bond + B&O) * Tax Rate';
-        sheet.getCell(`H${currentRow}`).value = 0.095; // Default 9.5% tax
+        sheet.getCell(`H${currentRow}`).value = effectiveTaxRate; // REQ-126: Use override
         sheet.getCell(`H${currentRow}`).numFmt = '0.0%';
         sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow Input
         sheet.getCell(`I${currentRow}`).value = { formula: `(G${sellPriceRow}+I${bondRow}+I${boTaxRow})*H${taxRow}` }; // Tax on (Sell + Bond + B&O)
@@ -388,10 +394,11 @@ function buildPLBreakdown(sheet: ExcelJS.Worksheet, screens: any[], options?: Au
         totals.electricalEng.revenue += (b.pm || 0) / (1 - margin);
     });
 
-    // Calculate Bond (1.5% of total revenue)
+    // Calculate Bond - REQ-126: Use context-bound override
+    const summaryBondRate = options?.bondRateOverride ?? 0.015;
     const totalRevenue = Object.values(totals).reduce((sum, t) => sum + t.revenue, 0);
-    totals.bond.revenue = totalRevenue * 0.015;
-    totals.bond.budget = totalRevenue * 0.015; // Bond is pass-through
+    totals.bond.revenue = totalRevenue * summaryBondRate;
+    totals.bond.budget = totalRevenue * summaryBondRate; // Bond is pass-through
 
     // Write rows
     PL_CATEGORIES.forEach(cat => {

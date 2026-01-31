@@ -29,7 +29,7 @@ const IMMUTABLE_STATES = ["SIGNED", "CLOSED"];
 const FINANCIAL_LOCKED_STATES = ["APPROVED", "SIGNED", "CLOSED"];
 
 // Fields that are locked once APPROVED
-const LOCKED_FINANCIAL_FIELDS = [
+export const LOCKED_FINANCIAL_FIELDS = [
   "margin",
   "desiredMargin", 
   "cost",
