@@ -224,9 +224,11 @@ export type ScreenAudit = {
     bondCost: number; // Sell Price * 1.5%
     marginAmount: number; // Alias for ancMargin (backwards compatibility)
     totalCost: number; // Sum of all costs EXCLUDING bond
-    finalClientTotal: number; // Sell Price + Bond Cost + boTax
+    finalClientTotal: number; // Sell Price + Bond Cost + boTax + salesTax
     sellingPricePerSqFt: number; // Final Client Total / Sq Ft
     boTaxCost: number; // REQ-48
+    salesTaxCost: number; // REQ-125: Sales tax amount
+    salesTaxRate: number; // REQ-125: Sales tax rate used
   };
 };
 
@@ -293,6 +295,7 @@ export function calculatePerScreenAudit(
     permitsFixed?: number;
     cmsPct?: number;
     bondPct?: number;
+    taxRate?: number; // REQ-125: Sales tax rate override (default 0.095)
     structuralTonnage?: number; // REQ-46
     reinforcingTonnage?: number; // REQ-46
     projectAddress?: string; // REQ-81
