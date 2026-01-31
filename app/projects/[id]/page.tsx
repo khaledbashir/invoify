@@ -76,6 +76,7 @@ function mapDbToFormSchema(dbProject: any) {
             calculationMode: dbProject.calculationMode || "INTELLIGENCE",
             taxRateOverride: Number(dbProject.taxRateOverride) || 0,
             bondRateOverride: Number(dbProject.bondRateOverride) || 0,
+            aiWorkspaceSlug: dbProject.aiWorkspaceSlug || null,
             venue: "Generic" as const,
         },
     };
