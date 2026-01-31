@@ -41,7 +41,7 @@ export function StudioLayout({
 
     const navItems = [
         { id: "form", icon: LayoutDashboard, label: "Edit Proposal" },
-        { id: "ai", icon: MessageSquare, label: "AI Assistant" },
+        { id: "ai", icon: MessageSquare, label: "AI Chat" },
         { id: "audit", icon: Table, label: "Pricing Breakdown" },
     ];
 
@@ -119,16 +119,16 @@ export function StudioLayout({
                     {/* THE HUB (Left Pane: 50vw) */}
                     <section className="relative flex flex-col overflow-hidden bg-zinc-950/40 border-r border-zinc-900 anc-slash-bg">
                         {/* Mode Toggle - Top Anchored */}
-                        <ModeToggle 
-                            mode={viewMode === "ai" ? "ai" : "form"} 
-                            onChange={(m) => setViewMode(m as ViewMode)} 
+                        <ModeToggle
+                            mode={viewMode === "ai" ? "ai" : "form"}
+                            onChange={(m) => setViewMode(m as ViewMode)}
                         />
 
                         {/* Stacked Panels with CSS Visibility Toggle */}
                         <div className="flex-1 flex overflow-hidden">
                             <div className="flex-1 relative overflow-hidden">
                                 {/* Drafting Form Panel */}
-                                <div 
+                                <div
                                     className={cn(
                                         "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
                                         viewMode === "form" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
@@ -140,7 +140,7 @@ export function StudioLayout({
                                 </div>
 
                                 {/* Intelligence Engine Panel (AI Chat) */}
-                                <div 
+                                <div
                                     className={cn(
                                         "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
                                         viewMode === "ai" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
@@ -158,7 +158,7 @@ export function StudioLayout({
                                 </div>
 
                                 {/* Financial Audit Panel */}
-                                <div 
+                                <div
                                     className={cn(
                                         "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
                                         viewMode === "audit" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
@@ -178,9 +178,9 @@ export function StudioLayout({
 
                             {/* REQ-26: Project Health Sidebar */}
                             {viewMode === "form" && (
-                                <IntelligenceSidebar 
-                                    isVisible={isHealthSidebarVisible} 
-                                    onToggle={() => setIsHealthSidebarVisible(!isHealthSidebarVisible)} 
+                                <IntelligenceSidebar
+                                    isVisible={isHealthSidebarVisible}
+                                    onToggle={() => setIsHealthSidebarVisible(!isHealthSidebarVisible)}
                                 />
                             )}
                         </div>

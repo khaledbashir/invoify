@@ -302,6 +302,11 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
             </div>
 
+            {/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */}
+            <div className="break-before-page px-4">
+                <ExhibitA_SOW data={data} />
+            </div>
+
             <div className="break-before-page px-4">
                 {/* 3. PRICING SECTION */}
                 <SectionHeader title="PRICING" />
@@ -313,6 +318,11 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
                 {/* REQ-124: Project-Level Financial Summary (Bond, B&O Tax, Sales Tax consolidated) */}
                 <ProjectTotalsSummary />
+            </div>
+
+            {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */}
+            <div className="break-before-page px-4">
+                <ExhibitB_CostSchedule data={data} />
             </div>
 
             {/* 6. PROJECT CONSTRAINTS (VENUE-SPECIFIC) */}
@@ -427,15 +437,6 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             </div>
 
-            {/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */}
-            <div className="break-before-page px-4">
-                <ExhibitA_SOW data={data} />
-            </div>
-
-            {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */}
-            <div className="break-before-page px-4">
-                <ExhibitB_CostSchedule data={data} />
-            </div>
         </ProposalLayout>
     );
 };
