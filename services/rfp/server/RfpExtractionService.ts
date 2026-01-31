@@ -24,13 +24,22 @@ export class RfpExtractionService {
       You MUST prioritize and search for "SECTION 11 63 10" (LED Display Systems) and "SECTION 11 06 60" (Display Schedule).
       These sections are the "Master Truth". Data found here overrides all other sections.
       
+      MANDATORY CITATION REQUIREMENT (Trust but Verify):
+      For EVERY extracted value, you MUST include a citation in this EXACT format:
+      "[Source: Section X.XX, Page Y]"
+      
+      Example: "pixelPitch": { "value": 10, "citation": "[Source: Section 11 06 60, Page 9]" }
+      
+      If no specific page/section is found, use: "[Source: Document Analysis]"
+      
       SPECIFIC EXTRACTION TARGETS:
       1. LOCATE the "LED Display Schedule" table in Section 11 06 60.
-      2. EXTRACT the following rows for each display type:
-         - "Quantity" or "Qty"
-         - "Active Area" or "Dimensions" (Width x Height)
-         - "Pixel Pitch" (e.g., 4mm, 6mm, 10mm)
-         - "Resolution" (if Dimensions are missing)
+      2. EXTRACT the following rows for each display type WITH CITATIONS:
+         - "Quantity" or "Qty" + citation
+         - "Active Area" or "Dimensions" (Width x Height) + citation
+         - "Pixel Pitch" (e.g., 4mm, 6mm, 10mm) + citation
+         - "Resolution" (if Dimensions are missing) + citation
+         - "Brightness/Nits" + citation
       3. IF "Section 11 06 60" is found, set "extractionAccuracy" to "High".
 
       CRITICAL: You must detect specific ANC "Ferrari Level" site rules:
@@ -48,18 +57,26 @@ export class RfpExtractionService {
       OUTPUT FORMAT: Return ONLY a valid JSON object. No markdown, no conversational text.
       
       {
-        "clientName": "...",
-        "projectTitle": "...",
+        "clientName": { "value": "...", "citation": "[Source: ...]" },
+        "projectTitle": { "value": "...", "citation": "[Source: ...]" },
         "venue": "Milan Puskar Stadium" | "WVU Coliseum" | "Generic",
         "extractionAccuracy": "High" | "Standard",
-        "screens": [ ... ],
+        "screens": [
+          {
+            "name": { "value": "...", "citation": "[Source: Section 11 06 60, Page X]" },
+            "pixelPitch": { "value": 10, "citation": "[Source: Section 11 06 60, Page X]" },
+            "width": { "value": 40, "citation": "[Source: Section 11 06 60, Page X]" },
+            "height": { "value": 20, "citation": "[Source: Section 11 06 60, Page X]" },
+            "brightness": { "value": 6000, "citation": "[Source: Section 11 63 10, Page X]" }
+          }
+        ],
         "rulesDetected": {
-           "requiresUnionLabor": boolean,
+           "requiresUnionLabor": { "value": true, "citation": "[Source: Section X, Page Y]" },
            "isWtcLocation": boolean,
-           "requiresSpareParts": boolean,
+           "requiresSpareParts": { "value": true, "citation": "[Source: Exhibit A, Page 11]" },
            "requiresBond": boolean,
-           "structuralTonnage": number,
-           "reinforcingTonnage": number
+           "structuralTonnage": { "value": 17, "citation": "[Source: TTE Report, Page X]" },
+           "reinforcingTonnage": { "value": 17, "citation": "[Source: TTE Report, Page X]" }
         }
       }
     `;

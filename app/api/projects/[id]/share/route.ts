@@ -91,8 +91,18 @@ export async function POST(
                         price: li.price,
                         cost: 0,
                         margin: 0
-                    }))
+                    })),
+                    // SANITIZATION: Strip AI metadata (Blue Glow, citations) from public view
+                    aiSource: undefined,
+                    citations: undefined
                 })) as any,
+                // SANITIZATION: Strip all AI tracking from public share
+                metadata: {
+                    filledByAI: undefined,
+                    aiFields: undefined,
+                    citations: undefined,
+                    extractionAccuracy: undefined
+                },
                 totalAmount: 0, // Will be calculated by template
                 totalAmountInWords: "",
                 documentType: "First Round",
