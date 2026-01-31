@@ -43,7 +43,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
     return (
         <>
             {head}
-            <section style={{ fontFamily: "'Work Sans', 'Helvetica Condensed', sans-serif", position: 'relative' }}>
+            <section style={{ fontFamily: "'Work Sans', sans-serif", position: 'relative' }}>
                 <div className="block p-4 sm:p-10 bg-white rounded-xl shadow-2xl min-h-[1056px] text-[#1a1a1a] relative overflow-hidden border border-white/50">
                     {/* Draft Watermark Safeguard */}
                     {details.status === 'DRAFT' && (

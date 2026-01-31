@@ -442,142 +442,125 @@ const Step4Export = () => {
 
                     {/* Right Column: Global Export Action */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* The Global Export Button - Primary Call to Action */}
-                        <div
-                            onClick={(mirrorMode ? isMirrorReadyToExport : allScreensValid) ? handleGlobalExport : undefined}
-                            className={cn(
-                                "group relative overflow-hidden rounded-3xl p-10 transition-all duration-500",
-                                (mirrorMode ? isMirrorReadyToExport : (allScreensValid && !isGatekeeperLocked))
-                                    ? "bg-brand-blue cursor-pointer hover:shadow-[0_0_40px_rgba(10,82,239,0.3)] hover:-translate-y-1"
-                                    : "bg-zinc-800/50 cursor-not-allowed opacity-60"
-                            )}
-                        >
-                            {/* 55° Slash Pattern for Brand Consistency */}
-                            <div className="absolute inset-0 opacity-20 pointer-events-none">
-                                {[...Array(6)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute h-[200%] w-px bg-white transform rotate-[55deg]"
-                                        style={{ left: `${i * 20}%`, top: '-50%' }}
-                                    />
-                                ))}
-                            </div>
 
-                            <div className="relative z-10 flex flex-col items-center text-center gap-6">
-                                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-transform duration-500">
-                                    {exporting ? (
-                                        <Zap className="w-10 h-10 text-white animate-pulse" />
-                                    ) : (
-                                        <Download className="w-10 h-10 text-white" />
-                                    )}
-                                </div>
-
-                                <div>
-                                    <h3 className="text-2xl font-bold text-white mb-2">Global Export Bundle</h3>
-                                    <p className="text-white/70 text-sm max-w-sm mx-auto font-medium leading-relaxed">
-                                        Generates both the <span className="text-white font-bold">Client-Facing PDF</span> and the <span className="text-white font-bold">Internal Audit Excel</span> in a single operation.
-                                    </p>
-                                </div>
-
-                                {!(mirrorMode ? (isMirrorReadyToExport && !isGatekeeperLocked) : (allScreensValid && !isGatekeeperLocked)) && (
-                                    <div className="mt-2 px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                        <Lock className="w-3 h-3" /> Resolve Gates To Unlock
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* NATALIA GATEKEEPER ADVISORY */}
+                        {/* NATALIA GATEKEEPER ADVISORY - Moved to top for visibility */}
                         {isGatekeeperLocked && (
-                            <Card className="border-brand-blue/30 bg-brand-blue/5 overflow-hidden">
+                            <Card className="border-brand-blue/30 bg-brand-blue/5 overflow-hidden animate-in fade-in slide-in-from-top-2">
                                 <CardHeader className="py-4 bg-brand-blue/10 border-b border-brand-blue/20">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 text-brand-blue text-sm font-bold">
                                             <Shield className="w-4 h-4" />
-                                            <span>NATALIA GATEKEEPER ADVISORY</span>
+                                            <span>NATALIA GATEKEEPER ACTIVE</span>
                                         </div>
                                         <Badge variant="outline" className="text-[10px] bg-brand-blue/20 border-brand-blue/30 text-brand-blue animate-pulse">
-                                            {unverifiedAiFields.length} FIELDS PENDING
+                                            {unverifiedAiFields.length} VERIFICATIONS PENDING
                                         </Badge>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-4 space-y-4">
-                                    <AlertTriangle className="w-5 h-5 text-brand-blue/70 float-left mr-3 mb-1" />
-                                    <p className="text-xs text-zinc-400 leading-relaxed italic">
-                                        Export blocked. The "Trust but Verify" mandate requires manual confirmation of all AI-generated fields before client release.
-                                    </p>
+                                    <div className="flex items-start gap-3">
+                                        <AlertTriangle className="w-5 h-5 text-brand-blue/70 shrink-0 mt-0.5" />
+                                        <p className="text-xs text-zinc-400 leading-relaxed">
+                                            Export capabilities are currently locked. The "Trust but Verify" mandate requires manual confirmation of all AI-generated fields before client release.
+                                        </p>
+                                    </div>
 
-                                    <div className="grid grid-cols-2 gap-2 mt-4">
-                                        {unverifiedAiFields.slice(0, 6).map(field => (
+                                    <div className="grid grid-cols-2 gap-2 pl-8">
+                                        {unverifiedAiFields.slice(0, 4).map(field => (
                                             <div key={field} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 font-medium">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-brand-blue" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
                                                 {field.split('.').pop()?.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                                             </div>
                                         ))}
-                                        {unverifiedAiFields.length > 6 && (
+                                        {unverifiedAiFields.length > 4 && (
                                             <div className="flex items-center justify-center p-2 rounded-lg bg-zinc-900/50 border border-zinc-800/50 text-[10px] text-zinc-500 font-bold">
-                                                +{unverifiedAiFields.length - 6} MORE
+                                                +{unverifiedAiFields.length - 4} MORE
                                             </div>
                                         )}
-                                    </div>
-
-                                    <div className="pt-4 border-t border-zinc-800 flex gap-3">
-                                        <BaseButton
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full text-[10px] gap-2 border-brand-blue/30 text-brand-blue hover:bg-brand-blue/10"
-                                            onClick={() => {/* Link to Intelligence Sidebar logic */ }}
-                                        >
-                                            <Zap className="w-3 h-3" /> Ask AI to find data
-                                        </BaseButton>
                                     </div>
                                 </CardContent>
                             </Card>
                         )}
 
-                        {/* Individual Export Options */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                onClick={downloadPdf}
-                                disabled={mirrorMode ? isPdfPreviewBlocked : (!allScreensValid || isGatekeeperLocked)}
-                                className={cn(
-                                    "flex items-center justify-between p-4 bg-zinc-900 border rounded-xl transition-all group",
-                                    (mirrorMode ? isPdfPreviewBlocked : (!allScreensValid || isGatekeeperLocked))
-                                        ? "border-zinc-800 opacity-60 cursor-not-allowed"
-                                        : "border-zinc-800 hover:border-brand-blue/50"
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-zinc-800 text-zinc-400 group-hover:text-brand-blue transition-colors">
-                                        <Eye className="w-4 h-4" />
+                        {/* Consolidated Export Suite */}
+                        <Card className="bg-zinc-900/40 border border-zinc-800/60 overflow-hidden">
+                            <CardHeader className="border-b border-zinc-800/60 pb-3">
+                                <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                                    <Download className="w-4 h-4 text-brand-blue" />
+                                    Export Suite
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="grid grid-cols-1 divide-y divide-zinc-800/60">
+                                    {/* Primary Bundle Option */}
+                                    <div className="p-4 flex items-center justify-between hover:bg-zinc-900/40 transition-colors group">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 group-hover:scale-110 transition-transform">
+                                                <Zap className="w-5 h-5 text-brand-blue" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-bold text-white group-hover:text-brand-blue transition-colors">Global Export Bundle</h4>
+                                                <p className="text-[11px] text-zinc-500">Download Client PDF + Internal Audit Excel (Recommended)</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleGlobalExport}
+                                            disabled={mirrorMode ? !isMirrorReadyToExport : (!allScreensValid || isGatekeeperLocked)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2",
+                                                (mirrorMode ? !isMirrorReadyToExport : (!allScreensValid || isGatekeeperLocked))
+                                                    ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                                                    : "bg-brand-blue text-white hover:bg-brand-blue/90 shadow-[0_0_20px_rgba(10,82,239,0.3)] hover:shadow-[0_0_30px_rgba(10,82,239,0.5)]"
+                                            )}
+                                        >
+                                            {exporting ? "Generating..." : "Download Bundle"}
+                                            {!exporting && <Download className="w-3.5 h-3.5" />}
+                                        </button>
                                     </div>
-                                    <div className="text-left">
-                                        <h4 className="text-xs font-bold text-white">PDF Only</h4>
-                                        <p className="text-[10px] text-zinc-500">Client-facing proposal</p>
+
+                                    {/* Individual Options */}
+                                    <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
+                                        <div className="p-4 flex items-center justify-between hover:bg-zinc-900/40 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400">
+                                                    <FileSpreadsheet className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-zinc-300">Excel Only</div>
+                                                    <div className="text-[10px] text-zinc-600">Audit Workbook</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={exportAudit}
+                                                disabled={(mirrorMode && !isMirrorReadyToExport) || isGatekeeperLocked}
+                                                className="p-2 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="p-4 flex items-center justify-between hover:bg-zinc-900/40 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400">
+                                                    <Eye className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-zinc-300">PDF Only</div>
+                                                    <div className="text-[10px] text-zinc-600">Client Proposal</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={downloadPdf}
+                                                disabled={mirrorMode ? isPdfPreviewBlocked : (!allScreensValid || isGatekeeperLocked)}
+                                                className="p-2 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </button>
-                            <button
-                                onClick={exportAudit}
-                                disabled={(mirrorMode && !isMirrorReadyToExport) || isGatekeeperLocked}
-                                className={cn(
-                                    "flex items-center justify-between p-4 bg-zinc-900 border rounded-xl transition-all group",
-                                    ((mirrorMode && !isMirrorReadyToExport) || isGatekeeperLocked)
-                                        ? "border-zinc-800 opacity-60 cursor-not-allowed"
-                                        : "border-zinc-800 hover:border-emerald-500/50"
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-zinc-800 text-zinc-400 group-hover:text-emerald-500 transition-colors">
-                                        <FileSpreadsheet className="w-4 h-4" />
-                                    </div>
-                                    <div className="text-left">
-                                        <h4 className="text-xs font-bold text-white">Excel Only</h4>
-                                        <p className="text-[10px] text-zinc-500">Internal audit workbook</p>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
 
@@ -614,20 +597,27 @@ const Step4Export = () => {
                                         <button
                                             type="button"
                                             onClick={runVerification}
-                                            disabled={verificationLoading || !canRunVerification}
+                                            disabled={verificationLoading}
                                             className={cn(
                                                 "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
-                                                (verificationLoading || !canRunVerification)
+                                                verificationLoading
                                                     ? "border-zinc-800 bg-zinc-950/40 text-zinc-500 cursor-not-allowed"
-                                                    : "border-brand-blue/40 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/15"
+                                                    : !canRunVerification
+                                                        ? "border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20"
+                                                        : "border-brand-blue/40 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/15"
                                             )}
                                         >
-                                            {verificationLoading ? "Verifying…" : <span className="inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" />Run Verification</span>}
+                                            {verificationLoading ? "Verifying…" : (
+                                                <span className="inline-flex items-center gap-2">
+                                                    {!canRunVerification ? <AlertTriangle className="w-4 h-4" /> : <RefreshCw className="w-4 h-4" />}
+                                                    {canRunVerification ? "Run Verification" : "Check Status"}
+                                                </span>
+                                            )}
                                         </button>
                                     </TooltipTrigger>
                                     {!canRunVerification && (
                                         <TooltipContent side="bottom" className="bg-zinc-800 border-zinc-700 text-white text-xs max-w-xs">
-                                            {!proposalId ? "Save the project first" : !excelSourceData ? "Import an Excel file first" : "Add screens with dimensions first"}
+                                            Click to see what data is missing for verification.
                                         </TooltipContent>
                                     )}
                                 </Tooltip>
@@ -668,7 +658,7 @@ const Step4Export = () => {
                     <CardContent className="p-4">
                         <Tabs defaultValue="studio">
                             <TabsList className="bg-zinc-950/40">
-                                <TabsTrigger value="studio">Side-by-side</TabsTrigger>
+                                <TabsTrigger value="studio">Data Inspection</TabsTrigger>
                                 <TabsTrigger value="results">Results</TabsTrigger>
                             </TabsList>
 
@@ -676,7 +666,17 @@ const Step4Export = () => {
                                 <div className="space-y-4">
                                     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/30 overflow-hidden">
                                         <div className="shrink-0 px-4 py-3 border-b border-zinc-800/70 flex items-center justify-between">
-                                            <div className="text-[11px] font-semibold text-zinc-300 uppercase tracking-widest">Excel Verification</div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Source</span>
+                                                    <span className="text-xs font-semibold text-white">Excel Estimator</span>
+                                                </div>
+                                                <div className="h-4 w-px bg-zinc-800" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Output</span>
+                                                    <span className="text-xs font-semibold text-brand-blue">Proposal PDF</span>
+                                                </div>
+                                            </div>
                                             <button
                                                 type="button"
                                                 onClick={previewPdfInTab}

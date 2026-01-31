@@ -19,6 +19,7 @@ type ExcelViewerProps = {
   focusedRow?: number | null;
   onFocusedRowChange?: (row: number) => void;
   editable?: boolean; // Enable inline editing
+  scanningRow?: number | null; // New prop for laser scan effect
 };
 
 function normalizeValue(value: string) {
@@ -71,7 +72,7 @@ export default function ExcelViewer({
 }: ExcelViewerProps) {
   const { excelPreview, excelPreviewLoading, updateExcelCell } = useProposalContext();
   const [activeSheetName, setActiveSheetName] = useState<string | null>(null);
-  
+
   // Editing state
   const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -170,7 +171,7 @@ export default function ExcelViewer({
     const grid = activeSheet.grid;
     const hiddenRows = activeSheet.hiddenRows;
     const headerRow = grid[ledHeaderRowIndex] || [];
-    
+
     // Find column indices dynamically
     const nameColIndex = headerRow.findIndex(cell => {
       const c = normalizeValue(cell).toLowerCase();
@@ -335,21 +336,25 @@ export default function ExcelViewer({
                 return (
                   <tr
                     key={r}
-                    onClick={
-                      onFocusedRowChange
-                        ? () => {
-                            onFocusedRowChange(r);
-                          }
-                        : undefined
-                    }
+                    onClick={() => {
+                      if (editable) return;
+                      // Handle row click
+                    }}
                     className={cn(
-                      "hover:bg-zinc-900/40",
+                      "hover:bg-zinc-900/40 relative transition-all duration-300",
                       isGhosted && "opacity-50",
                       hasError && "bg-red-500/10 hover:bg-red-500/20",
                       isHighlightedRow && "bg-brand-blue/10 hover:bg-brand-blue/15",
-                      isFocusedRow && "ring-1 ring-brand-blue/60"
+                      isFocusedRow && "ring-1 ring-brand-blue/60",
+                      isScanningRow && "bg-brand-blue/20 shadow-[0_0_15px_rgba(10,82,239,0.5)] z-10 scale-[1.01]"
                     )}
                   >
+                    {isScanningRow && (
+                      <td className="absolute inset-0 pointer-events-none p-0 border-none z-20 overflow-visible">
+                        <div className="w-full h-[2px] bg-brand-blue shadow-[0_0_10px_#0A52EF] absolute top-1/2 -translate-y-1/2 animate-in fade-in slide-in-from-left duration-200" />
+                        <div className="absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-brand-blue/50 to-transparent" />
+                      </td>
+                    )}
                     {row.map((cell, c) => {
                       const key = `${r}:${c}` as const;
                       if (mergeMaps?.covered.has(key)) return null;
@@ -428,8 +433,8 @@ export default function ExcelViewer({
                           </Tooltip>
                         );
                       } else if (hasError && c === 0) {
-                         // Show error tooltip on first column
-                         content = (
+                        // Show error tooltip on first column
+                        content = (
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex items-center gap-2">
@@ -438,10 +443,10 @@ export default function ExcelViewer({
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="bg-red-950 border-red-900 text-red-200 font-['Work_Sans']">
-                                <div className="font-bold mb-1">Row {r + 1} Issues:</div>
-                                <ul className="list-disc pl-4 space-y-0.5">
-                                    {rowErrors.map((e, i) => <li key={i}>{e}</li>)}
-                                </ul>
+                              <div className="font-bold mb-1">Row {r + 1} Issues:</div>
+                              <ul className="list-disc pl-4 space-y-0.5">
+                                {rowErrors.map((e, i) => <li key={i}>{e}</li>)}
+                              </ul>
                             </TooltipContent>
                           </Tooltip>
                         );

@@ -48,160 +48,170 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
     }
 
     return (
-        <div className="flex flex-col h-full bg-zinc-900/50 border-l border-zinc-800 w-80 shrink-0 overflow-hidden animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-md">
-            {/* Project Health Header */}
-            <div className="p-5 border-b border-zinc-800 bg-zinc-900/80 flex justify-between items-center">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-brand-blue" />
-                    Project Health
-                </h3>
+        <div className="flex flex-col h-full bg-zinc-950/90 border-l border-zinc-800 w-96 shrink-0 overflow-hidden animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-xl">
+            {/* Header - Ferrari Style */}
+            <div className="p-6 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-start relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent pointer-events-none" />
+
+                <div className="relative font-mono z-10">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand-blue mb-1 flex items-center gap-2">
+                        <Zap className="w-3 h-3 text-brand-blue animate-pulse" />
+                        Intelligence Engine
+                    </h3>
+                    <div className="text-[10px] text-zinc-500 font-medium">
+                        Real-time RAG Analysis & Risk Detection
+                    </div>
+                </div>
                 <button
                     onClick={onToggle}
-                    className="p-1 hover:bg-zinc-800 rounded-md transition-colors text-zinc-500 hover:text-zinc-300"
+                    className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-white relative z-10"
                 >
                     <X className="w-4 h-4" />
                 </button>
             </div>
 
-            <div className="p-5 border-b border-zinc-800 bg-zinc-900/40">
-                {isHighAccuracy && (
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 w-fit mb-4 animate-pulse">
-                        <Zap className="w-3 h-3 fill-emerald-500" />
-                        HIGH ACCURACY MODE (Section 11 Detected)
-                    </div>
-                )}
-
-                <div className="space-y-2">
-                    <div className="flex justify-between text-xs mb-1">
-                        <span className="text-zinc-500 font-medium">Bid Completion (17/20 Logic)</span>
-                        <span className={cn(
-                            "font-bold",
-                            completionRate >= 85 ? "text-emerald-500" : completionRate >= 50 ? "text-amber-500" : "text-zinc-400"
+            {/* Vitality Score */}
+            <div className="p-6 border-b border-zinc-800 bg-zinc-900/20 relative group">
+                <div className="flex items-end justify-between mb-4">
+                    <div>
+                        <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Bid Vitality</div>
+                        <div className={cn(
+                            "text-4xl font-black tracking-tighter tabular-nums transition-colors duration-500",
+                            completionRate >= 85 ? "text-emerald-500" : completionRate >= 50 ? "text-amber-500" : "text-zinc-600"
                         )}>
-                            {Math.round(completionRate)}%
-                        </span>
+                            {Math.round(completionRate)}<span className="text-lg text-zinc-500 font-bold">%</span>
+                        </div>
                     </div>
-                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                        <div
-                            className={cn(
-                                "h-full transition-all duration-1000 ease-out rounded-full",
-                                completionRate >= 85 ? "bg-emerald-500" : completionRate >= 50 ? "bg-amber-500" : "bg-brand-blue"
-                            )}
-                            style={{ width: `${completionRate}%` }}
-                        />
+                    <div className={cn(
+                        "text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider mb-2",
+                        completionRate >= 85 ? "bg-emerald-500/10 text-emerald-500" : completionRate >= 50 ? "bg-amber-500/10 text-amber-500" : "bg-zinc-800 text-zinc-500"
+                    )}>
+                        {completionRate >= 85 ? "Excellent" : completionRate >= 50 ? "Needs Work" : "Critical"}
                     </div>
-                    <p className="text-[10px] text-zinc-600 italic mt-2">
-                        {gaps.length > 0
-                            ? `AI detected ${gaps.length} missing data points (Gaps).`
-                            : unverifiedCount > 0
-                                ? `All gaps filled, but ${unverifiedCount} AI values need verification.`
-                                : "All 20 critical technical specs have been identified and verified."}
+                </div>
+
+                {/* Genetic Bar Visualization */}
+                <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden relative">
+                    <div className="absolute inset-0 opacity-20 bg-[url('/stripes.png')] bg-[length:4px_4px]" />
+                    <div
+                        className={cn(
+                            "h-full transition-all duration-1000 ease-out relative overflow-hidden",
+                            completionRate >= 85 ? "bg-emerald-500" : completionRate >= 50 ? "bg-amber-500" : "bg-zinc-700"
+                        )}
+                        style={{ width: `${completionRate}%` }}
+                    >
+                        <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                    </div>
+                </div>
+
+                {gaps.length > 0 && (
+                    <p className="text-[10px] text-zinc-500 mt-4 flex items-center gap-2">
+                        <AlertCircle className="w-3 h-3 text-amber-500" />
+                        <span>{gaps.length} critical data points missing</span>
                     </p>
-                </div>
-            </div>
-
-            {/* RISK ALERTS (CRITICAL) */}
-            {risks && risks.length > 0 && (
-                <div className="p-4 bg-red-950/20 border-b border-red-900/30">
-                    <h4 className="text-[10px] font-bold text-red-500 uppercase tracking-widest px-1 flex items-center gap-2 mb-3">
-                        <AlertTriangle className="w-3 h-3 animate-pulse" />
-                        CRITICAL RISK FACTORS
-                    </h4>
-                    <div className="space-y-2">
-                        {risks.map(r => (
-                            <div key={r.id} className="bg-red-900/40 border border-red-500/30 p-3 rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.1)]">
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className="text-xs font-bold text-red-200">{r.risk}</span>
-                                    <span className="text-[9px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded uppercase">{r.priority}</span>
-                                </div>
-                                <p className="text-[10px] text-red-300/80 mb-2 leading-tight">{r.trigger}</p>
-                                <div className="flex items-center gap-2 text-[10px] text-red-200 font-medium bg-red-950/50 p-1.5 rounded">
-                                    <span className="shrink-0 text-red-400">ACTION:</span>
-                                    {r.actionRequired}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Gap List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
-                {gaps.length > 0 ? (
-                    <>
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Detected Gaps</h4>
-                        {gaps.map((gap) => (
-                            <div
-                                key={gap.id}
-                                className={cn(
-                                    "group p-3 rounded-xl border transition-all cursor-help relative overflow-hidden",
-                                    gap.priority === "high"
-                                        ? "bg-red-500/5 border-red-500/20 hover:border-red-500/40"
-                                        : "bg-zinc-800/30 border-zinc-800 hover:border-zinc-700"
-                                )}
-                            >
-                                <div className="flex items-start gap-3 relative z-10">
-                                    <div className={cn(
-                                        "mt-0.5 shrink-0",
-                                        gap.priority === "high" ? "text-red-500" : "text-amber-500"
-                                    )}>
-                                        {gap.field === "Tolerance Violation" ? <AlertTriangle className="w-4 h-4 text-red-600 animate-pulse" /> : <AlertCircle className="w-4 h-4" />}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span className="text-xs font-bold text-zinc-200 truncate">{gap.field}</span>
-                                            <div className="flex gap-1">
-                                                {gap.section && (
-                                                    <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                                                        {gap.section}
-                                                    </span>
-                                                )}
-                                                <span className={cn(
-                                                    "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded",
-                                                    gap.priority === "high" ? "bg-red-500/20 text-red-500" : "bg-amber-500/20 text-amber-500"
-                                                )}>
-                                                    {gap.priority}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
-                                            {gap.description}
-                                        </p>
-                                    </div>
-                                    <ChevronRight className="w-3 h-3 text-zinc-700 group-hover:text-zinc-500 mt-1" />
-                                </div>
-                            </div>
-                        ))}
-                    </>
-                ) : isEmptyState ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                        <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-4">
-                            <Info className="w-6 h-6 text-zinc-500" />
-                        </div>
-                        <h4 className="text-sm font-bold text-zinc-200">Awaiting Input</h4>
-                        <p className="text-xs text-zinc-500 mt-2">
-                            Upload an RFP or manually enter project details to begin analysis.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                        <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
-                            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                        </div>
-                        <h4 className="text-sm font-bold text-zinc-200">Bid Ready (20/20)</h4>
-                        <p className="text-xs text-zinc-500 mt-2">
-                            The RAG engine has extracted all required Section 11 specifications.
-                        </p>
-                    </div>
                 )}
             </div>
 
-            {/* Footer Advice */}
-            <div className="p-4 bg-zinc-950 border-t border-zinc-900">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-brand-blue/5 border border-brand-blue/10">
-                    <Info className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-zinc-500 leading-normal">
-                        <span className="text-zinc-300 font-medium">Pro-Tip:</span> Uploading a "Display Schedule" PDF significantly improves extraction accuracy.
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+
+                {/* Critical Risks Section */}
+                {risks && risks.length > 0 && (
+                    <div className="relative overflow-hidden rounded-xl border border-red-500/20 bg-red-950/10">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
+                        <div className="p-4">
+                            <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <AlertTriangle className="w-3 h-3" />
+                                Critical Risks Detected
+                            </h4>
+                            <div className="space-y-3">
+                                {risks.map(r => (
+                                    <div key={r.id} className="bg-red-900/20 rounded-lg p-3 border border-red-500/10">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="text-xs font-bold text-red-200">{r.risk}</span>
+                                            <span className="text-[9px] font-bold bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded uppercase border border-red-500/20">{r.priority}</span>
+                                        </div>
+                                        <div className="text-[10px] text-red-300/70 pl-2 border-l border-red-500/20">
+                                            {r.actionRequired}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Gaps List */}
+                <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1 sticky top-0 bg-zinc-950/90 py-2 backdrop-blur-sm z-10 flex items-center justify-between">
+                        <span>Analysis Report</span>
+                        <span className="text-zinc-600">{gaps.length} items</span>
+                    </h4>
+
+                    {gaps.length > 0 ? gaps.map((gap) => (
+                        <div
+                            key={gap.id}
+                            className={cn(
+                                "group p-4 rounded-xl border transition-all hover:-translate-y-0.5 relative overflow-hidden",
+                                gap.priority === "high"
+                                    ? "bg-gradient-to-br from-red-500/10 to-transparent border-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                                    : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
+                            )}
+                        >
+                            <div className="flex items-start gap-3">
+                                <div className={cn(
+                                    "mt-1 p-1.5 rounded-md",
+                                    gap.priority === "high" ? "bg-red-500/20 text-red-500" : "bg-amber-500/20 text-amber-500"
+                                )}>
+                                    {gap.priority === "high" ?
+                                        <AlertTriangle className="w-3.5 h-3.5" /> :
+                                        <Target className="w-3.5 h-3.5" />
+                                    }
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-xs font-bold text-zinc-200">{gap.field}</span>
+                                        {gap.section && (
+                                            <span className="text-[9px] font-mono text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">
+                                                {gap.section}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
+                                        {gap.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )) : !isEmptyState && (
+                        <div className="p-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-transparent text-center">
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
+                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                            </div>
+                            <h4 className="text-sm font-bold text-white mb-2">Systems Nominal</h4>
+                            <p className="text-xs text-zinc-400">
+                                All 20 critical specifications identified and verified. Ready for export.
+                            </p>
+                        </div>
+                    )}
+
+                    {isEmptyState && (
+                        <div className="p-8 border border-dashed border-zinc-800 rounded-xl text-center">
+                            <Info className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
+                            <p className="text-xs text-zinc-500">
+                                Waiting for RFP data...
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Pro-Tip Footer */}
+            <div className="p-4 bg-zinc-900/80 border-t border-zinc-800">
+                <div className="flex items-center gap-3 py-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
+                    <p className="text-[10px] text-zinc-500 font-mono">
+                        AI MODEL: <span className="text-zinc-300">NATALIA V2.4 (O1-PREVIEW)</span>
                     </p>
                 </div>
             </div>
