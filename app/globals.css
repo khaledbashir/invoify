@@ -4,313 +4,91 @@
 
 @layer base {
     :root {
-        /* ANC Brand Palette - Functional Allocation */
-        --background: 0 0% 98%;
-        --foreground: 221 92% 5%;
-        /* Very deep blue for text */
+        --anc-french-blue: #0A52EF;
+        --anc-black: #000000;
+        --anc-deep-gray: #09090b;
+        /* zinc-950 */
+        --anc-border: #18181b;
+        /* zinc-900 */
 
-        --card: 0 0% 100%;
-        --card-foreground: 221 92% 5%;
-
-        --popover: 0 0% 100%;
-        --popover-foreground: 221 92% 5%;
-
-        /* Primary: ANC French Blue #0A52EF */
-        --primary: 221 92% 49%;
-        --primary-foreground: 0 0% 100%;
-
-        /* Secondary Blue Palette */
-        --secondary-splash: 197 100% 51%;
-        --secondary-malibu: 204 97% 44%;
-        --secondary-opal: 217 100% 23%;
-
-        --muted: 221 20% 96%;
-        --muted-foreground: 221 15% 40%;
-
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-
-        --border: 221 20% 90%;
-        --input: 221 20% 90%;
-        --ring: 221 92% 49%;
-
-        --radius: 0.5rem;
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
     }
 
     .dark {
-        --background: 221 40% 4%;
-        --foreground: 221 10% 98%;
-
-        --card: 221 40% 4%;
-        --card-foreground: 221 10% 98%;
-
-        --popover: 221 40% 4%;
-        --popover-foreground: 221 10% 98%;
-
-        --primary: 221 92% 55%;
-        --primary-foreground: 0 0% 100%;
-
-        --muted: 221 30% 12%;
-        --muted-foreground: 221 15% 65%;
-
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-
-        --border: 221 30% 18%;
-        --input: 221 30% 18%;
-        --ring: 221 92% 55%;
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 240 10% 3.9%;
+        --border: 240 3.7% 15.9%;
     }
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
-
     body {
-        @apply bg-background text-foreground;
+        @apply bg-[#000000] text-[#f4f4f5];
+        font-family: 'Work Sans', sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Playfair Display', serif;
+        /* Use serif for high-end headlines as seen in Midday */
+        letter-spacing: -0.01em;
     }
 }
 
-body {
-    font-family: inherit;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+/* Midday Command Center Layout */
+.command-bar {
+    @apply fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-3xl z-50;
 }
 
-/* Clean focus states */
-:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary;
+.command-input {
+    background: rgba(9, 9, 11, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(39, 39, 42, 1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
-/* Remove chrome input focus */
-input,
-textarea,
-select,
-a,
-svg,
-button {
-    --tw-ring-offset-color: transparent !important;
+/* Sharp Architectural Grid */
+.vault-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px;
+    background-color: #18181b;
+    /* Border color for the grid effect */
+    border: 1px solid #18181b;
 }
 
-/* Smooth transitions for enterprise feel */
-* {
-    @apply transition-colors duration-150 ease-in-out;
+.vault-card {
+    @apply bg-[#000000] p-8 transition-colors duration-300;
 }
 
-/* For Customized Calendar */
-.rdp-vhidden {
-    @apply hidden;
+.vault-card:hover {
+    @apply bg-[#09090b];
 }
 
-/* ANC Signature 55° Slash Pattern */
-.anc-slash-bg {
-    background-image: linear-gradient(55deg,
-            rgba(10, 82, 239, 0.03) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(10, 82, 239, 0.03) 50%,
-            rgba(10, 82, 239, 0.03) 75%,
-            transparent 75%,
-            transparent);
-    background-size: 100px 142.8px;
-}
-
-.anc-slash-border {
-    position: relative;
-    overflow: hidden;
-}
-
-.anc-slash-border::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 200%;
-    height: 100%;
-    background: repeating-linear-gradient(55deg,
+/* ANC Strategic Slash (Midday Style - Subtler) */
+.anc-slash-subtle {
+    background-image: repeating-linear-gradient(145deg,
             rgba(10, 82, 239, 0.05),
             rgba(10, 82, 239, 0.05) 1px,
             transparent 1px,
-            transparent 20px);
-    pointer-events: none;
-    opacity: 0.4;
+            transparent 60px);
 }
 
-/* PDF / Print Utilities */
-@media print {
-    .break-before-page {
-        page-break-before: always;
-        break-before: page;
-        display: block;
-    }
-
-    .break-after-page {
-        page-break-after: always;
-        break-after: page;
-        display: block;
-    }
-
-    .break-inside-avoid {
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-
-    /* Ensure colors print correctly */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
+/* Buttons & Inputs */
+.anc-input-minimal {
+    @apply bg-transparent border-none focus:ring-0 text-sm text-zinc-400 placeholder-zinc-600;
 }
 
-/* ========================================
-   PREMIUM DASHBOARD UTILITIES
-   Boutique Vault Aesthetic
-   ======================================== */
-
-/* Mesh Gradient Background - Soft ANC blue orbs */
-.anc-mesh-gradient {
-    background-color: #f8fafc;
-    background-image:
-        radial-gradient(at 0% 0%, hsla(221, 100%, 95%, 0.9) 0, transparent 50%),
-        radial-gradient(at 50% 0%, hsla(210, 100%, 97%, 0.7) 0, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(197, 100%, 95%, 0.6) 0, transparent 50%),
-        radial-gradient(at 50% 50%, hsla(221, 100%, 98%, 0.5) 0, transparent 60%),
-        radial-gradient(at 0% 100%, hsla(204, 100%, 94%, 0.7) 0, transparent 50%),
-        radial-gradient(at 100% 100%, hsla(221, 100%, 96%, 0.6) 0, transparent 50%);
+.filter-chip {
+    @apply px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-zinc-800 text-zinc-500 hover:border-zinc-600 transition-all;
 }
 
-.dark .anc-mesh-gradient {
-    background-color: #0a1628;
-    background-image:
-        radial-gradient(at 0% 0%, hsla(221, 50%, 15%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 0%, hsla(210, 50%, 12%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(197, 50%, 15%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 50%, hsla(221, 50%, 10%, 1) 0, transparent 60%),
-        radial-gradient(at 0% 100%, hsla(204, 50%, 14%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 100%, hsla(221, 50%, 15%, 1) 0, transparent 50%);
-}
-
-/* Glassmorphism Card Effect */
-.anc-glass-card {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.05),
-        0 2px 4px -2px rgba(0, 0, 0, 0.05);
-}
-
-.dark .anc-glass-card {
-    background: rgba(16, 24, 40, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-        0 4px 6px -1px rgba(0, 0, 0, 0.2),
-        0 2px 4px -2px rgba(0, 0, 0, 0.15);
-}
-
-/* Glassmorphism Header */
-.anc-glass-header {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.dark .anc-glass-header {
-    background: rgba(10, 22, 40, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Glow Button Effect (French Blue glow) */
-.anc-glow-button {
-    box-shadow: 0 0 24px rgba(10, 82, 239, 0.4);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.anc-glow-button:hover {
-    box-shadow: 0 0 32px rgba(10, 82, 239, 0.55);
-    transform: scale(1.02);
-}
-
-/* Glow Card Effect on Hover */
-.anc-glow-card:hover {
-    box-shadow:
-        0 20px 40px -12px rgba(10, 82, 239, 0.15),
-        0 8px 16px -6px rgba(0, 0, 0, 0.08);
-}
-
-/* Animated Status Pulse */
-@keyframes anc-pulse-ring {
-    0% {
-        transform: scale(0.8);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
-}
-
-.anc-status-pulse {
-    position: relative;
-}
-
-.anc-status-pulse::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 9999px;
-    background: inherit;
-    animation: anc-pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Premium Card Lift on Hover */
-.anc-card-lift {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-}
-
-.anc-card-lift:hover {
-    transform: translateY(-4px);
-}
-
-/* Filter Chip Glass Style */
-.anc-glass-chip {
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.2s ease;
-}
-
-.anc-glass-chip:hover {
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.anc-glass-chip.active {
-    background: #0A52EF;
-    color: white;
-    border-color: transparent;
-}
-
-/* Floating Background Orbs */
-.anc-floating-orb {
-    position: fixed;
-    border-radius: 9999px;
-    filter: blur(100px);
-    pointer-events: none;
-    z-index: -1;
-    opacity: 0.5;
-}
-
-/* Scrollbar Hide Utility */
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
+.filter-chip-active {
+    @apply border-[#0A52EF] text-white bg-[#0A52EF]/10;
 }

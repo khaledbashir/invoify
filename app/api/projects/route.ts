@@ -14,44 +14,76 @@ export async function GET(req: NextRequest) {
         const workspaceId = searchParams.get("workspaceId");
         const search = searchParams.get("search") || "";
         const status = searchParams.get("status");
-        const limit = parseInt(searchParams.get("limit") || "20");
+        const minAmount = searchParams.get("minAmount");
+        const maxAmount = searchParams.get("maxAmount");
+        const startDate = searchParams.get("startDate");
+        const endDate = searchParams.get("endDate");
+        const minScreens = parseInt(searchParams.get("minScreens") || "0");
+        const limit = parseInt(searchParams.get("limit") || "50");
         const offset = parseInt(searchParams.get("offset") || "0");
 
         const where: any = {};
 
-        if (workspaceId) {
-            where.workspaceId = workspaceId;
-        }
-
-        if (status) {
-            where.status = status;
-        }
+        if (workspaceId) where.workspaceId = workspaceId;
+        if (status && status !== "all") where.status = status;
 
         if (search) {
             where.OR = [
                 { clientName: { contains: search, mode: "insensitive" } },
+                { proposalName: { contains: search, mode: "insensitive" } },
             ];
         }
 
-        const [projects, total] = await Promise.all([
+        // Date Range Filter
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) where.createdAt.gte = new Date(startDate);
+            if (endDate) where.createdAt.lte = new Date(endDate);
+        }
+
+        // Amount Filter (via BidVersion)
+        if (minAmount || maxAmount) {
+            where.versions = {
+                some: {
+                    totalSellingPrice: {
+                        ...(minAmount && { gte: parseFloat(minAmount) }),
+                        ...(maxAmount && { lte: parseFloat(maxAmount) }),
+                    }
+                }
+            };
+        }
+
+        // Fetch projects with counts
+        const [projectsRaw, total] = await Promise.all([
             prisma.proposal.findMany({
                 where,
-                orderBy: { id: "desc" },
+                orderBy: { updatedAt: "desc" },
                 take: limit,
                 skip: offset,
-                select: {
-                    id: true,
-                    clientName: true,
-                    clientLogo: true,
-                    status: true,
-                    calculationMode: true,
-                    aiWorkspaceSlug: true,
-                    createdAt: true,
-                    updatedAt: true,
-                } as any,
+                include: {
+                    _count: {
+                        select: { screens: true }
+                    },
+                    versions: {
+                        orderBy: { versionNumber: "desc" },
+                        take: 1,
+                        select: { totalSellingPrice: true }
+                    }
+                }
             }),
             prisma.proposal.count({ where }),
         ]);
+
+        // Post-filter for Screen Count (if requested, and since Prisma _count filtering is limited)
+        let projects = projectsRaw.map(p => ({
+            ...p,
+            screenCount: p._count.screens,
+            totalAmount: p.versions[0]?.totalSellingPrice || 0
+        }));
+
+        if (minScreens > 0) {
+            projects = projects.filter(p => p.screenCount >= minScreens);
+        }
 
         return NextResponse.json({
             projects,

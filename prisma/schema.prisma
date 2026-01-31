@@ -21,6 +21,7 @@ enum VerificationStatus {
   WARNING
   ERROR
   BLOCKED
+  CUSTOM
 }
 
 // REQ-114: Proposal Lifecycle State Machine (Section 4.14 & 9.2)
@@ -119,6 +120,8 @@ model Proposal {
   manualOverrides       ManualOverride[]
   proposalVersions      ProposalVersion[]
   signatureAuditTrail   SignatureAuditTrail[]
+  comments              Comment[]
+  activityLogs          ActivityLog[]
   
   // Existing relations
   versions             BidVersion[]
@@ -224,6 +227,36 @@ model CostLineItem {
   margin         Decimal
   price          Decimal
   screenConfig   ScreenConfig @relation(fields: [screenConfigId], references: [id])
+}
+
+// NEW: Collaboration & History
+model Comment {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId          String?
+  authorName      String   // For simple display if user not logged in
+  content         String
+  parentCommentId String?  // For threading
+  parentComment   Comment? @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([proposalId])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId          String?
+  action          String   // "CREATE", "UPDATE", "STATUS_CHANGE", "EXPORT"
+  description     String
+  metadata        Json?    // Store diffs or extra info
+  createdAt       DateTime @default(now())
+
+  @@index([proposalId])
 }
 
 // REQ-114: E-Signature Audit Trail (Section 9.2)
