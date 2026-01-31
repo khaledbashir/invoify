@@ -48,7 +48,7 @@ const SingleScreen = ({
 }: SingleScreenProps) => {
     const { control, setValue, register, formState: { errors } } = useFormContext();
     const { _t } = useTranslationContext();
-    const { aiFields } = useProposalContext();
+    const { aiFields, verifiedFields, setFieldVerified } = useProposalContext();
     const [isExpanded, setIsExpanded] = useState(index === 0 && fields.length === 1);
     const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -153,24 +153,52 @@ const SingleScreen = ({
                         </span>
                     )}
                     {aiFields?.includes(`${name}[${index}].name`) && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <span className="px-2 py-0.5 bg-[#0A52EF]/10 text-[#0A52EF] text-[10px] font-medium rounded-full flex items-center gap-1 cursor-help">
-                                        <CheckCircle2 className="w-3 h-3" />
-                                        AI
-                                    </span>
-                                </TooltipTrigger>
-                                <TooltipContent
-                                    side="top"
-                                    className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3"
+                        <div className="flex items-center gap-2">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <span className={cn(
+                                            "px-2 py-0.5 text-[10px] font-medium rounded-full flex items-center gap-1 cursor-help transition-all shadow-[0_0_8px_rgba(10,82,239,0.5)]",
+                                            verifiedFields[`${name}[${index}].name`]
+                                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                                : "bg-[#0A52EF]/10 text-[#0A52EF]"
+                                        )}>
+                                            {verifiedFields[`${name}[${index}].name`] ? <ShieldCheck className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                                            {verifiedFields[`${name}[${index}].name`] ? "VERIFIED" : "AI"}
+                                        </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent
+                                        side="top"
+                                        className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3 shadow-2xl"
+                                    >
+                                        <p className="text-xs leading-relaxed">
+                                            {verifiedFields[`${name}[${index}].name`] ? (
+                                                <>
+                                                    <strong className="text-emerald-500">Verified by:</strong> {verifiedFields[`${name}[${index}].name`].verifiedBy}<br />
+                                                    <strong className="text-emerald-500">Timestamp:</strong> {new Date(verifiedFields[`${name}[${index}].name`].verifiedAt).toLocaleString()}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <strong className="text-[#0A52EF]">AI Extracted:</strong> This value was pulled automatically from the RFP. Please verify and lock this data.
+                                                </>
+                                            )}
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                            {!verifiedFields[`${name}[${index}].name`] && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setFieldVerified(`${name}[${index}].name`, "Natalia AI"); // Placeholder for current user
+                                    }}
+                                    className="p-1 hover:bg-emerald-500/20 rounded text-emerald-500 transition-colors"
+                                    title="Verify Field"
                                 >
-                                    <p className="text-xs leading-relaxed">
-                                        <strong className="text-[#0A52EF]">AI Extracted:</strong> This value was pulled automatically from the RFP (e.g., Exhibit B). Please verify and lock this data.
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                                    <CheckCircle2 className="w-3 h-3" />
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
 
@@ -308,6 +336,13 @@ const SingleScreen = ({
                             name={`${name}[${index}].pitchMm`}
                             label="Pitch (mm)"
                             type="number"
+                            vertical
+                        />
+
+                        <FormInput
+                            name={`${name}[${index}].brightness`}
+                            label="Brightness"
+                            placeholder="e.g., 6000"
                             vertical
                         />
 

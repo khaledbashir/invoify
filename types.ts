@@ -10,8 +10,11 @@ import { ProposalSchema, ItemSchema } from "@/lib/schemas";
 // Form types
 export type ProposalType = z.infer<typeof ProposalSchema> & {
     metadata?: {
-        filledByAI?: string[]; // Array of field paths
+        filledByAI?: string[]; // DEPRECATED
+        aiFilledFields?: string[];
+        verifiedFields?: Record<string, { verifiedBy: string; verifiedAt: string }>;
     };
+    marginAnalysis?: any[];
 };
 export type ItemType = z.infer<typeof ItemSchema>;
 export type FormType = UseFormReturn<ProposalType>;
@@ -54,11 +57,8 @@ export type WizardStepType = {
 
 // Export types
 export enum ExportTypes {
-    JSON = "JSON",
-    CSV = "CSV",
-    XML = "XML",
+    PDF = "PDF",
     XLSX = "XLSX",
-    DOCX = "DOCX",
 }
 
 // Calculation Mode types

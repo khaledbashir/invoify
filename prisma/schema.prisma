@@ -25,12 +25,15 @@ enum VerificationStatus {
 
 // REQ-114: Proposal Lifecycle State Machine (Section 4.14 & 9.2)
 enum ProposalStatus {
-  DRAFT           // Editable, not yet submitted
-  PENDING_REVIEW  // Submitted for internal review
-  APPROVED        // Approved, ready for client signature
-  SIGNED          // Client signed - IMMUTABLE
-  CLOSED          // Fully executed - IMMUTABLE
-  CANCELLED       // Cancelled/voided
+  DRAFT                 // Editable, not yet submitted
+  PENDING_VERIFICATION  // Submitted for internal extraction check
+  AUDIT                 // Mathematical & financial review
+  APPROVED              // Ready for client signature / Exported
+  SHARED                // Share link generated/active
+  SIGNED                // Client signed - IMMUTABLE
+  CLOSED                // Fully executed - IMMUTABLE
+  ARCHIVED              // Historical record
+  CANCELLED             // Voided
 }
 
 model Workspace {
@@ -43,11 +46,13 @@ model Workspace {
 
 // REQ-120: User Roles & Permissions (PRD Section 2, Table 2)
 enum UserRole {
-  ADMIN           // Full access - create workspaces, edit branding, all exports
-  ESTIMATOR       // Edit proposals, run AI, generate all exports
-  FINANCE         // View costs, generate Internal Audit Excel ONLY, no branding edit
-  VIEWER          // Read-only access to proposals
-  OUTSIDER        // Subcontractor - NO access to margins, costs, or total selling price
+  ADMIN           // Full access
+  ESTIMATOR       // Core proposal creation/editing
+  PRODUCT_EXPERT  // Technical spec validation
+  PROPOSAL_LEAD   // Review and approval authority
+  FINANCE         // Cost/margin auditing
+  OUTSIDER        // Subcontractor - RESTRICTED financial access
+  VIEWER          // Read-only (Client or internal stakeholder)
 }
 
 model User {
@@ -72,6 +77,8 @@ model Proposal {
   taxRateOverride      Decimal?            // Changed from Float to Decimal for money
   bondRateOverride     Decimal?            // Changed from Float to Decimal for money
   shareHash            String?             @unique
+  shareExpiresAt       DateTime?                          // Default 30 days
+  sharePasswordHash    String?                            // Optional password protection
   
   // REQ-86: Thornton Tomasetti Structural Steel Tonnage
   structuralTonnage    Decimal?            // New steel columns/beams tonnage (e.g., 17 tons)
@@ -170,6 +177,8 @@ model ProposalSnapshot {
   proposalId   String
   shareHash    String   @unique
   snapshotData String   // JSON string of the proposal state at time of share
+  expiresAt    DateTime?                          // Default 30 days
+  passwordHash String?                            // Optional password protection
   createdAt    DateTime @default(now())
   proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 }

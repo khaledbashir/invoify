@@ -73,7 +73,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
      * 
      * Dynamic detection is DEPRECATED - only used as last resort fallback.
      */
-    
+
     // REQ-126: STRICT FIXED INDICES (Master Truth)
     const FIXED_COLUMN_MAP = {
         name: 0,           // Column A - Display Name
@@ -101,7 +101,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             width: FIXED_COLUMN_MAP.width,
             pixelsH: FIXED_COLUMN_MAP.pixelsH,
             pixelsW: FIXED_COLUMN_MAP.pixelsW,
-            brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
+            brightness: FIXED_COLUMN_MAP.brightnessNits,
             serviceType: findCol(/SERVICE\s*TYPE|ACCESS/i),
             structuralTonnage: findCol(/TONNAGE|STEEL\s*TONS|TTE/i),
             hdrStatus: -1,
@@ -124,7 +124,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             width: FIXED_COLUMN_MAP.width,
             pixelsH: FIXED_COLUMN_MAP.pixelsH,
             pixelsW: FIXED_COLUMN_MAP.pixelsW,
-            brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
+            brightness: FIXED_COLUMN_MAP.brightnessNits,
             serviceType: findCol(/SERVICE\s*TYPE|ACCESS/i),
             structuralTonnage: findCol(/TONNAGE|STEEL\s*TONS|TTE/i),
             hdrStatus: -1,
@@ -142,8 +142,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
     if (colIdx.hdrStatus === -1) {
         colIdx.hdrStatus = headers.findIndex((h) => typeof h === "string" && h.toLowerCase().includes("hdr"));
     }
-    if (colIdx.brightnessNits === -1) {
-        colIdx.brightnessNits = headers.findIndex((h) => typeof h === "string" && /nit|bright/i.test(h));
+    if (colIdx.brightness === -1) {
+        colIdx.brightness = headers.findIndex((h) => typeof h === "string" && /nit|bright/i.test(h));
     }
     if (isLedCostSheetFormat) {
         if (colIdx.quantity === -1) colIdx.quantity = 11;
@@ -199,9 +199,10 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             Number.isFinite(widthNum) &&
             widthNum > 0
         ) {
-            // REQ-111: Alternate Row Filter - Use startsWith to avoid false positives
-            // Prevents "Altitude Display" from being incorrectly skipped
+            // REQ-111: Alternate Row Filter (Natalia Math)
+            // PRD: Rows starting with "ALT" or "Alternate" must be skipped to prevent inflated Base Bid.
             if (normalizedName.startsWith('alt') || normalizedName.startsWith('alternate')) {
+                console.log(`[MIRROR MODE] Skipping Alternate Row: "${projectName}"`);
                 altRowsSkipped++;
                 continue;
             }
@@ -273,10 +274,10 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
                 screen.sellPrice = marginRow.sell;
                 screen.ancMargin = marginRow.marginAmount;
                 screen.finalTotal = marginRow.sell;
-                
+
                 // Assign Group/Section from Margin Analysis
                 screen.group = marginRow.section;
-                
+
                 // Mark as matched
                 marginRow.matched = true;
             }
@@ -413,25 +414,25 @@ function parseMarginAnalysisRows(data: any[][]) {
     for (let i = 0; i < Math.min(data.length, 40); i++) {
         const row = data[i] || [];
         const rowText = row.map(norm);
-        
+
         // Find indices dynamically
         const cIdx = rowText.findIndex(t => t === "cost");
         const sIdx = rowText.findIndex(t => t === "selling price" || t === "sell price");
-        
+
         if (cIdx !== -1 && sIdx !== -1) {
             headerRow = i;
             costIndex = cIdx;
             sellIndex = sIdx;
             // Assume label is immediately to the left of cost
             labelIndex = cIdx - 1;
-            
+
             // Try to find margin columns, otherwise assume relative positions
             const mIdx = rowText.findIndex(t => t === "margin $" || t === "margin amount" || t === "margin");
             const mpIdx = rowText.findIndex(t => t === "margin %" || t === "margin percent" || t === "%");
-            
+
             marginAmountIndex = mIdx !== -1 ? mIdx : sIdx + 1;
             marginPctIndex = mpIdx !== -1 ? mpIdx : sIdx + 2;
-            
+
             break;
         }
     }
@@ -443,7 +444,7 @@ function parseMarginAnalysisRows(data: any[][]) {
 
     for (let i = headerRow + 1; i < data.length; i++) {
         const row = data[i] || [];
-        
+
         // Use dynamic indices
         const labelRaw = labelIndex >= 0 ? row[labelIndex] : row[0];
         const label = typeof labelRaw === "string" ? labelRaw.trim() : "";
@@ -505,7 +506,7 @@ function groupMarginAnalysisRows(rows: ReturnType<typeof parseMarginAnalysisRows
         if (row.isTotalLike || row.isAlternate) return;
 
         const sectionName = row.section || "General";
-        
+
         if (!sections[sectionName]) {
             sections[sectionName] = {
                 name: sectionName,
@@ -517,7 +518,7 @@ function groupMarginAnalysisRows(rows: ReturnType<typeof parseMarginAnalysisRows
 
         // Check for "INCLUDED" status
         const isIncluded = row.sell === 0 && (
-            String(row.sellRaw).toLowerCase().includes("included") || 
+            String(row.sellRaw).toLowerCase().includes("included") ||
             // Fallback: If it's a soft cost (not a screen) and $0, assume included if user context suggests it
             // For now, relying on explicit text or $0 value for non-hardware items might be tricky without more heuristics.
             // But per user request: "If an item's Selling Price is $0.00 in the Excel AND it's marked as a value-add: Show 'INCLUDED'"

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { ProposalType } from "@/types";
+import bcrypt from "bcrypt";
+import { addDays } from "date-fns";
+import Decimal from "decimal.js";
 
 const prisma = new PrismaClient();
 
@@ -33,9 +36,15 @@ export async function POST(
         // This ensures internal cost/margin data is never accidentally logged or served
         const sanitizedProject = JSON.parse(JSON.stringify(project));
 
-        // Parse request body for version control
+        // Parse request body for security options
         const body = await req.json().catch(() => ({}));
         const forceNewVersion = body.forceNewVersion || false;
+        const password = body.password || null;
+        const daysToExpire = body.daysToExpire || 30; // Default 30 days per PRD
+
+        // Hash password if provided
+        const passwordHash = password ? await bcrypt.hash(password, 10) : null;
+        const expiresAt = addDays(new Date(), daysToExpire);
 
         // 2. REQ-118: Version-Aware Hash Strategy
         // Each version gets its own unique, immutable share hash
@@ -47,7 +56,11 @@ export async function POST(
             if (!project.shareHash) {
                 await prisma.proposal.update({
                     where: { id },
-                    data: { shareHash }
+                    data: {
+                        shareHash,
+                        shareExpiresAt: expiresAt,
+                        sharePasswordHash: passwordHash
+                    }
                 });
             }
         } else {
@@ -59,7 +72,7 @@ export async function POST(
         const snapshot: Partial<ProposalType> = {
             receiver: {
                 name: project.clientName,
-                address: "", 
+                address: "",
                 zipCode: "",
                 city: "",
                 country: "",
@@ -150,7 +163,9 @@ export async function POST(
                 data: {
                     proposalId: id,
                     shareHash,
-                    snapshotData: JSON.stringify(snapshot)
+                    snapshotData: JSON.stringify(snapshot),
+                    expiresAt,
+                    passwordHash
                 }
             });
         }
@@ -160,12 +175,12 @@ export async function POST(
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
         const shareUrl = `${baseUrl}/share/${shareHash}`;
 
-        return NextResponse.json({ 
+        return NextResponse.json({
             shareUrl,
             version: versionNumber,
             isNewSnapshot: !existingSnapshot,
-            message: existingSnapshot 
-                ? `Returning existing v${versionNumber} share link (immutable)` 
+            message: existingSnapshot
+                ? `Returning existing v${versionNumber} share link (immutable)`
                 : `Created new v${versionNumber} share link`
         });
     } catch (error) {

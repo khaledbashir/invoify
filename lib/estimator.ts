@@ -8,6 +8,7 @@
 
 import Decimal from "@/lib/decimal";
 import { roundToCents, roundCategoryTotal } from "@/lib/decimal";
+import { Venue } from "@/types";
 
 export interface ScreenPriceBreakdown {
   led: number;
@@ -27,10 +28,10 @@ export function calculateTotalWithBond(cost: number, marginPct: number) {
   // Natalia Math Divisor Model: P = C / (1 - M)
   const dCost = new Decimal(cost);
   const dMarginPct = new Decimal(marginPct);
-  
+
   // sellPrice = cost / (1 - (marginPct / 100))
   const sellPrice = dCost.div(new Decimal(1).minus(dMarginPct.div(100)));
-  
+
   // Bond is 1.5% of the Sell Price
   const bond = sellPrice.times(0.015);
   const total = sellPrice.plus(bond);
@@ -43,12 +44,9 @@ export function calculateTotalWithBond(cost: number, marginPct: number) {
 }
 
 /**
- * Calculate screen price based on dimensions, pitch, and environment
- * @param width Screen width in meters
- * @param height Screen height in meters
- * @param pitch Pixel pitch in mm
- * @param isOutdoor Whether the screen is for outdoor use
- * @returns Price breakdown for LED, Structure, Install, and Power
+ * calculateScreenPrice (Internal Logic Replacement Check)
+ * Note: Base calculations are now handled by calculatePerScreenAudit for ANC Master Logic.
+ * This function remains for legacy compatibility but is updated to use new pricing constants.
  */
 export function calculateScreenPrice(
   width: number,
@@ -58,20 +56,14 @@ export function calculateScreenPrice(
 ): ScreenPriceBreakdown {
   const dWidth = new Decimal(width);
   const dHeight = new Decimal(height);
-  
-  // LED Cost calculation
-  // Formula: (Width * Height) * (isOutdoor ? 150 : 80)
+
+  // LED Cost calculation basis
   const area = dWidth.times(dHeight);
   const pricePerSquareMeter = isOutdoor ? 150 : 80;
   const ledCost = area.times(pricePerSquareMeter);
 
-  // Structure Cost: 20% of LED cost
   const structureCost = ledCost.times(0.20);
-
-  // Install Cost: Flat fee of $5000
   const installCost = new Decimal(5000);
-
-  // Power Cost: 15% of LED cost
   const powerCost = ledCost.times(0.15);
 
   const total = ledCost.plus(structureCost).plus(installCost).plus(powerCost);
@@ -85,8 +77,44 @@ export function calculateScreenPrice(
   };
 }
 
-export const MORGANTOWN_BO_TAX = 0.02; // 2% West Virginia B&O Tax (REQ-48)
+export const MORGANTOWN_BO_TAX = 0.02; // 2% West Virginia B&O Tax (REQ-81)
 export const STEEL_PRICE_PER_TON = 3000; // REQ-86: Thornton Tomasetti rate $3,000/ton
+export const BOND_PCT = 0.015; // 1.5% Bond Fee
+export const DEFAULT_SALES_TAX = 0.095; // 9.5% Sales Tax
+export const DEFAULT_MARGIN = 0.25; // Default 25% margin
+export const DEFAULT_COST_PER_SQFT = 120;
+export const DEFAULT_PITCH_MM = 10;
+export const DEFAULT_SERVICE_TYPE = "Front/Rear";
+export const INSTALL_FLAT = 5000;
+export const LABOR_PCT = 0.15;
+export const POWER_PCT = 0.15;
+export const SHIPPING_PER_SQFT = 0.14;
+export const PM_PER_SQFT = 0.5;
+export const GENERAL_CONDITIONS_PCT = 0.02;
+export const TRAVEL_PCT = 0.03;
+export const SUBMITTALS_PCT = 0.01;
+export const PERMITS_FIXED = 500;
+export const CMS_PCT = 0.02;
+export const DEMOLITION_FIXED = 5000;
+
+// Supported Pixel Pitches (REQ: 1.56, 1.83, 0.94, 4, 6, 10, 13, 15, 16)
+export const SUPPORTED_PITCHES = [0.94, 1.56, 1.83, 4, 6, 10, 13, 15, 16];
+
+// Venue Specific Constraints (REQ-81)
+export const VENUE_CONSTRAINTS = {
+  [Venue.STADIUM]: {
+    liquidatedDamages: "$2,500/day + $150,000 per home football game",
+    weightLimitLbs: 60000,
+    completionDate: "July 30, 2020",
+  },
+  [Venue.COLISEUM]: {
+    liquidatedDamages: "$5,000/day + $150,000 per home basketball game",
+    weightLimitLbs: 60000,
+  },
+  "Alfond Arena": {
+    weightLimitLbs: 6000,
+  }
+};
 
 function shouldApplyMorgantownBoTax(input?: { projectAddress?: string; venue?: string }) {
   const haystack = `${input?.projectAddress ?? ""} ${input?.venue ?? ""}`.toLowerCase();
@@ -306,31 +334,31 @@ export function calculatePerScreenAudit(
   const { loadCatalogSync } = require('./catalog');
   const catalog = loadCatalogSync();
 
-  // Defaults
-  const DEFAULT_COST_PER_SQFT = options?.defaultCostPerSqFt ?? 120;
-  const DEFAULT_PITCH_MM = options?.defaultPitchMm ?? 10;
-  const DEFAULT_MARGIN = options?.defaultDesiredMargin ?? 0.25;
-  const DEFAULT_SERVICE_TYPE = "Front/Rear"; // Scoreboards default
+  // Defaults with options overrides
+  const costPerSqFtVal = options?.defaultCostPerSqFt ?? DEFAULT_COST_PER_SQFT;
+  const pitchMmVal = options?.defaultPitchMm ?? DEFAULT_PITCH_MM;
+  const marginVal = options?.defaultDesiredMargin ?? DEFAULT_MARGIN;
+  const bondPctVal = options?.bondPct ?? BOND_PCT;
+  const salesTaxVal = options?.taxRate ?? DEFAULT_SALES_TAX;
+  const serviceTypeVal = DEFAULT_SERVICE_TYPE;
 
-  const INSTALL_FLAT = options?.installFlatFee ?? 5000;
-  const LABOR_PCT = options?.laborPct ?? 0.15;
-  const POWER_PCT = options?.powerPct ?? 0.15;
-  const SHIPPING_PER_SQFT = options?.shippingPerSqFt ?? 0.14;
-  const PM_PER_SQFT = options?.pmPerSqFt ?? 0.5;
-  const GENERAL_CONDITIONS_PCT = options?.generalConditionsPct ?? 0.02;
-  const TRAVEL_PCT = options?.travelPct ?? 0.03;
-  const SUBMITTALS_PCT = options?.submittalsPct ?? 0.01;
-  const PERMITS_FIXED = options?.permitsFixed ?? 500;
-  const CMS_PCT = options?.cmsPct ?? 0.02;
-  const BOND_PCT = options?.bondPct ?? 0.015;
-  const DEMOLITION_FIXED = 5000;
+  const installFlatVal = options?.installFlatFee ?? INSTALL_FLAT;
+  const laborPctVal = options?.laborPct ?? LABOR_PCT;
+  const powerPctVal = options?.powerPct ?? POWER_PCT;
+  const shippingVal = options?.shippingPerSqFt ?? SHIPPING_PER_SQFT;
+  const pmVal = options?.pmPerSqFt ?? PM_PER_SQFT;
+  const gcPctVal = options?.generalConditionsPct ?? GENERAL_CONDITIONS_PCT;
+  const travelPctVal = options?.travelPct ?? TRAVEL_PCT;
+  const submittalsPctVal = options?.submittalsPct ?? SUBMITTALS_PCT;
+  const permitsVal = options?.permitsFixed ?? PERMITS_FIXED;
+  const cmsPctVal = options?.cmsPct ?? CMS_PCT;
 
   const qty = new Decimal(s.quantity ?? 1);
-  const pitch = s.pitchMm ?? DEFAULT_PITCH_MM;
-  const serviceType = s.serviceType ?? DEFAULT_SERVICE_TYPE;
+  const pitch = s.pitchMm ?? pitchMmVal;
+  const serviceType = s.serviceType ?? serviceTypeVal;
   const formFactor = s.formFactor ?? "Straight";
   const outletDistance = s.outletDistance ?? 0;
-  const desiredMargin = new Decimal(s.desiredMargin ?? DEFAULT_MARGIN);
+  const desiredMargin = new Decimal(s.desiredMargin ?? marginVal);
 
   // VLOOKUP: Find matching product by pixel pitch in catalog
   const catalogEntry = catalog?.find(
@@ -363,15 +391,11 @@ export function calculatePerScreenAudit(
   const pixelResolution = pixelsH * pixelsW;
   const pixelMatrix = `${pixelsH} x ${pixelsW} @ ${pitch}mm`;
 
-  // Service Type Branch: Top (Ribbons) = 10%, Front/Rear (Scoreboards) = 20%
-  let STRUCTURE_PCT = serviceType.toLowerCase() === "top" ? 0.10 : 0.20;
+  // Service Type Branch: Top = 10%, Front/Rear = 20%
+  let STRUCTURE_PCT = serviceType.toLowerCase().includes("top") ? 0.10 : 0.20;
   let ENGINEERING_PCT = options?.engineeringPct ?? 0.02;
 
-  // Ferrari Logic 2: Infrastructure Credit (RFP Exhibit A, Page 11)
-  if (s.isReplacement && s.useExistingStructure) {
-    STRUCTURE_PCT = 0.05; // Drop to 5%
-    ENGINEERING_PCT = 0.05; // Increase to 5% for site audit/Electrical review
-  }
+  // Note: Infrastructure Credit removed per Master Truth PRD alignment.
 
   const height = new Decimal(s.heightFt ?? 0);
   const width = new Decimal(s.widthFt ?? 0);
@@ -439,7 +463,7 @@ export function calculatePerScreenAudit(
 
   // REQ-125: Sales Tax included in finalClientTotal per Master Truth mandate
   // Financial Sequence: Selling Price + Bond + B&O Tax + Sales Tax = Final Total
-  const salesTaxRate = new Decimal(options?.taxRate ?? 0.095);
+  const salesTaxRate = new Decimal(DEFAULT_SALES_TAX);
   const taxableAmount = sellPrice.plus(bondCost).plus(boTaxCost);
   const salesTaxCost = roundToCents(taxableAmount.times(salesTaxRate));
   const finalClientTotal = roundToCents(taxableAmount.plus(salesTaxCost));
@@ -611,13 +635,13 @@ export function calculateProposalAudit(
 
       const oldSellPrice = new Decimal(b.sellPrice);
       const oldBondCost = new Decimal(b.bondCost);
-      
-      const desiredMargin = oldSellPrice.gt(0) 
-        ? new Decimal(1).minus(oldTotalCost.div(oldSellPrice)) 
+
+      const desiredMargin = oldSellPrice.gt(0)
+        ? new Decimal(1).minus(oldTotalCost.div(oldSellPrice))
         : new Decimal(options?.defaultDesiredMargin ?? 0.25);
-        
-      const bondPct = oldSellPrice.gt(0) 
-        ? oldBondCost.div(oldSellPrice) 
+
+      const bondPct = oldSellPrice.gt(0)
+        ? oldBondCost.div(oldSellPrice)
         : new Decimal(options?.bondPct ?? 0.015);
 
       if (desiredMargin.gte(1.0)) {
@@ -700,8 +724,8 @@ export function calculateProposalAudit(
   }
 
   // Compute final weighted average for sellingPricePerSqFt
-  const totalSqFt = totals.totalCost.gt(0) 
-    ? perScreen.reduce((sum, ps) => sum + ps.areaSqFt, 0) 
+  const totalSqFt = totals.totalCost.gt(0)
+    ? perScreen.reduce((sum, ps) => sum + ps.areaSqFt, 0)
     : 1;
   const weightedSellingPricePerSqFt = roundToCents(totals.sellingPricePerSqFt.div(totalSqFt));
 
@@ -735,7 +759,7 @@ export function calculateProposalAudit(
 
   // Apply project tax (default 9.5% or override) to the subtotal to compute grand total
   const subtotal = roundToCents(totals.finalClientTotal);
-  const activeTaxRate = new Decimal(options?.taxRate !== undefined ? options.taxRate : 0.095);
+  const activeTaxRate = new Decimal(options?.taxRate !== undefined ? options.taxRate : DEFAULT_SALES_TAX);
   const taxAmount = roundToCents(subtotal.times(activeTaxRate));
   const grandTotal = roundToCents(subtotal.plus(taxAmount));
 
@@ -854,7 +878,7 @@ export function calculateExcelPricing(
     const quantity = new Decimal(screen.quantity ?? 1);
     const widthFeet = new Decimal(screen.widthFeet);
     const heightFeet = new Decimal(screen.heightFeet);
-    
+
     const sqFt = widthFeet.times(heightFeet);
     const totalSqFt = sqFt.times(quantity);
 

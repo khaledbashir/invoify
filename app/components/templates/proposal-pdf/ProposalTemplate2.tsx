@@ -106,7 +106,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     <tr className="bg-gray-100">
                         <td className="p-1.5 pl-4 text-gray-700">Brightness</td>
                         <td className="p-1.5 text-right pr-4 text-gray-900">
-                            {screen.brightnessNits ? `${formatNumberWithCommas(screen.brightnessNits)}` : "Standard"}
+                            {screen.brightness ? `${formatNumberWithCommas(screen.brightness)}` : "Standard"}
                         </td>
                     </tr>
                     <tr className="bg-white">
@@ -121,7 +121,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     // REQ-124: Context-bound tax/bond rates (not hardcoded)
     const taxRate = (details as any)?.taxRateOverride ?? 0.095; // Default 9.5%
     const bondRate = (details as any)?.bondRateOverride ?? 0.015; // Default 1.5%
-    
+
     // REQ-124: Project-level totals for consolidated tax display
     const projectSubtotal = totals?.sellPrice || screens.reduce((sum: number, s: any) => {
         const audit = internalAudit?.perScreen?.find((a: any) => a.id === s.id || a.name === s.name);
