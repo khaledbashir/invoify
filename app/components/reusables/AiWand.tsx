@@ -39,15 +39,20 @@ export default function AiWand({ fieldName, searchQuery, targetFields }: AiWandP
     const { success: showSuccess, error: showError } = useToasts();
 
     const applyResults = (results: Record<string, string>, originalQuery: string, corrected: string) => {
+        // 1. Update the main field with corrected name if it changed significantly
         if (corrected && corrected.trim().length > 0 && typeof fieldName === "string") {
             const q = originalQuery.toString().trim();
             const cq = corrected.toString().trim();
             if (q.length > 0 && cq.length > 0 && q.toLowerCase() !== cq.toLowerCase()) {
-                setValue(fieldName, cq);
+                setValue(fieldName, cq, { shouldDirty: true });
             }
         }
-        Object.entries(results).forEach(([field, value]) => {
-            if (value) setValue(field, value);
+
+        // 2. Map results to target fields, ensuring we clear old values if not present in new result
+        targetFields.forEach(field => {
+            const value = results[field];
+            // Clear or update
+            setValue(field, value || "", { shouldDirty: true });
         });
     };
 
