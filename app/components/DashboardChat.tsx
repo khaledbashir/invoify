@@ -1,261 +1,134 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, MessageSquare, Loader2, Building2, X, Minimize2 } from "lucide-react";
+import {
+    Send,
+    Sparkles,
+    X,
+    Maximize2,
+    Minimize2,
+    Command,
+    Terminal,
+    Search,
+    Plus,
+    Mic
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type Message = {
-    role: "user" | "ai";
-    content: string;
-    timestamp: Date;
-};
-
-const QUICK_PROMPTS = [
-    { label: "Active Projects", prompt: "List all active projects and their current status" },
-    { label: "Revenue Summary", prompt: "What's the total estimated revenue across all proposals?" },
-    { label: "Pending Items", prompt: "Which projects have pending issues or gaps?" },
-];
-
-/**
- * DashboardChat - Premium Business Intelligence AI Chat
- * 
- * Features:
- * - Glassmorphism panel styling
- * - Animated floating action button with glow
- * - Smooth open/close transitions
- * - Quick prompt chips
- * - Connected to master dashboard-vault workspace
- */
-const DashboardChat = () => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+export default function DashboardChat() {
     const [isOpen, setIsOpen] = useState(false);
-    const scrollRef = useRef<HTMLDivElement>(null);
-
-    const MASTER_WORKSPACE = process.env.NEXT_PUBLIC_ANYTHING_LLM_MASTER_WORKSPACE || "dashboard-vault";
+    const [input, setInput] = useState("");
+    const [messages, setMessages] = useState<any[]>([]);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages]);
-
-    const sendMessage = async (msg?: string) => {
-        const messageText = msg || input;
-        if (!messageText.trim()) return;
-
-        const userMessage: Message = {
-            role: "user",
-            content: messageText,
-            timestamp: new Date(),
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+                e.preventDefault();
+                setIsOpen(true);
+            }
+            if (e.key === "Escape") {
+                setIsOpen(false);
+            }
         };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
 
-        setMessages((prev) => [...prev, userMessage]);
+    const handleSend = () => {
+        if (!input.trim()) return;
+        setMessages([...messages, { role: "user", content: input }]);
         setInput("");
-        setIsLoading(true);
-
-        try {
-            const res = await fetch("/api/dashboard/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    message: messageText,
-                    workspace: MASTER_WORKSPACE,
-                }),
-            });
-
-            const data = await res.json();
-
-            const aiMessage: Message = {
-                role: "ai",
-                content: data.response || "Sorry, I couldn't process that request.",
-                timestamp: new Date(),
-            };
-
-            setMessages((prev) => [...prev, aiMessage]);
-        } catch (error) {
-            console.error("Dashboard chat error:", error);
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "ai",
-                    content: "Connection error. Please try again.",
-                    timestamp: new Date(),
-                },
-            ]);
-        } finally {
-            setIsLoading(false);
-        }
+        // Mock AI response
+        setTimeout(() => {
+            setMessages(prev => [...prev, { role: "assistant", content: "I'm analyzing the vault for tactical insights. What specific project detail can I assist with?" }]);
+        }, 1000);
     };
 
     return (
-        <>
-            {/* Premium Floating Action Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={cn(
-                    "fixed bottom-6 right-6 z-50",
-                    "w-14 h-14 rounded-2xl",
-                    "flex items-center justify-center",
-                    "transition-all duration-300 ease-out",
-                    isOpen
-                        ? "bg-zinc-800 text-white rotate-0 scale-95"
-                        : "bg-gradient-to-br from-[#0A52EF] to-[#0385DD] text-white anc-glow-button"
-                )}
-            >
-                <div className="relative">
-                    {isOpen ? (
-                        <X className="w-6 h-6" />
-                    ) : (
-                        <>
-                            <Building2 className="w-6 h-6" />
-                            <Sparkles className="absolute -top-1 -right-1 w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-                        </>
-                    )}
-                </div>
-            </button>
-
-            {/* Chat Panel with Glassmorphism */}
-            <div className={cn(
-                "fixed bottom-24 right-6 z-40 w-[400px]",
-                "transition-all duration-300 ease-out transform",
-                isOpen
-                    ? "opacity-100 translate-y-0 pointer-events-auto scale-100"
-                    : "opacity-0 translate-y-4 pointer-events-none scale-95"
-            )}>
-                <div className="anc-glass-card rounded-3xl overflow-hidden shadow-2xl">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-[#0A52EF] to-[#0385DD] p-5">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                    <Building2 className="w-6 h-6 text-white" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-white text-lg">ANC Intelligence</h3>
-                                    <p className="text-xs text-white/70">Ask about any project</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                            >
-                                <Minimize2 className="w-4 h-4 text-white" />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Messages Area */}
-                    <div
-                        ref={scrollRef}
-                        className="h-80 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-white/50 to-white/30"
+        <div className="relative w-full">
+            {/* Chat Expanded Overlay */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.98, y: 20 }}
+                        className="absolute bottom-20 left-0 right-0 max-h-[400px] mb-4 bg-[#09090b] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col p-4 z-50 pointer-events-auto"
                     >
-                        {messages.length === 0 && (
-                            <div className="text-center py-10">
-                                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[#0A52EF]/20 to-purple-500/20 flex items-center justify-center mb-4">
-                                    <MessageSquare className="w-8 h-8 text-[#0A52EF]" />
+                        <div className="flex-1 overflow-y-auto space-y-4 mb-4 scrollbar-hide">
+                            {messages.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-40 py-12">
+                                    <Sparkles className="w-8 h-8 text-[#0A52EF]" />
+                                    <p className="text-sm font-medium max-w-[200px]">
+                                        Ask me anything about your proposals, budgets, or strategy.
+                                    </p>
                                 </div>
-                                <p className="text-sm font-semibold text-zinc-700">Business-Wide Context</p>
-                                <p className="text-xs text-zinc-500 mt-2 max-w-[200px] mx-auto leading-relaxed">
-                                    I have access to all your projects. Ask me anything about your business.
-                                </p>
-                            </div>
-                        )}
-
-                        {messages.map((m, i) => (
-                            <div
-                                key={i}
-                                className={cn(
-                                    "flex flex-col max-w-[85%]",
-                                    m.role === "user" ? "ml-auto items-end" : "items-start"
-                                )}
-                            >
-                                <div className={cn(
-                                    "px-4 py-2.5 rounded-2xl text-sm",
-                                    m.role === "user"
-                                        ? "bg-gradient-to-r from-[#0A52EF] to-[#0385DD] text-white rounded-br-md shadow-lg shadow-[#0A52EF]/20"
-                                        : "bg-white text-zinc-700 rounded-bl-md shadow-md border border-zinc-100"
-                                )}>
-                                    {m.content}
-                                </div>
-                                <span className="text-[10px] text-zinc-400 mt-1 px-1">
-                                    {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                </span>
-                            </div>
-                        ))}
-
-                        {isLoading && (
-                            <div className="flex items-center gap-2">
-                                <div className="bg-white px-4 py-2.5 rounded-2xl rounded-bl-md shadow-md border border-zinc-100">
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin text-[#0A52EF]" />
-                                        <span className="text-xs text-zinc-500">Thinking...</span>
+                            ) : (
+                                messages.map((msg, i) => (
+                                    <div key={i} className={cn(
+                                        "flex flex-col max-w-[85%] space-y-1",
+                                        msg.role === "user" ? "ml-auto items-end" : "items-start"
+                                    )}>
+                                        <div className={cn(
+                                            "px-4 py-2 rounded-2xl text-sm leading-relaxed",
+                                            msg.role === "user"
+                                                ? "bg-[#0A52EF] text-white"
+                                                : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                                        )}>
+                                            {msg.content}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Bottom Command Bar */}
+            <div className={cn(
+                "w-full h-14 bg-[#09090b]/90 backdrop-blur-3xl border border-zinc-800 rounded-xl flex items-center px-4 transition-all duration-300 pointer-events-auto",
+                isOpen ? "ring-2 ring-[#0A52EF]/30 border-[#0A52EF]/50" : "hover:border-zinc-600"
+            )}>
+                <div className="flex items-center gap-3 mr-4">
+                    <Command className="w-4 h-4 text-zinc-600" />
+                    <div className="w-px h-6 bg-zinc-800" />
+                </div>
+
+                <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Ask anything..."
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onFocus={() => setIsOpen(true)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    className="flex-1 bg-transparent border-none outline-none text-sm text-zinc-200 placeholder-zinc-700"
+                />
+
+                <div className="flex items-center gap-2 ml-4">
+                    {!input && (
+                        <div className="flex gap-2 mr-2">
+                            <div className="px-1.5 py-0.5 border border-zinc-800 rounded text-[9px] font-bold text-zinc-600">CMD</div>
+                            <div className="px-1.5 py-0.5 border border-zinc-800 rounded text-[9px] font-bold text-zinc-600">K</div>
+                        </div>
+                    )}
+                    <button className="p-2 text-zinc-600 hover:text-zinc-200 transition-colors">
+                        <Mic className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={handleSend}
+                        className={cn(
+                            "p-2 rounded-lg transition-all",
+                            input ? "text-[#0A52EF] hover:bg-[#0A52EF]/10" : "text-zinc-700 pointer-events-none"
                         )}
-                    </div>
-
-                    {/* Quick Prompts & Input */}
-                    <div className="p-4 bg-white/80 backdrop-blur-sm border-t border-zinc-100/50">
-                        {/* Quick prompts */}
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {QUICK_PROMPTS.map((qp, i) => (
-                                <button
-                                    key={i}
-                                    onClick={() => sendMessage(qp.prompt)}
-                                    disabled={isLoading}
-                                    className={cn(
-                                        "text-[11px] font-medium",
-                                        "px-3 py-1.5 rounded-full",
-                                        "bg-zinc-100 hover:bg-[#0A52EF]/10 hover:text-[#0A52EF]",
-                                        "transition-all duration-200",
-                                        "disabled:opacity-50 disabled:cursor-not-allowed"
-                                    )}
-                                >
-                                    {qp.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Input */}
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                                placeholder="Ask about your business..."
-                                className={cn(
-                                    "w-full px-4 py-3 pr-12 rounded-xl",
-                                    "bg-zinc-100/80 border border-zinc-200/50",
-                                    "text-sm placeholder:text-zinc-400",
-                                    "focus:outline-none focus:ring-2 focus:ring-[#0A52EF]/50 focus:border-transparent",
-                                    "transition-all duration-200"
-                                )}
-                            />
-                            <button
-                                onClick={() => sendMessage()}
-                                disabled={isLoading || !input.trim()}
-                                className={cn(
-                                    "absolute right-2 top-1/2 -translate-y-1/2",
-                                    "w-8 h-8 rounded-lg",
-                                    "flex items-center justify-center",
-                                    "bg-[#0A52EF] text-white",
-                                    "hover:bg-[#0A52EF]/90",
-                                    "disabled:opacity-30 disabled:cursor-not-allowed",
-                                    "transition-all duration-200"
-                                )}
-                            >
-                                <Send className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
+                    >
+                        <Send className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
-        </>
+        </div>
     );
-};
-
-export default DashboardChat;
+}
