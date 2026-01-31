@@ -489,6 +489,8 @@ export const ProposalContextProvider = ({
           calculationMode: d.calculationMode || FORM_DEFAULT_VALUES.details.calculationMode, // Hydrate calculation mode
           taxRateOverride: d.taxRateOverride ?? details.taxRateOverride ?? FORM_DEFAULT_VALUES.details.taxRateOverride,
           bondRateOverride: d.bondRateOverride ?? details.bondRateOverride ?? FORM_DEFAULT_VALUES.details.bondRateOverride,
+          overheadRate: details.overheadRate ?? 0.10,
+          profitRate: details.profitRate ?? 0.05,
         },
       };
 
@@ -2102,21 +2104,12 @@ export const ProposalContextProvider = ({
         aiMessages,
         aiLoading,
         duplicateScreen,
-        aiFields,
-        aiFieldTimestamps,
-        trackAiFieldModification,
-        isFieldGhostActive,
         proposal: watch(),
         headerType,
         setHeaderType,
         // Calculation Mode
         calculationMode,
         setCalculationMode,
-        // Risks
-        risks,
-        setRisks,
-        rulesDetected,
-        setRulesDetected,
         // Excel Editing
         updateExcelCell,
       }}

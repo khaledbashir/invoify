@@ -219,7 +219,7 @@ export function generateSOWContent(options: SOWOptions | string = {}): { title: 
 
     sections.push({
         title: SOW_SECTIONS.controlSystem.title,
-        content: sanitize(controlContent),
+        content: sanitize(SOW_SECTIONS.controlSystem.content),
         category: "DESIGN"
     });
 
