@@ -56,16 +56,27 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         return t === "DISPLAY NAME" || t === "DISPLAY";
     });
 
+    // Helper to find column by regex
+    const findCol = (regex: RegExp) => headers.findIndex(h => regex.test((h ?? "").toString().trim().toUpperCase()));
+
+    const qtyIdx = findCol(/QTY|QUANTITY|OF\s+SCREENS/i);
+    const pitchIdx = findCol(/PITCH/i);
+    const heightIdx = findCol(/HEIGHT|ACTIVE\s+HEIGHT|H\s*\(FT\)/i);
+    const widthIdx = findCol(/WIDTH|ACTIVE\s+WIDTH|W\s*\(FT\)/i);
+    const pixelsHIdx = findCol(/PIXEL\s+RESOLUTION\s+\(H\)|RES\s*H|PIXELS\s*H/i);
+    const pixelsWIdx = findCol(/PIXEL\s+RESOLUTION\s+\(W\)|RES\s*W|PIXELS\s*W/i);
+    const nitsIdx = findCol(/NIT|BRIGHT/i);
+
     const colIdx: any = isLedCostSheetFormat
         ? {
             name: nameHeaderIndex >= 0 ? nameHeaderIndex : 0,
-            quantity: headers.findIndex((h) => (h ?? "").toString().trim().toUpperCase() === "OF SCREENS"),
-            pitch: headers.findIndex((h) => (h ?? "").toString().trim().toUpperCase() === "PITCH"),
-            height: 5,
-            width: 6,
-            pixelsH: 7,
-            pixelsW: 9,
-            brightnessNits: headers.findIndex((h) => /NIT|BRIGHT/i.test((h ?? "").toString())),
+            quantity: qtyIdx >= 0 ? qtyIdx : 11,
+            pitch: pitchIdx >= 0 ? pitchIdx : 4,
+            height: heightIdx >= 0 ? heightIdx : 5,
+            width: widthIdx >= 0 ? widthIdx : 6,
+            pixelsH: pixelsHIdx >= 0 ? pixelsHIdx : 7,
+            pixelsW: pixelsWIdx >= 0 ? pixelsWIdx : 9,
+            brightnessNits: nitsIdx,
             hdrStatus: -1,
             hardwareCost: headers.findIndex((h) => /DISPLAY\s*COST/i.test((h ?? "").toString())),
             installCost: -1,
@@ -79,13 +90,13 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         }
         : {
             name: nameHeaderIndex >= 0 ? nameHeaderIndex : 0,
-            quantity: 2,
-            pitch: 4,
-            height: 5,
-            width: 6,
-            pixelsH: 7,
-            pixelsW: 9,
-            brightnessNits: 12,
+            quantity: qtyIdx >= 0 ? qtyIdx : 2,
+            pitch: pitchIdx >= 0 ? pitchIdx : 4,
+            height: heightIdx >= 0 ? heightIdx : 5,
+            width: widthIdx >= 0 ? widthIdx : 6,
+            pixelsH: pixelsHIdx >= 0 ? pixelsHIdx : 7,
+            pixelsW: pixelsWIdx >= 0 ? pixelsWIdx : 9,
+            brightnessNits: nitsIdx >= 0 ? nitsIdx : 12,
             hdrStatus: -1,
             hardwareCost: 16,
             installCost: 17,

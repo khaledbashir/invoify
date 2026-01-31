@@ -137,18 +137,6 @@ export function StudioHeader({
                         <FileSpreadsheet className="w-3 h-3 mr-2 text-emerald-500" />
                         Audit
                     </Button>
-                    
-                    <div className="h-4 w-px bg-zinc-800" />
-                    
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-zinc-400 hover:text-white font-bold uppercase tracking-widest text-[10px] px-3 h-7"
-                        onClick={onExportPdf}
-                    >
-                        <Download className="w-3 h-3 mr-2 text-brand-blue" />
-                        PDF
-                    </Button>
                 </div>
             </div>
         </div>
