@@ -186,6 +186,8 @@ const ScreenAuditSchema = z.object({
         finalClientTotal: z.number(),
         sellingPricePerSqFt: z.number(),
         boTaxCost: z.number().optional(), // REQ-48
+        salesTaxCost: z.number().optional(), // REQ-125
+        salesTaxRate: z.number().optional(), // REQ-125
     }),
 });
 
@@ -243,7 +245,7 @@ const ProposalDetailsSchema = z.object({
         pitchMm: z.coerce.number().nonnegative().optional(),
         pixelsH: z.coerce.number().nonnegative().optional(),
         pixelsW: z.coerce.number().nonnegative().optional(),
-        brightness: z.string().optional(),
+        brightness: z.string().optional(), // Terminology: Brightness (formerly Nits)
         costPerSqFt: z.coerce.number().nonnegative().optional(),
         desiredMargin: z.coerce.number().min(0).max(1).optional(),
         serviceType: z.string().optional(), // "Top" or "Front/Rear"
@@ -282,11 +284,20 @@ const ProposalDetailsSchema = z.object({
     bondRateOverride: z.number().optional(), // e.g., 0.015 for 1.5%
     globalMargin: z.number().optional(),
     metadata: z.object({
-        filledByAI: z.array(z.string()).optional(),
-        risks: z.array(z.string()).optional(), // Store IDs of detected risks
-        structuralTonnage: z.number().optional(), // REQ-46
-        reinforcingTonnage: z.number().optional(), // REQ-46
+        filledByAI: z.array(z.string()).optional(), // DEPRECATED: use aiFilledFields
+        risks: z.array(z.string()).optional(),
+        structuralTonnage: z.number().optional(),
+        reinforcingTonnage: z.number().optional(),
+        // Master Truth Audit Trail
+        aiFilledFields: z.array(z.string()).optional(),
+        verifiedFields: z.record(z.object({
+            verifiedBy: z.string(),
+            verifiedAt: z.string(), // ISO String
+        })).optional(),
     }).optional(),
+    // Share Link Security
+    shareExpiresAt: z.string().optional(),
+    sharePasswordHash: z.string().optional(),
     venue: z.enum(["Milan Puskar Stadium", "WVU Coliseum", "Generic"]).default("Generic"), // REQ-47
 });
 

@@ -6,6 +6,8 @@ import { AlertCircle, CheckCircle2, ChevronRight, Info, Target, Zap, X, AlertTri
 import { cn } from "@/lib/utils";
 import { analyzeGaps, calculateCompletionRate } from "@/lib/gap-analysis";
 import { useProposalContext } from "@/contexts/ProposalContext";
+import { isFieldVerified } from "@/lib/ai-verification";
+import { RiskItem } from "@/services/risk-detector";
 
 export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolean; onToggle: () => void }) {
     const { control } = useFormContext();
@@ -20,6 +22,9 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
     const isNoScreens = (formValues?.details?.screens || []).length === 0;
     const isNoProjectName = !formValues?.details?.proposalName;
     const isEmptyState = isDefaultClient && isNoScreens && isNoProjectName;
+
+    const { aiFields, verifiedFields } = useProposalContext();
+    const unverifiedCount = aiFields.filter(f => !isFieldVerified(verifiedFields, f)).length;
 
     // RISK DETECTION
     // Real-time detection from ProposalContext
@@ -88,7 +93,9 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                     <p className="text-[10px] text-zinc-600 italic mt-2">
                         {gaps.length > 0
                             ? `AI detected ${gaps.length} missing data points (Gaps).`
-                            : "All 20 critical technical specs have been identified."}
+                            : unverifiedCount > 0
+                                ? `All gaps filled, but ${unverifiedCount} AI values need verification.`
+                                : "All 20 critical technical specs have been identified and verified."}
                     </p>
                 </div>
             </div>

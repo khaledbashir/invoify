@@ -116,21 +116,23 @@ const defaultProposalContext = {
   aiMessages: [] as any[],
   aiLoading: false,
   duplicateScreen: (index: number) => { },
+  // AI & Verification
   aiFields: [] as string[],
+  verifiedFields: {} as Record<string, { verifiedBy: string; verifiedAt: string }>,
+  setFieldVerified: (fieldPath: string, userName: string) => { },
   aiFieldTimestamps: {} as Record<string, number>,
   trackAiFieldModification: (fieldNames: string[]) => { },
   isFieldGhostActive: (fieldName: string) => false,
+  rulesDetected: null as any,
+  setRulesDetected: (rules: any) => { },
+  // Core State
   proposal: null as any,
   headerType: "PROPOSAL" as "LOI" | "PROPOSAL" | "BUDGET",
   setHeaderType: (type: "LOI" | "PROPOSAL" | "BUDGET") => { },
-  // Calculation Mode
   calculationMode: "MIRROR" as "MIRROR" | "INTELLIGENCE",
   setCalculationMode: (mode: "MIRROR" | "INTELLIGENCE") => { },
-  // Risk State
   risks: [] as RiskItem[],
   setRisks: (risks: RiskItem[]) => { },
-  rulesDetected: null as any,
-  setRulesDetected: (rules: any) => { },
   // Excel Editing
   updateExcelCell: (sheetName: string, row: number, col: number, value: string) => { },
 };
@@ -191,17 +193,28 @@ export const ProposalContextProvider = ({
   const [rfpDocuments, setRfpDocuments] = useState<Array<{ id: string; name: string; url: string; createdAt: string }>>([]);
   const [rfpQuestions, setRfpQuestions] = useState<Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>>([]);
   const [aiFields, setAiFields] = useState<string[]>([]);
+  const [verifiedFields, setVerifiedFields] = useState<Record<string, { verifiedBy: string; verifiedAt: string }>>({});
   const [aiFieldTimestamps, setAiFieldTimestamps] = useState<Record<string, number>>({});
   const [aiMessages, setAiMessages] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [rulesDetected, setRulesDetected] = useState<any>(null);
 
+  const setFieldVerified = useCallback((fieldPath: string, userName: string) => {
+    setVerifiedFields(prev => ({
+      ...prev,
+      [fieldPath]: {
+        verifiedBy: userName,
+        verifiedAt: new Date().toISOString()
+      }
+    }));
+  }, []);
+
   // RFP Vault Refresh
   const refreshRfpDocuments = useCallback(async () => {
     const pid = getValues("details.proposalId");
     if (!pid || pid === "new") return;
-    
+
     try {
       const res = await fetch(`/api/rfp/upload?proposalId=${pid}`);
       if (res.ok) {
@@ -216,22 +229,22 @@ export const ProposalContextProvider = ({
   // RFP Vault Delete
   const deleteRfpDocument = useCallback(async (id: string) => {
     try {
-        const res = await fetch(`/api/rfp/upload?id=${id}`, {
-            method: "DELETE",
-        });
+      const res = await fetch(`/api/rfp/upload?id=${id}`, {
+        method: "DELETE",
+      });
 
-        if (res.ok) {
-            setRfpDocuments(prev => prev.filter(doc => doc.id !== id));
-            // Reset active URL if we deleted the current one
-            if (rfpDocumentUrl && rfpDocuments.find(d => d.id === id)?.url === rfpDocumentUrl) {
-                setRfpDocumentUrl(null);
-            }
-            return true;
+      if (res.ok) {
+        setRfpDocuments(prev => prev.filter(doc => doc.id !== id));
+        // Reset active URL if we deleted the current one
+        if (rfpDocumentUrl && rfpDocuments.find(d => d.id === id)?.url === rfpDocumentUrl) {
+          setRfpDocumentUrl(null);
         }
-        return false;
+        return true;
+      }
+      return false;
     } catch (error) {
-        console.error("Failed to delete RFP document:", error);
-        return false;
+      console.error("Failed to delete RFP document:", error);
+      return false;
     }
   }, [rfpDocumentUrl, rfpDocuments]);
 
@@ -334,7 +347,7 @@ export const ProposalContextProvider = ({
       if (!currentValues?.details) return; // Defensive check
 
       const detected = detectRisks(currentValues, rulesDetected);
-      
+
       // Simple deep equality check to prevent loops
       if (JSON.stringify(detected) !== JSON.stringify(risks)) {
         setRisks(detected);
@@ -456,7 +469,8 @@ export const ProposalContextProvider = ({
 
       // Cleanup AI state on project switch
       setAiMessages([]);
-      setAiFields(details.metadata?.filledByAI || []); // Hydrate AI fields from metadata
+      setAiFields(details.metadata?.aiFilledFields || details.metadata?.filledByAI || []); // Hydrate AI fields
+      setVerifiedFields(details.metadata?.verifiedFields || {}); // Hydrate Verified fields
       setProposalPdf(new Blob());
     }
   }, [initialData, reset, setValue]);
@@ -526,7 +540,9 @@ export const ProposalContextProvider = ({
             taxRateOverride: currentValues.details.taxRateOverride,
             bondRateOverride: currentValues.details.bondRateOverride,
             metadata: {
-              filledByAI: aiFields, // Persist current AI fields
+              ...currentValues.details.metadata,
+              aiFilledFields: aiFields,
+              verifiedFields: verifiedFields,
             }
           };
 
@@ -797,7 +813,7 @@ export const ProposalContextProvider = ({
       console.log("No existing PDF blob, generating new one...");
       pdfBlob = await generatePdf(getValues());
     }
-    
+
     if (pdfBlob instanceof Blob && pdfBlob.size > 0) {
       const url = pdfUrl ?? window.URL.createObjectURL(pdfBlob);
       console.log("Opening blob URL:", url);
@@ -814,7 +830,7 @@ export const ProposalContextProvider = ({
         if (!pdfUrl) window.URL.revokeObjectURL(url);
       }, 60_000);
     } else {
-        console.error("Failed to generate PDF blob for preview - blob is empty or null");
+      console.error("Failed to generate PDF blob for preview - blob is empty or null");
     }
   };
 
@@ -1138,7 +1154,7 @@ export const ProposalContextProvider = ({
       // Use Decimal.js for deterministic distribution of margin
       const totalCost = new Decimal(b.totalCost || 1); // Avoid division by zero
       const ancMargin = new Decimal(b.ancMargin || 0);
-      
+
       const hardwareCost = new Decimal(b.hardware || 0);
       const structureCost = new Decimal(b.structure || 0);
       const laborCost = new Decimal(b.labor || 0);
@@ -1149,7 +1165,7 @@ export const ProposalContextProvider = ({
       const hardwareSell = roundToCents(hardwareCost.plus(ancMargin.times(hardwareCost.div(totalCost))));
       const structureSell = roundToCents(structureCost.plus(ancMargin.times(structureCost.div(totalCost))));
       const laborSell = roundToCents(laborInstallCost.plus(ancMargin.times(laborInstallCost.div(totalCost))));
-      
+
       const finalClientTotal = new Decimal(b.finalClientTotal || 0);
       // Calculate "Other" as the remainder to ensure the sum exactly matches the total
       const otherSell = roundToCents(finalClientTotal.minus(hardwareSell).minus(structureSell).minus(laborSell));
@@ -1616,19 +1632,19 @@ export const ProposalContextProvider = ({
     // Update the Excel preview grid
     setExcelPreview(prev => {
       if (!prev) return prev;
-      
+
       const newSheets = prev.sheets.map(sheet => {
         if (sheet.name !== sheetName) return sheet;
-        
+
         // Clone the grid and update the cell
         const newGrid = sheet.grid.map((r, ri) => {
           if (ri !== row) return r;
           return r.map((c, ci) => (ci === col ? value : c));
         });
-        
+
         return { ...sheet, grid: newGrid };
       });
-      
+
       return { ...prev, sheets: newSheets };
     });
 
@@ -1637,7 +1653,7 @@ export const ProposalContextProvider = ({
       const n = s.name.toLowerCase();
       return n.includes("led cost sheet") || (n.includes("led") && n.includes("sheet"));
     });
-    
+
     if (!ledSheet || ledSheet.name !== sheetName) return;
 
     // Find header row to determine column meanings
@@ -1651,11 +1667,11 @@ export const ProposalContextProvider = ({
     // Map column indices to field names
     const header = headerRow || [];
     const colName = (header[col] || "").toLowerCase().trim();
-    
+
     // Get current screens
     const screens = getValues("details.screens") || [];
     const screenIndex = row - headerRowIndex - 1; // Adjust for header
-    
+
     if (screenIndex < 0 || screenIndex >= screens.length) return;
 
     // Map Excel column to form field
@@ -1806,9 +1822,9 @@ export const ProposalContextProvider = ({
 
         fieldsToPreserve.forEach((field) => {
           const current = (getValues(field) ?? "").toString().trim();
-          const imported = (formData.receiver?.[field.split(".")[1] as keyof typeof formData.receiver] ?? 
-                            formData.details?.[field.split(".")[1] as keyof typeof formData.details] ?? "").toString().trim();
-          
+          const imported = (formData.receiver?.[field.split(".")[1] as keyof typeof formData.receiver] ??
+            formData.details?.[field.split(".")[1] as keyof typeof formData.details] ?? "").toString().trim();
+
           const isCurrentEmpty = current.length === 0 || current.toLowerCase() === "placeholder";
           const isImportedNotEmpty = imported.length > 0 && imported.toLowerCase() !== "placeholder";
 
@@ -1894,6 +1910,18 @@ export const ProposalContextProvider = ({
         exportAudit,
         importProposalData,
         importANCExcel,
+        // AI & Verification
+        aiFields,
+        verifiedFields,
+        setFieldVerified,
+        aiFieldTimestamps,
+        trackAiFieldModification,
+        isFieldGhostActive,
+        rulesDetected,
+        setRulesDetected: (rules: any) => setRulesDetected(rules),
+        // Core State
+        risks,
+        setRisks: (newRisks: RiskItem[]) => setRisks(newRisks),
         // Diagnostic functions
         diagnosticOpen,
         diagnosticPayload,
@@ -1903,13 +1931,13 @@ export const ProposalContextProvider = ({
         // Alerts
         lowMarginAlerts,
         // RFP functions
-    rfpDocumentUrl,
-    rfpDocuments,
-    refreshRfpDocuments,
-    deleteRfpDocument,
-    aiWorkspaceSlug,
-    rfpQuestions,
-    uploadRfpDocument: async (file: File) => {
+        rfpDocumentUrl,
+        rfpDocuments,
+        refreshRfpDocuments,
+        deleteRfpDocument,
+        aiWorkspaceSlug,
+        rfpQuestions,
+        uploadRfpDocument: async (file: File) => {
           const formData = new FormData();
           formData.append("file", file);
           const currentDetails = getValues().details;
@@ -1926,7 +1954,7 @@ export const ProposalContextProvider = ({
                 setValue("details.aiWorkspaceSlug", data.workspaceSlug);
               }
               if (data.questions) setRfpQuestions(data.questions);
-              
+
               // Refresh the vault list
               refreshRfpDocuments();
 
