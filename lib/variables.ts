@@ -9,7 +9,7 @@ export const ENV = process.env.NODE_ENV;
 /**
  * Websites
  */
-export const BASE_URL = "https://anc-sports.vercel.app";
+export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://basheer-natalia.prd42b.easypanel.host";
 export const ANC_WEBSITE = "https://ancsports.com";
 
 /**
