@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { ANYTHING_LLM_BASE_URL, ANYTHING_LLM_KEY } from "@/lib/variables";
 
 /**
- * Dashboard Chat API Route
- * Connects to the master "dashboard-vault" workspace in AnythingLLM
- * This workspace contains documents from ALL projects (cross-synced)
+ * Dashboard Chat API Route - Intelligence Core
+ * Connects to the unified "dashboard-vault" workspace
+ * Supports thinking models with extended reasoning
  */
 export async function POST(req: NextRequest) {
     try {
@@ -14,7 +14,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Message is required" }, { status: 400 });
         }
 
-        const targetWorkspace = workspace || process.env.ANYTHING_LLM_MASTER_WORKSPACE || "dashboard-vault";
+        // Always use dashboard-vault for cross-project intelligence
+        const targetWorkspace = workspace || "dashboard-vault";
+
+        if (!ANYTHING_LLM_BASE_URL || !ANYTHING_LLM_KEY) {
+            return NextResponse.json({
+                error: "AnythingLLM not configured",
+                response: "The Intelligence Core is offline. Please configure ANYTHING_LLM credentials."
+            }, { status: 500 });
+        }
+
+        console.log(`[Intelligence Core] Querying workspace: ${targetWorkspace}`);
 
         // Call AnythingLLM chat API
         const response = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/${targetWorkspace}/chat`, {
@@ -34,7 +44,7 @@ export async function POST(req: NextRequest) {
             console.error("AnythingLLM error:", errorText);
             return NextResponse.json({
                 error: "Failed to get response from AI",
-                response: "I'm having trouble connecting to the knowledge base. Please try again."
+                response: "I'm having trouble accessing the knowledge vault. Please ensure the dashboard-vault workspace exists in AnythingLLM."
             }, { status: response.status });
         }
 
@@ -44,13 +54,14 @@ export async function POST(req: NextRequest) {
             success: true,
             response: data.textResponse || data.response || "No response received.",
             sources: data.sources || [],
+            thinking: data.thinking || null, // If using thinking model
         });
 
     } catch (error: any) {
         console.error("Dashboard chat error:", error);
         return NextResponse.json({
             error: error.message,
-            response: "An error occurred while processing your request."
+            response: "An error occurred while processing your request. The Intelligence Core may be unreachable."
         }, { status: 500 });
     }
 }
