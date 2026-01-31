@@ -24,6 +24,27 @@ const STATE_TRANSITIONS: Record<string, string[]> = {
 // Immutable states - NO EDITS ALLOWED
 const IMMUTABLE_STATES = ["SIGNED", "CLOSED"];
 
+// REQ-122: APPROVED state locks financial math (PRD Section 3.2)
+// Only branding/cosmetic changes allowed, not financial data
+const FINANCIAL_LOCKED_STATES = ["APPROVED", "SIGNED", "CLOSED"];
+
+// Fields that are locked once APPROVED
+const LOCKED_FINANCIAL_FIELDS = [
+  "margin",
+  "desiredMargin", 
+  "cost",
+  "sellPrice",
+  "bondRate",
+  "taxRate",
+  "structuralTonnage",
+  "reinforcingTonnage",
+  "pitchMm",
+  "widthFt",
+  "heightFt",
+  "lineItems",
+  "internalAudit",
+];
+
 export type ProposalStatus = 
   | "DRAFT" 
   | "PENDING_REVIEW" 
@@ -66,13 +87,25 @@ export function generateDocumentHash(proposalData: any): string {
 }
 
 /**
- * Validate edit attempt - throws if proposal is immutable
+ * Check if financial fields are locked (APPROVED or higher)
  */
-export function validateEditAttempt(status: string, proposalId: string): { 
+export function isFinancialLocked(status: string): boolean {
+  return FINANCIAL_LOCKED_STATES.includes(status);
+}
+
+/**
+ * Validate edit attempt - checks both immutability and financial locking
+ */
+export function validateEditAttempt(
+  status: string, 
+  proposalId: string,
+  fieldPath?: string
+): { 
   allowed: boolean; 
   requiresClone: boolean;
   message: string;
 } {
+  // Fully immutable states (SIGNED/CLOSED)
   if (isImmutable(status)) {
     return {
       allowed: false,
@@ -80,10 +113,98 @@ export function validateEditAttempt(status: string, proposalId: string): {
       message: `Proposal is ${status} and cannot be edited. Create a new version (clone) to make changes.`
     };
   }
+
+  // REQ-122: APPROVED state - financial fields locked
+  if (isFinancialLocked(status) && fieldPath) {
+    const isFinancialField = LOCKED_FINANCIAL_FIELDS.some(f => 
+      fieldPath.includes(f) || fieldPath.endsWith(f)
+    );
+    
+    if (isFinancialField) {
+      return {
+        allowed: false,
+        requiresClone: false,
+        message: `Financial field '${fieldPath}' is locked in ${status} state. Only cosmetic/branding changes allowed.`
+      };
+    }
+  }
+
   return {
     allowed: true,
     requiresClone: false,
     message: "Edit allowed"
+  };
+}
+
+/**
+ * REQ-122: Validate transition to APPROVED state
+ * Requires all Blue Glow (AI-filled) fields to be human-verified
+ */
+export function validateApprovalTransition(
+  currentStatus: string,
+  aiFilledFields: string[],
+  verifiedFields: string[]
+): {
+  valid: boolean;
+  error?: string;
+  unverifiedFields?: string[];
+} {
+  // Check valid transition
+  if (!canTransition(currentStatus, "APPROVED")) {
+    return {
+      valid: false,
+      error: `Cannot transition from ${currentStatus} to APPROVED. Must be in PENDING_REVIEW state.`
+    };
+  }
+
+  // REQ-122: All Blue Glow fields must be verified before approval
+  const unverifiedFields = aiFilledFields.filter(f => !verifiedFields.includes(f));
+
+  if (unverifiedFields.length > 0) {
+    return {
+      valid: false,
+      error: `Cannot approve: ${unverifiedFields.length} AI-extracted fields have not been human-verified.`,
+      unverifiedFields
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Prepare approval transition - locks financial data
+ */
+export function prepareApprovalTransition(
+  proposalData: any
+): {
+  status: "APPROVED";
+  financialSnapshot: {
+    lockedAt: Date;
+    hash: string;
+    margins: Record<string, number>;
+    totals: Record<string, number>;
+  };
+} {
+  const now = new Date();
+  
+  // Capture financial snapshot at approval time
+  const screens = proposalData.details?.screens || [];
+  const margins: Record<string, number> = {};
+  const totals: Record<string, number> = {};
+
+  screens.forEach((s: any, i: number) => {
+    margins[`screen_${i}`] = s.desiredMargin || s.margin || 0;
+    totals[`screen_${i}`] = s.sellPrice || s.finalClientTotal || 0;
+  });
+
+  return {
+    status: "APPROVED",
+    financialSnapshot: {
+      lockedAt: now,
+      hash: generateDocumentHash({ margins, totals, lockedAt: now }),
+      margins,
+      totals,
+    }
   };
 }
 
@@ -205,21 +326,65 @@ export function prepareCloneData(
 
 /**
  * State machine summary for UI display
+ * REQ-122: APPROVED locks financial editing but allows cosmetic changes
  */
 export function getStatusInfo(status: string): {
   label: string;
   color: string;
   canEdit: boolean;
+  canEditFinancial: boolean;  // NEW: Separate flag for financial fields
   canSign: boolean;
   canClose: boolean;
 } {
   const info: Record<string, any> = {
-    DRAFT: { label: "Draft", color: "yellow", canEdit: true, canSign: false, canClose: false },
-    PENDING_REVIEW: { label: "Pending Review", color: "blue", canEdit: true, canSign: false, canClose: false },
-    APPROVED: { label: "Approved", color: "green", canEdit: true, canSign: true, canClose: false },
-    SIGNED: { label: "Signed", color: "purple", canEdit: false, canSign: false, canClose: true },
-    CLOSED: { label: "Closed", color: "gray", canEdit: false, canSign: false, canClose: false },
-    CANCELLED: { label: "Cancelled", color: "red", canEdit: false, canSign: false, canClose: false },
+    DRAFT: { 
+      label: "Draft", 
+      color: "yellow", 
+      canEdit: true, 
+      canEditFinancial: true,  // Full edit access
+      canSign: false, 
+      canClose: false 
+    },
+    PENDING_REVIEW: { 
+      label: "Pending Review", 
+      color: "blue", 
+      canEdit: true, 
+      canEditFinancial: true,  // Still editable during review
+      canSign: false, 
+      canClose: false 
+    },
+    APPROVED: { 
+      label: "Approved", 
+      color: "green", 
+      canEdit: true,           // Cosmetic/branding edits allowed
+      canEditFinancial: false, // ❌ FINANCIAL LOCKED (REQ-122)
+      canSign: true, 
+      canClose: false 
+    },
+    SIGNED: { 
+      label: "Signed", 
+      color: "purple", 
+      canEdit: false,          // Fully immutable
+      canEditFinancial: false, 
+      canSign: false, 
+      canClose: true 
+    },
+    CLOSED: { 
+      label: "Closed", 
+      color: "gray", 
+      canEdit: false, 
+      canEditFinancial: false, 
+      canSign: false, 
+      canClose: false 
+    },
+    CANCELLED: { 
+      label: "Cancelled", 
+      color: "red", 
+      canEdit: false, 
+      canEditFinancial: false, 
+      canSign: false, 
+      canClose: false 
+    },
   };
   return info[status] || info.DRAFT;
 }
