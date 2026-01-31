@@ -35,9 +35,18 @@ export async function generateProposalPdfService(req: NextRequest) {
 
 		if (ENV === "production") {
 			const puppeteer = (await import("puppeteer-core")).default;
+			// Try system Chromium first (Docker), then fall back to @sparticuz/chromium (serverless)
+			const execPath = process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath();
 			browser = await puppeteer.launch({
-				args: [...chromium.args, "--disable-dev-shm-usage", "--ignore-certificate-errors"],
-				executablePath: await chromium.executablePath(),
+				args: [
+					...chromium.args,
+					"--disable-dev-shm-usage",
+					"--ignore-certificate-errors",
+					"--no-sandbox",
+					"--disable-setuid-sandbox",
+					"--disable-gpu",
+				],
+				executablePath: execPath,
 				headless: true,
 			});
 		} else {
