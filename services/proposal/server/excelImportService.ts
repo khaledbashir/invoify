@@ -56,27 +56,50 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         return t === "DISPLAY NAME" || t === "DISPLAY";
     });
 
-    // Helper to find column by regex
-    const findCol = (regex: RegExp) => headers.findIndex(h => regex.test((h ?? "").toString().trim().toUpperCase()));
+    /**
+     * REQ-126: STRICT HARD-CODED COLUMN MAPPING (Mirror Mode)
+     * 
+     * Per Master Truth mandate, we use FIXED column indices to prevent
+     * mapping drift if Jeremy's master estimator spreadsheets change.
+     * 
+     * ANC Master Excel Column Mapping:
+     * - Column A (0): Display Name
+     * - Column E (4): MM Pitch  
+     * - Column F (5): Height (ft)
+     * - Column G (6): Width (ft)
+     * - Column H (7): Resolution H (pixels)
+     * - Column J (9): Resolution W (pixels)
+     * - Column M (12): Brightness
+     * 
+     * Dynamic detection is DEPRECATED - only used as last resort fallback.
+     */
+    
+    // REQ-126: STRICT FIXED INDICES (Master Truth)
+    const FIXED_COLUMN_MAP = {
+        name: 0,           // Column A - Display Name
+        pitch: 4,          // Column E - MM Pitch
+        height: 5,         // Column F - Height (ft)
+        width: 6,          // Column G - Width (ft)
+        pixelsH: 7,        // Column H - Resolution H
+        pixelsW: 9,        // Column J - Resolution W
+        brightnessNits: 12, // Column M - Brightness
+        quantity: 11,      // Column L - Quantity (LED Cost Sheet format)
+    };
 
-    const qtyIdx = findCol(/QTY|QUANTITY|OF\s+SCREENS/i);
-    const pitchIdx = findCol(/PITCH/i);
-    const heightIdx = findCol(/HEIGHT|ACTIVE\s+HEIGHT|H\s*\(FT\)/i);
-    const widthIdx = findCol(/WIDTH|ACTIVE\s+WIDTH|W\s*\(FT\)/i);
-    const pixelsHIdx = findCol(/PIXEL\s+RESOLUTION\s+\(H\)|RES\s*H|PIXELS\s*H/i);
-    const pixelsWIdx = findCol(/PIXEL\s+RESOLUTION\s+\(W\)|RES\s*W|PIXELS\s*W/i);
-    const nitsIdx = findCol(/NIT|BRIGHT/i);
+    // Legacy dynamic detection (DEPRECATED - only for edge cases)
+    const findCol = (regex: RegExp) => headers.findIndex(h => regex.test((h ?? "").toString().trim().toUpperCase()));
 
     const colIdx: any = isLedCostSheetFormat
         ? {
-            name: nameHeaderIndex >= 0 ? nameHeaderIndex : 0,
-            quantity: qtyIdx >= 0 ? qtyIdx : 11,
-            pitch: pitchIdx >= 0 ? pitchIdx : 4,
-            height: heightIdx >= 0 ? heightIdx : 5,
-            width: widthIdx >= 0 ? widthIdx : 6,
-            pixelsH: pixelsHIdx >= 0 ? pixelsHIdx : 7,
-            pixelsW: pixelsWIdx >= 0 ? pixelsWIdx : 9,
-            brightnessNits: nitsIdx,
+            // REQ-126: Use STRICT fixed indices for LED Cost Sheet format
+            name: nameHeaderIndex >= 0 ? nameHeaderIndex : FIXED_COLUMN_MAP.name,
+            quantity: FIXED_COLUMN_MAP.quantity,
+            pitch: FIXED_COLUMN_MAP.pitch,
+            height: FIXED_COLUMN_MAP.height,
+            width: FIXED_COLUMN_MAP.width,
+            pixelsH: FIXED_COLUMN_MAP.pixelsH,
+            pixelsW: FIXED_COLUMN_MAP.pixelsW,
+            brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
             hdrStatus: -1,
             hardwareCost: headers.findIndex((h) => /DISPLAY\s*COST/i.test((h ?? "").toString())),
             installCost: -1,
@@ -89,14 +112,15 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             finalTotal: -1,
         }
         : {
-            name: nameHeaderIndex >= 0 ? nameHeaderIndex : 0,
-            quantity: qtyIdx >= 0 ? qtyIdx : 2,
-            pitch: pitchIdx >= 0 ? pitchIdx : 4,
-            height: heightIdx >= 0 ? heightIdx : 5,
-            width: widthIdx >= 0 ? widthIdx : 6,
-            pixelsH: pixelsHIdx >= 0 ? pixelsHIdx : 7,
-            pixelsW: pixelsWIdx >= 0 ? pixelsWIdx : 9,
-            brightnessNits: nitsIdx >= 0 ? nitsIdx : 12,
+            // REQ-126: Use STRICT fixed indices for standard format
+            name: nameHeaderIndex >= 0 ? nameHeaderIndex : FIXED_COLUMN_MAP.name,
+            quantity: 2, // Standard format uses column C for quantity
+            pitch: FIXED_COLUMN_MAP.pitch,
+            height: FIXED_COLUMN_MAP.height,
+            width: FIXED_COLUMN_MAP.width,
+            pixelsH: FIXED_COLUMN_MAP.pixelsH,
+            pixelsW: FIXED_COLUMN_MAP.pixelsW,
+            brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
             hdrStatus: -1,
             hardwareCost: 16,
             installCost: 17,

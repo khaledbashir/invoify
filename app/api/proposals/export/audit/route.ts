@@ -95,6 +95,14 @@ export async function POST(req: NextRequest) {
         clientName: proposal?.clientName,
         status: (proposal?.status as any) ?? "DRAFT",
         boTaxApplies: /morgantown|wvu|milan\s+puskar/i.test(`${projectAddress} ${venue}`),
+        // REQ-126: Pass financial overrides for Zero Math Error compliance
+        bondRateOverride: body.bondRateOverride ?? (proposal?.bondRateOverride ? Number(proposal.bondRateOverride) : undefined),
+        taxRateOverride: body.taxRateOverride ?? (proposal?.taxRateOverride ? Number(proposal.taxRateOverride) : undefined),
+        // REQ-126: Pass PDF total for verification section
+        pdfTotal: body.pdfTotal ?? internalAudit?.totals?.finalClientTotal,
+        // REQ-86: Structural steel tonnage
+        structuralTonnage: body.structuralTonnage ?? (proposal?.structuralTonnage ? Number(proposal.structuralTonnage) : undefined),
+        reinforcingTonnage: body.reinforcingTonnage ?? (proposal?.reinforcingTonnage ? Number(proposal.reinforcingTonnage) : undefined),
       });
 
     return new Response(buffer as any, {

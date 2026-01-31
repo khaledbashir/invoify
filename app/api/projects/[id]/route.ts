@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { isImmutable, isFinancialLocked, LOCKED_FINANCIAL_FIELDS } from "@/lib/proposal-lifecycle";
+import { isImmutable, isFinancialLocked, LOCKED_FINANCIAL_FIELDS, validateApprovalTransition } from "@/lib/proposal-lifecycle";
 
 const prisma = new PrismaClient();
 
@@ -88,8 +88,41 @@ export async function PATCH(
             bondRateOverride,
             createSnapshot, // NEW: Flag to create a version snapshot
             totalSellingPrice, // NEW: For version history
-            averageMargin // NEW: For version history
+            averageMargin, // NEW: For version history
+            aiFilledFields, // REQ-126: AI verification tracking
+            verifiedFields  // REQ-126: Human-verified fields
         } = body;
+
+        // REQ-126: Blue Glow Verification Gate - Block APPROVED transition if unverified AI fields exist
+        if (status === "APPROVED" && existingProject.status !== "APPROVED") {
+            // Fetch the full proposal to get AI verification state
+            const fullProposal = await prisma.proposal.findUnique({
+                where: { id },
+                select: { aiFilledFields: true, verifiedFields: true }
+            });
+            
+            const currentAiFields = (fullProposal?.aiFilledFields as string[]) || aiFilledFields || [];
+            const currentVerifiedFields = (fullProposal?.verifiedFields as any[]) || verifiedFields || [];
+            const verifiedFieldNames = currentVerifiedFields.map((v: any) => v.field || v);
+            
+            const validation = validateApprovalTransition(
+                existingProject.status,
+                currentAiFields,
+                verifiedFieldNames
+            );
+            
+            if (!validation.valid) {
+                return NextResponse.json(
+                    { 
+                        error: validation.error,
+                        unverifiedFields: validation.unverifiedFields,
+                        message: "All AI-extracted fields must be human-verified before approval. Click the checkmark on each Blue Glow field to verify.",
+                        action: "verify_fields"
+                    },
+                    { status: 400 }
+                );
+            }
+        }
 
         // REQ-125: Block financial field edits on APPROVED proposals
         if (isFinancialLocked(existingProject.status as any)) {

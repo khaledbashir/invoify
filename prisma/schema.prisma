@@ -93,6 +93,11 @@ model Proposal {
   verificationStatus     VerificationStatus @default(PENDING)
   lastVerifiedAt         DateTime?
   
+  // REQ-126: AI Verification State Persistence (Blue Glow tracking)
+  // Stores which fields were auto-filled by AI and which have been human-verified
+  aiFilledFields         Json?               // Array of field paths filled by AI ["pitchMm", "brightness", etc.]
+  verifiedFields         Json?               // Array of {field, verifiedBy, verifiedAt} objects
+  
   // NEW: Manual overrides and versions
   manualOverrides       ManualOverride[]
   proposalVersions      ProposalVersion[]
