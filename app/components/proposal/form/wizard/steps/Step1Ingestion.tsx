@@ -1,5 +1,6 @@
 "use client";
 
+import { useFormContext } from "react-hook-form";
 import { Upload, FileSpreadsheet, Sparkles, Shield, Zap, CheckCircle2, AlertTriangle, FileText, ExternalLink, Trash2, ChevronDown, ChevronUp, Settings2, RefreshCw } from "lucide-react";
 import { useProposalContext } from "@/contexts/ProposalContext";
 import { useState, useEffect } from "react";
@@ -20,15 +21,22 @@ const Step1Ingestion = () => {
         aiWorkspaceSlug 
     } = useProposalContext();
     
+    const { getValues } = useFormContext();
     const [rfpUploading, setRfpUploading] = useState(false);
     const [showDetails, setShowDetails] = useState(!excelPreview);
 
-    // Auto-collapse details when Excel is loaded to focus on content
+    // Auto-collapse details when Excel is loaded ONLY if required fields are filled
     useEffect(() => {
         if (excelPreview) {
-            setShowDetails(false);
+            const { details, receiver } = getValues();
+            const hasRequiredFields = details?.proposalName && receiver?.name;
+            if (hasRequiredFields) {
+                setShowDetails(false);
+            } else {
+                setShowDetails(true);
+            }
         }
-    }, [excelPreview]);
+    }, [excelPreview, getValues]);
 
     return (
         <div className="h-full flex flex-col bg-zinc-950/50">

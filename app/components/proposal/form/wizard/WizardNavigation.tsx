@@ -10,6 +10,7 @@ import { BaseButton } from "@/app/components";
 import { useTranslationContext } from "@/contexts/TranslationContext";
 
 // Icons
+import { useMemo } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 // RHF
@@ -34,6 +35,13 @@ const WizardNavigation = () => {
     };
 
     const { _t } = useTranslationContext();
+    
+    const nextTooltip = useMemo(() => {
+        if (activeStep === 0 && !isStep1Ready) return "Please enter Project Name and Client Name to proceed";
+        if (isLastStep) return "You are on the final step";
+        return _t("form.wizard.next");
+    }, [activeStep, isStep1Ready, isLastStep, _t]);
+
     return (
         <div className="flex justify-end gap-5">
             {!isFirstStep && (
@@ -46,7 +54,7 @@ const WizardNavigation = () => {
                 </BaseButton>
             )}
             <BaseButton
-                tooltipLabel="Go to the next step"
+                tooltipLabel={nextTooltip}
                 disabled={isNextDisabled}
                 onClick={handleNext}
             >
