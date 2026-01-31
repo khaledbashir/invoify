@@ -84,6 +84,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         pixelsW: 9,        // Column J - Resolution W
         brightnessNits: 12, // Column M - Brightness
         quantity: 11,      // Column L - Quantity (LED Cost Sheet format)
+        serviceType: -1,   // Dynamic detection
+        structuralTonnage: -1, // Dynamic detection
     };
 
     // Legacy dynamic detection (DEPRECATED - only for edge cases)
@@ -100,6 +102,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             pixelsH: FIXED_COLUMN_MAP.pixelsH,
             pixelsW: FIXED_COLUMN_MAP.pixelsW,
             brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
+            serviceType: findCol(/SERVICE\s*TYPE|ACCESS/i),
+            structuralTonnage: findCol(/TONNAGE|STEEL\s*TONS|TTE/i),
             hdrStatus: -1,
             hardwareCost: headers.findIndex((h) => /DISPLAY\s*COST/i.test((h ?? "").toString())),
             installCost: -1,
@@ -121,6 +125,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             pixelsH: FIXED_COLUMN_MAP.pixelsH,
             pixelsW: FIXED_COLUMN_MAP.pixelsW,
             brightnessNits: FIXED_COLUMN_MAP.brightnessNits,
+            serviceType: findCol(/SERVICE\s*TYPE|ACCESS/i),
+            structuralTonnage: findCol(/TONNAGE|STEEL\s*TONS|TTE/i),
             hdrStatus: -1,
             hardwareCost: 16,
             installCost: 17,
@@ -238,7 +244,9 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
                 widthFt: formatDimension(widthFt),
                 pixelsH: parseInt(pixelsH) || 0,
                 pixelsW: parseInt(pixelsW) || 0,
-                brightnessNits: brightness,
+                brightness: brightness, // REQ: Rename to Brightness
+                serviceType: colIdx.serviceType >= 0 ? row[colIdx.serviceType] : undefined,
+                structuralTonnage: colIdx.structuralTonnage >= 0 ? row[colIdx.structuralTonnage] : undefined,
                 isHDR: isHDR,
                 quantity: Number(colIdx.quantity >= 0 ? row[colIdx.quantity] : 1) || 1,
                 lineItems: [],
