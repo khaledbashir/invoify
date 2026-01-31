@@ -29,15 +29,30 @@ export async function POST(
         // This ensures internal cost/margin data is never accidentally logged or served
         const sanitizedProject = JSON.parse(JSON.stringify(project));
 
-        // 2. Manage Hash Strategy
-        let shareHash = project.shareHash;
-        if (!shareHash) {
-            shareHash = Math.random().toString(36).substring(2, 14);
-            // Link hash to parent proposal for reference
-            await prisma.proposal.update({
-                where: { id },
-                data: { shareHash }
-            });
+        // Parse request body for version control
+        const body = await req.json().catch(() => ({}));
+        const forceNewVersion = body.forceNewVersion || false;
+
+        // 2. REQ-118: Version-Aware Hash Strategy
+        // Each version gets its own unique, immutable share hash
+        // v1 hash remains forever accessible with original data
+        const versionNumber = project.versionNumber || 1;
+        let shareHash: string;
+
+        if (forceNewVersion || !project.shareHash) {
+            // Generate NEW unique hash for this version
+            shareHash = `${Math.random().toString(36).substring(2, 10)}-v${versionNumber}`;
+            
+            // Update proposal with new hash (only if it's the current version's first share)
+            if (!project.shareHash) {
+                await prisma.proposal.update({
+                    where: { id },
+                    data: { shareHash }
+                });
+            }
+        } else {
+            // Reuse existing hash for same version
+            shareHash = project.shareHash;
         }
 
         // 3. Create Sanitized Snapshot (The "Ferrari" View)
@@ -119,24 +134,37 @@ export async function POST(
             }
         };
 
-        // 4. Save Snapshot to DB (Upsert)
-        await prisma.proposalSnapshot.upsert({
-            where: { shareHash },
-            create: {
-                proposalId: id,
-                shareHash,
-                snapshotData: JSON.stringify(snapshot)
-            },
-            update: {
-                snapshotData: JSON.stringify(snapshot),
-                createdAt: new Date() // Refresh timestamp
-            }
+        // 4. Save Snapshot to DB
+        // REQ-118: IMMUTABLE SNAPSHOTS - once created, v1 snapshot NEVER changes
+        // New versions create NEW snapshots with NEW hashes
+        const existingSnapshot = await prisma.proposalSnapshot.findUnique({
+            where: { shareHash }
         });
+
+        if (!existingSnapshot) {
+            // Create new immutable snapshot for this version
+            await prisma.proposalSnapshot.create({
+                data: {
+                    proposalId: id,
+                    shareHash,
+                    snapshotData: JSON.stringify(snapshot)
+                }
+            });
+        }
+        // NOTE: We intentionally do NOT update existing snapshots
+        // This ensures v1 links always show v1 data (immutability)
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
         const shareUrl = `${baseUrl}/share/${shareHash}`;
 
-        return NextResponse.json({ shareUrl });
+        return NextResponse.json({ 
+            shareUrl,
+            version: versionNumber,
+            isNewSnapshot: !existingSnapshot,
+            message: existingSnapshot 
+                ? `Returning existing v${versionNumber} share link (immutable)` 
+                : `Created new v${versionNumber} share link`
+        });
     } catch (error) {
         console.error("POST /api/projects/[id]/share error:", error);
         return NextResponse.json({ error: "Failed to generate share link" }, { status: 500 });
