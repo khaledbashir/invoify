@@ -152,6 +152,8 @@ export async function POST(
                 // SECURITY: Strictly nullify internal financial logic
                 bondRateOverride: Number(project.bondRateOverride) || undefined,
                 taxRateOverride: Number(project.taxRateOverride) || undefined,
+                overheadRate: 0.10,
+                profitRate: 0.05,
                 internalAudit: undefined
             }
         };

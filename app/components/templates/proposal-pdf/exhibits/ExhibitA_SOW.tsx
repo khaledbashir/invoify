@@ -163,7 +163,5 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
         </div>
     );
 };
-    );
-};
 
 export default ExhibitA_SOW;

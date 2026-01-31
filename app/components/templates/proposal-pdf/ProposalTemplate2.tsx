@@ -363,94 +363,80 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             </div>
 
-        </div>
-            </div >
-
-    {/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */ }
-    < div className = "break-before-page px-4" >
-        <ExhibitA_SOW data={data} />
-            </div >
-
-    {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */ }
-    < div className = "break-before-page px-4" >
-        <ExhibitB_CostSchedule data={data} />
-            </div >
-
-    {/* 7. SIGNATURES - FORCED TO END */ }
-{/* 7. SIGNATURES - FORCED TO END */ }
-<div className="break-before-page px-4 pt-4">
-    {/* REQ-112: Footer moved BEFORE signatures to ensure signatures are absolute final element */}
-    <div className="mb-12 pb-6 border-b border-gray-100 text-center">
-        <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
-        <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
-        <div className="flex justify-center mt-6 opacity-20">
-            <BrandSlashes count={3} width={50} height={15} />
-        </div>
-    </div>
-
-    {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
-    <div className="mt-12 break-inside-avoid">
-        <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Work Sans', sans-serif" }}>
-            Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
-            <br /><br />
-            If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
-        </p>
-        <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
-
-        <div className="space-y-10">
-            {/* ANC Signature Block */}
-            <div>
-                <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
-                <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
-                <div className="flex gap-6">
-                    <div className="flex-[2]">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                        <div className="border-b border-black h-8" />
+            {/* 7. SIGNATURES - FORCED TO END */}
+            <div className="break-before-page px-4 pt-4">
+                {/* REQ-112: Footer moved BEFORE signatures to ensure signatures are absolute final element */}
+                <div className="mb-12 pb-6 border-b border-gray-100 text-center">
+                    <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
+                    <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
+                    <div className="flex justify-center mt-6 opacity-20">
+                        <BrandSlashes count={3} width={50} height={15} />
                     </div>
-                    <div className="flex-1">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                        <div className="border-b border-black h-8" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                        <div className="border-b border-black h-8" />
+                </div>
+
+                {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
+                <div className="mt-12 break-inside-avoid">
+                    <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+                        Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
+                        <br /><br />
+                        If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
+                    </p>
+                    <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
+
+                    <div className="space-y-10">
+                        {/* ANC Signature Block */}
+                        <div>
+                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
+                            <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
+                            <div className="flex gap-6">
+                                <div className="flex-[2]">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Purchaser Signature Block */}
+                        <div>
+                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} ("PURCHASER")</p>
+                            <p className="text-[10px] text-gray-500 mb-4">{purchaserAddress}</p>
+                            <div className="flex gap-6">
+                                <div className="flex-[2]">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-8" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Purchaser Signature Block */}
-            <div>
-                <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} ("PURCHASER")</p>
-                <p className="text-[10px] text-gray-500 mb-4">{purchaserAddress}</p>
-                <div className="flex gap-6">
-                    <div className="flex-[2]">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                        <div className="border-b border-black h-8" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                        <div className="border-b border-black h-8" />
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                        <div className="border-b border-black h-8" />
-                    </div>
-                </div>
+            {/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */}
+            <div className="break-before-page px-4">
+                <ExhibitA_SOW data={data} />
             </div>
-        </div>
-    </div>
-</div>
 
-{/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */ }
-<div className="break-before-page px-4">
-    <ExhibitA_SOW data={data} />
-</div>
-
-{/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */ }
-<div className="break-before-page px-4">
-    <ExhibitB_CostSchedule data={data} />
-</div>
-        </ProposalLayout >
+            {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */}
+            <div className="break-before-page px-4">
+                <ExhibitB_CostSchedule data={data} />
+            </div>
+        </ProposalLayout>
     );
 };
 

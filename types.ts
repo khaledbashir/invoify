@@ -59,6 +59,9 @@ export type WizardStepType = {
 export enum ExportTypes {
     PDF = "PDF",
     XLSX = "XLSX",
+    JSON = "JSON",
+    CSV = "CSV",
+    XML = "XML",
 }
 
 // Calculation Mode types
