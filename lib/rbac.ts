@@ -67,9 +67,13 @@ const PERMISSION_MATRIX: Record<UserRole, Permission[]> = {
   ],
   
   ESTIMATOR: [
+    // PRD Table 2: Estimator CAN create workspaces (to initiate new bids)
+    "workspace:create",        // ✅ Can create new project workspaces
+    // ❌ BLOCKED: workspace:delete, branding:edit (Admin only)
     "proposal:create",
     "proposal:edit",
     "proposal:view",
+    // ❌ BLOCKED: proposal:delete (Admin only)
     "export:pdf",
     "export:excel_audit",
     "export:share_link",

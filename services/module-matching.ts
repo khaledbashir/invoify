@@ -14,8 +14,14 @@ export interface MatchingResult {
 }
 
 /**
- * ModuleMatchingService
+ * ModuleMatchingService (REQ-121: Eric Gruner's "Slightly Smaller" Rule)
+ * 
  * Calculates the number of modules required to match target dimensions.
+ * 
+ * CRITICAL RULE: Always match to "slightly smaller" than requested to avoid
+ * over-promising on physical space. This prevents installation failures where
+ * the display doesn't fit the structural opening.
+ * 
  * Supports half-module (0.5) increments as per REQ-9.
  */
 export function matchModules(
@@ -33,49 +39,35 @@ export function matchModules(
     let countW: number;
     let countH: number;
 
-    // Calculate Whole Module Option
-    const wholeCountW = Math.round(targetWidthIn.div(module.widthInches).toNumber());
-    const wholeCountH = Math.round(targetHeightIn.div(module.heightInches).toNumber());
-
-    // Calculate Whole Variance
-    const wholeW_ft = new Decimal(wholeCountW).mul(module.widthInches).div(12).toNumber();
-    const wholeH_ft = new Decimal(wholeCountH).mul(module.heightInches).div(12).toNumber();
-    const wholeDelta = Math.abs(wholeW_ft - targetWidthFt) + Math.abs(wholeH_ft - targetHeightFt);
-
+    // REQ-121: "Slightly Smaller" Rule (Eric Gruner mandate)
+    // FLOOR the module count to ensure we never exceed the requested dimensions
+    // This prevents over-promising on physical space
+    
     if (module.supportsHalfModule) {
-        // Calculate Half Module Option
-        // Logic: Convert target to "half-modules", round, then divide by 2
-        // LG GSQA 4mm (250mm) supports half-modules natively? 
-        // Actually module-blocks catalog says `supportsHalfModule` is true if defined.
-
-        const halfCountW = Math.round(targetWidthIn.div(module.widthInches).mul(2).toNumber()) / 2;
-        const halfCountH = Math.round(targetHeightIn.div(module.heightInches).mul(2).toNumber()) / 2;
-
-        const halfW_ft = new Decimal(halfCountW).mul(module.widthInches).div(12).toNumber();
-        const halfH_ft = new Decimal(halfCountH).mul(module.heightInches).div(12).toNumber();
-        const halfDelta = Math.abs(halfW_ft - targetWidthFt) + Math.abs(halfH_ft - targetHeightFt);
-
-        // REQ-32: Heuristic Preference
-        // If half-module delta is smaller, use it.
-        // For LG, users explicitly requested "Half-Module Heuristic Preference".
-        // Use a slight bias? No, just pure math "closest wins" is usually what they mean.
-        if (halfDelta <= wholeDelta) {
-            countW = halfCountW;
-            countH = halfCountH;
-        } else {
-            countW = wholeCountW;
-            countH = wholeCountH;
-        }
+        // Half-module support: floor to nearest 0.5
+        // Example: 4.7 modules → 4.5 modules (slightly smaller)
+        countW = Math.floor(targetWidthIn.div(module.widthInches).mul(2).toNumber()) / 2;
+        countH = Math.floor(targetHeightIn.div(module.heightInches).mul(2).toNumber()) / 2;
     } else {
-        countW = wholeCountW;
-        countH = wholeCountH;
+        // Whole modules only: floor to nearest whole number
+        // Example: 4.7 modules → 4 modules (slightly smaller)
+        countW = Math.floor(targetWidthIn.div(module.widthInches).toNumber());
+        countH = Math.floor(targetHeightIn.div(module.heightInches).toNumber());
     }
 
-    // Calculate actual dimensions in feet
+    // Ensure at least 1 module in each dimension
+    countW = Math.max(countW, module.supportsHalfModule ? 0.5 : 1);
+    countH = Math.max(countH, module.supportsHalfModule ? 0.5 : 1);
+
+    // Calculate actual dimensions in feet (will be <= target)
     const actualWidthFt = new Decimal(countW).mul(module.widthInches).div(12).toNumber();
     const actualHeightFt = new Decimal(countH).mul(module.heightInches).div(12).toNumber();
 
     const areaSqFt = new Decimal(actualWidthFt).mul(actualHeightFt).toNumber();
+
+    // Diff should be negative or zero (actual <= target)
+    const diffWidthFt = actualWidthFt - targetWidthFt;
+    const diffHeightFt = actualHeightFt - targetHeightFt;
 
     return {
         moduleCountW: countW,
@@ -84,7 +76,48 @@ export function matchModules(
         actualWidthFt: roundToDecimals(actualWidthFt, 2),
         actualHeightFt: roundToDecimals(actualHeightFt, 2),
         areaSqFt: roundToDecimals(areaSqFt, 2),
-        diffWidthFt: roundToDecimals(actualWidthFt - targetWidthFt, 2),
-        diffHeightFt: roundToDecimals(actualHeightFt - targetHeightFt, 2),
+        diffWidthFt: roundToDecimals(diffWidthFt, 2),  // Should be <= 0
+        diffHeightFt: roundToDecimals(diffHeightFt, 2), // Should be <= 0
     };
+}
+
+/**
+ * REQ-121: Find the best module from catalog that fits "slightly smaller"
+ * 
+ * Given a target size and pitch, find the module that:
+ * 1. Matches the pitch requirement
+ * 2. Results in actual dimensions <= target dimensions
+ * 3. Maximizes the actual area (closest to target without exceeding)
+ */
+export function findBestFitModule(
+    targetWidthFt: number,
+    targetHeightFt: number,
+    targetPitch: number
+): { moduleKey: string; result: MatchingResult } | null {
+    const candidates: { key: string; result: MatchingResult; efficiency: number }[] = [];
+
+    for (const [key, module] of Object.entries(LED_MODULES)) {
+        // Filter by pitch (allow ±1mm tolerance)
+        if (Math.abs(module.pitch - targetPitch) > 1) continue;
+
+        const result = matchModules(targetWidthFt, targetHeightFt, key);
+
+        // REQ-121: Only accept if actual <= target (slightly smaller)
+        if (result.actualWidthFt > targetWidthFt || result.actualHeightFt > targetHeightFt) {
+            continue;
+        }
+
+        // Calculate efficiency (how close to target without exceeding)
+        const targetArea = targetWidthFt * targetHeightFt;
+        const efficiency = result.areaSqFt / targetArea;
+
+        candidates.push({ key, result, efficiency });
+    }
+
+    if (candidates.length === 0) return null;
+
+    // Sort by efficiency (highest first = closest to target)
+    candidates.sort((a, b) => b.efficiency - a.efficiency);
+
+    return { moduleKey: candidates[0].key, result: candidates[0].result };
 }
