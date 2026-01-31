@@ -52,6 +52,10 @@ model Proposal {
   taxRateOverride      Decimal?            // Changed from Float to Decimal for money
   bondRateOverride     Decimal?            // Changed from Float to Decimal for money
   shareHash            String?             @unique
+  
+  // REQ-86: Thornton Tomasetti Structural Steel Tonnage
+  structuralTonnage    Decimal?            // New steel columns/beams tonnage (e.g., 17 tons)
+  reinforcingTonnage   Decimal?            // Reinforcing steel tonnage (e.g., 17 tons)
 
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @default(now()) @updatedAt

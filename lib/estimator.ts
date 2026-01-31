@@ -86,7 +86,7 @@ export function calculateScreenPrice(
 }
 
 export const MORGANTOWN_BO_TAX = 0.02; // 2% West Virginia B&O Tax (REQ-48)
-export const STEEL_PRICE_PER_TON = 4500; // Default estimate $4500/ton installed
+export const STEEL_PRICE_PER_TON = 3000; // REQ-86: Thornton Tomasetti rate $3,000/ton
 
 function shouldApplyMorgantownBoTax(input?: { projectAddress?: string; venue?: string }) {
   const haystack = `${input?.projectAddress ?? ""} ${input?.venue ?? ""}`.toLowerCase();
