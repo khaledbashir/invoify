@@ -52,8 +52,8 @@ const WizardStepper = ({ wizard }: WizardStepperProps) => {
     const steps: WizardStepType[] = [
         { id: 0, label: "Setup", isValid: step1Valid },
         { id: 1, label: "Configure", isValid: step2Valid },
-        { id: 2, label: "Review", isValid: step3Valid },
-        { id: 3, label: "Export", isValid: step4Valid },
+        { id: 2, label: "Math", isValid: step3Valid },
+        { id: 3, label: "Review", isValid: step4Valid },
     ];
 
     const { saveToDb } = useDebouncedSave();

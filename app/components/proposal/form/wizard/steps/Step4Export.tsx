@@ -123,17 +123,19 @@ const Step4Export = () => {
         await generatePdf(getValues());
     };
 
+    const canRunVerification = !!(proposalId && excelSourceData && internalAudit);
+    
     const runVerification = async () => {
         if (!proposalId) {
-            setVerificationError("Missing proposalId");
+            setVerificationError("Save the project first to enable verification.");
             return;
         }
         if (!excelSourceData) {
-            setVerificationError("No Excel source data found. Import an Estimator Excel first.");
+            setVerificationError("Import an Estimator Excel file first (Setup step).");
             return;
         }
         if (!internalAudit) {
-            setVerificationError("No internal audit found. Complete screen calculations first.");
+            setVerificationError("Add screens with dimensions first (Configure step).");
             return;
         }
         setVerificationError(null);
@@ -219,6 +221,7 @@ const Step4Export = () => {
     }, [highlightedRows]);
 
     return (
+        <TooltipProvider>
         <div className="h-full flex flex-col p-8 max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Phase 4 Header */}
             <div className="flex flex-col items-center text-center mb-12">
@@ -227,9 +230,9 @@ const Step4Export = () => {
                     <Zap className="w-8 h-8 text-brand-blue relative z-10" />
                 </div>
                 
-                <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Validation & Final Export</h2>
+                <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Review & Export</h2>
                 <p className="text-zinc-500 text-sm max-w-md font-medium">
-                    Review your strategic analysis and generate professional-grade project artifacts.
+                    Final review of your proposal. Verify data accuracy and export professional documents.
                 </p>
             </div>
 
@@ -480,28 +483,47 @@ const Step4Export = () => {
                         </div>
                     </div>
 
-                    {/* Secondary Artifact Options */}
-                    <div className="grid grid-cols-1 gap-4">
+                    {/* Individual Export Options */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <button 
+                            onClick={downloadPdf}
+                            disabled={mirrorMode ? isPdfPreviewBlocked : !allScreensValid}
+                            className={cn(
+                                "flex items-center justify-between p-4 bg-zinc-900 border rounded-xl transition-all group",
+                                (mirrorMode ? isPdfPreviewBlocked : !allScreensValid)
+                                    ? "border-zinc-800 opacity-60 cursor-not-allowed"
+                                    : "border-zinc-800 hover:border-brand-blue/50"
+                            )}
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-zinc-800 text-zinc-400 group-hover:text-brand-blue transition-colors">
+                                    <Eye className="w-4 h-4" />
+                                </div>
+                                <div className="text-left">
+                                    <h4 className="text-xs font-bold text-white">PDF Only</h4>
+                                    <p className="text-[10px] text-zinc-500">Client-facing proposal</p>
+                                </div>
+                            </div>
+                        </button>
                         <button 
                             onClick={exportAudit}
                             disabled={mirrorMode && !isMirrorReadyToExport}
                             className={cn(
-                                "flex items-center justify-between p-5 bg-zinc-900 border rounded-2xl transition-all group",
+                                "flex items-center justify-between p-4 bg-zinc-900 border rounded-xl transition-all group",
                                 mirrorMode && !isMirrorReadyToExport
                                     ? "border-zinc-800 opacity-60 cursor-not-allowed"
                                     : "border-zinc-800 hover:border-emerald-500/50"
                             )}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 rounded-xl bg-zinc-800 text-zinc-400 group-hover:text-emerald-500 transition-colors">
-                                    <FileSpreadsheet className="w-5 h-5" />
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-zinc-800 text-zinc-400 group-hover:text-emerald-500 transition-colors">
+                                    <FileSpreadsheet className="w-4 h-4" />
                                 </div>
                                 <div className="text-left">
-                                    <h4 className="text-sm font-bold text-white">Audit Security Blanket</h4>
-                                    <p className="text-[10px] text-zinc-500 font-medium">Internal audit workbook (Master Truth)</p>
+                                    <h4 className="text-xs font-bold text-white">Excel Only</h4>
+                                    <p className="text-[10px] text-zinc-500">Internal audit workbook</p>
                                 </div>
                             </div>
-                            <ArrowLeft className="w-4 h-4 text-zinc-700 group-hover:text-emerald-500 rotate-180 transition-all" />
                         </button>
                     </div>
                 </div>
@@ -535,41 +557,59 @@ const Step4Export = () => {
                                 <Eye className="w-4 h-4" />
                                 {proposalPdfLoading ? "Generating…" : pdfUrl ? "Open Preview" : mirrorMode && isPdfPreviewBlocked ? "🔒 Blocked" : "Preview PDF"}
                             </button>
-                            <button
-                                type="button"
-                                onClick={runVerification}
-                                disabled={verificationLoading}
-                                className={cn(
-                                    "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
-                                    verificationLoading
-                                        ? "border-zinc-800 bg-zinc-950/40 text-zinc-500 cursor-not-allowed"
-                                        : "border-brand-blue/40 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/15"
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={runVerification}
+                                        disabled={verificationLoading || !canRunVerification}
+                                        className={cn(
+                                            "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
+                                            (verificationLoading || !canRunVerification)
+                                                ? "border-zinc-800 bg-zinc-950/40 text-zinc-500 cursor-not-allowed"
+                                                : "border-brand-blue/40 bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/15"
+                                        )}
+                                    >
+                                        {verificationLoading ? "Verifying…" : <span className="inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" />Run Verification</span>}
+                                    </button>
+                                </TooltipTrigger>
+                                {!canRunVerification && (
+                                    <TooltipContent side="bottom" className="bg-zinc-800 border-zinc-700 text-white text-xs max-w-xs">
+                                        {!proposalId ? "Save the project first" : !excelSourceData ? "Import an Excel file first" : "Add screens with dimensions first"}
+                                    </TooltipContent>
                                 )}
-                            >
-                                {verificationLoading ? "Verifying…" : <span className="inline-flex items-center gap-2"><RefreshCw className="w-4 h-4" />Run Verification</span>}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (isPlaying) {
-                                        setIsPlaying(false);
-                                        return;
-                                    }
-                                    setPlayIndex(-1);
-                                    setIsPlaying(true);
-                                }}
-                                disabled={playbackItems.length === 0}
-                                className={cn(
-                                    "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
-                                    playbackItems.length === 0
-                                        ? "border-zinc-800 bg-zinc-950/40 text-zinc-600 cursor-not-allowed"
-                                        : isPlaying
-                                            ? "border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
-                                            : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-500/40 hover:text-white"
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isPlaying) {
+                                                setIsPlaying(false);
+                                                return;
+                                            }
+                                            setPlayIndex(-1);
+                                            setIsPlaying(true);
+                                        }}
+                                        disabled={playbackItems.length === 0}
+                                        className={cn(
+                                            "px-3 py-2 rounded-xl border text-xs font-bold transition-all",
+                                            playbackItems.length === 0
+                                                ? "border-zinc-800 bg-zinc-950/40 text-zinc-600 cursor-not-allowed"
+                                                : isPlaying
+                                                    ? "border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15"
+                                                    : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-500/40 hover:text-white"
+                                        )}
+                                    >
+                                        {isPlaying ? <span className="inline-flex items-center gap-2"><Pause className="w-4 h-4" />Pause</span> : <span className="inline-flex items-center gap-2"><Play className="w-4 h-4" />Play Scan</span>}
+                                    </button>
+                                </TooltipTrigger>
+                                {playbackItems.length === 0 && (
+                                    <TooltipContent side="bottom" className="bg-zinc-800 border-zinc-700 text-white text-xs">
+                                        Run verification first to enable scan playback
+                                    </TooltipContent>
                                 )}
-                            >
-                                {isPlaying ? <span className="inline-flex items-center gap-2"><Pause className="w-4 h-4" />Pause</span> : <span className="inline-flex items-center gap-2"><Play className="w-4 h-4" />Play Scan</span>}
-                            </button>
+                            </Tooltip>
                         </div>
                     </div>
                 </CardHeader>
@@ -747,6 +787,7 @@ const Step4Export = () => {
                 </div>
             </div>
         </div>
+        </TooltipProvider>
     );
 };
 
