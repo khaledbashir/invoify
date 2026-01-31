@@ -533,7 +533,7 @@ const Step4Export = () => {
                                 )}
                             >
                                 <Eye className="w-4 h-4" />
-                                {proposalPdfLoading ? "Generating…" : pdfUrl ? "View PDF" : mirrorMode && isPdfPreviewBlocked ? "🔒 Blocked" : "Generate PDF"}
+                                {proposalPdfLoading ? "Generating…" : pdfUrl ? "Open Preview" : mirrorMode && isPdfPreviewBlocked ? "🔒 Blocked" : "Preview PDF"}
                             </button>
                             <button
                                 type="button"

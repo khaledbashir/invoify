@@ -79,6 +79,8 @@ export async function POST(req: NextRequest) {
           ? "INTELLIGENCE"
           : proposal?.calculationMode ?? "INTELLIGENCE";
 
+    console.log(`[Audit Export] Mode: ${effectiveMode}, Screens: ${effectiveScreens.length}, InternalAudit keys: ${internalAudit ? Object.keys(internalAudit).join(',') : 'null'}`);
+
     const proposalName = (body.projectName || proposal?.clientName || body.clientName || "Proposal").toString();
     const safeFilename = proposalName.replace(/\s+/g, "_").replace(/[^\w\-_.]/g, "") || "Proposal";
     const buffer = effectiveMode === "MIRROR"
