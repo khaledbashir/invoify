@@ -180,7 +180,23 @@ export async function POST(
         // NOTE: We intentionally do NOT update existing snapshots
         // This ensures v1 links always show v1 data (immutability)
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        // DYNAMIC HOST DETECTION
+        // Prioritize:
+        // 1. Environment variable (if explicitly set for override)
+        // 2. Request headers (for accurate current domain)
+        // 3. Fallback to localhost
+        let baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+        if (!baseUrl || baseUrl.includes("localhost")) {
+            const host = req.headers.get("host");
+            const proto = req.headers.get("x-forwarded-proto") || "https";
+            if (host) {
+                baseUrl = `${proto}://${host}`;
+            } else {
+                baseUrl = "http://localhost:3000";
+            }
+        }
+
         const shareUrl = `${baseUrl}/share/${shareHash}`;
 
         return NextResponse.json({
