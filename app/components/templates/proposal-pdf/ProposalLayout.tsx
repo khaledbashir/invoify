@@ -1,8 +1,5 @@
 import { ReactNode } from "react";
 
-// Next.js
-import Image from "next/image";
-
 // Types
 import { ProposalType } from "@/types";
 
@@ -67,7 +64,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
                                 <p className="text-[9px] font-bold text-[#0A52EF] tracking-wide">www.anc.com/contact</p>
                                 <p className="text-[7px] text-zinc-400 tracking-wider">NY 914.696.2100 TX 940.464.2320</p>
                             </div>
-                            <Image src="/ANC_Logo_2023_blue.png" alt="ANC" width={48} height={24} className="w-12 h-6 object-contain" />
+                            <img src="/ANC_Logo_2023_blue.png" alt="ANC" width={48} height={24} style={{ width: '48px', height: '24px', objectFit: 'contain' }} />
                         </div>
                     )}
                 </div>

@@ -1,7 +1,7 @@
 import React from "react";
 
 // Components
-import { ProposalLayout } from "@/app/components";
+import ProposalLayout from "./ProposalLayout";
 import LogoSelectorServer from "@/app/components/reusables/LogoSelectorServer";
 
 // Helpers
