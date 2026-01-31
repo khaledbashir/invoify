@@ -323,9 +323,9 @@ const Step4Export = () => {
                                     pdfUrl && internalAudit ? "border-emerald-500/20 bg-emerald-500/5" : "border-zinc-800 bg-zinc-950/30"
                                 )}>
                                     <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Layer 2</div>
-                                    <div className="mt-2 text-sm font-semibold text-white">PDF ↔ Ugly Sheet</div>
+                                    <div className="mt-2 text-sm font-semibold text-white">PDF ↔ Internal Audit</div>
                                     <div className="mt-1 text-[11px] text-zinc-500">
-                                        {pdfUrl && internalAudit ? "Ready" : "Generate PDF + audit"}
+                                        {pdfUrl && internalAudit ? "Ready" : "Generate PDF + Audit"}
                                     </div>
                                 </div>
                                 <div className={cn(
