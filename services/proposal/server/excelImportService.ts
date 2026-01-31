@@ -296,7 +296,9 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
                     finalClientTotal: marginRow?.sell ?? finalClientTotal,
                     sellingPricePerSqFt: heightFt && widthFt ? (marginRow?.sell ?? finalClientTotal) / (parseFloat(heightFt) * (parseFloat(widthFt) || 1)) : 0,
                     marginAmount: marginRow?.marginAmount ?? ancMargin,
-                    boTaxCost: 0
+                    boTaxCost: 0,
+                    salesTaxCost: 0, // REQ-125: Sales tax (calculated at project level)
+                    salesTaxRate: 0.095 // REQ-125: Default 9.5% tax rate
                 }
             };
 
