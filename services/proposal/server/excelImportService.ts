@@ -320,6 +320,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         totals.totalCost = Number(subTotalRow.cost || totals.totalCost);
         totals.sellPrice = Number(subTotalRow.sell || totals.sellPrice);
         totals.ancMargin = Number(subTotalRow.marginAmount || totals.ancMargin);
+        totals.margin = Number(subTotalRow.marginAmount || totals.margin);
         totals.finalClientTotal = Number(subTotalRow.sell || totals.finalClientTotal);
     }
     const internalAudit: InternalAudit = {
@@ -552,12 +553,64 @@ function pickBestMarginRow(marginRows: ReturnType<typeof parseMarginAnalysisRows
 }
 
 function aggregateTotals(audits: ScreenAudit[]) {
-    return audits.reduce((acc, curr) => {
+    const initial = {
+        hardware: 0,
+        structure: 0,
+        install: 0,
+        labor: 0,
+        power: 0,
+        shipping: 0,
+        pm: 0,
+        demolition: 0,
+        generalConditions: 0,
+        travel: 0,
+        submittals: 0,
+        engineering: 0,
+        permits: 0,
+        cms: 0,
+        ancMargin: 0,
+        sellPrice: 0,
+        bondCost: 0,
+        margin: 0,
+        totalCost: 0,
+        boTaxCost: 0,
+        finalClientTotal: 0,
+        sellingPricePerSqFt: 0,
+    };
+
+    const summed = audits.reduce((acc, curr) => {
+        const b = curr.breakdown;
         return {
-            totalCost: acc.totalCost + (parseFloat(curr.breakdown.totalCost) || 0),
-            sellPrice: acc.sellPrice + (parseFloat(curr.breakdown.sellPrice) || 0),
-            ancMargin: acc.ancMargin + (curr.breakdown.marginAmount || 0),
-            finalClientTotal: acc.finalClientTotal + (curr.breakdown.finalClientTotal || 0)
+            hardware: acc.hardware + (Number(b.hardware) || 0),
+            structure: acc.structure + (Number(b.structure) || 0),
+            install: acc.install + (Number(b.install) || 0),
+            labor: acc.labor + (Number(b.labor) || 0),
+            power: acc.power + (Number(b.power) || 0),
+            shipping: acc.shipping + (Number(b.shipping) || 0),
+            pm: acc.pm + (Number(b.pm) || 0),
+            demolition: acc.demolition + (Number(b.demolition) || 0),
+            generalConditions: acc.generalConditions + (Number(b.generalConditions) || 0),
+            travel: acc.travel + (Number(b.travel) || 0),
+            submittals: acc.submittals + (Number(b.submittals) || 0),
+            engineering: acc.engineering + (Number(b.engineering) || 0),
+            permits: acc.permits + (Number(b.permits) || 0),
+            cms: acc.cms + (Number(b.cms) || 0),
+            ancMargin: acc.ancMargin + (Number(b.ancMargin) || 0),
+            sellPrice: acc.sellPrice + (Number(b.sellPrice) || 0),
+            bondCost: acc.bondCost + (Number(b.bondCost) || 0),
+            margin: acc.margin + (Number(b.marginAmount || b.ancMargin) || 0),
+            totalCost: acc.totalCost + (Number(b.totalCost) || 0),
+            boTaxCost: acc.boTaxCost + (Number(b.boTaxCost) || 0),
+            finalClientTotal: acc.finalClientTotal + (Number(b.finalClientTotal) || 0),
+            sellingPricePerSqFt: 0,
         };
-    }, { totalCost: 0, sellPrice: 0, ancMargin: 0, finalClientTotal: 0 });
+    }, initial);
+
+    // Weighted average for selling price per sq ft
+    const totalArea = audits.reduce((acc, curr) => acc + (curr.areaSqFt || 0), 0);
+    if (totalArea > 0) {
+        summed.sellingPricePerSqFt = summed.finalClientTotal / totalArea;
+    }
+
+    return summed;
 }
