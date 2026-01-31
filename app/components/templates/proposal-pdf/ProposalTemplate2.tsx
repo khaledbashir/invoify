@@ -136,10 +136,15 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         const engineeringPrice = b ? (b.engineering + b.permits + b.submittals) : getPrice("Engineering");
         const cmsPrice = b ? b.cms : getPrice("CMS");
 
-        const subtotal = b ? b.finalClientTotal : (hardwarePrice + structurePrice + installPrice + powerPrice + pmTravelPrice + engineeringPrice + cmsPrice);
-        const taxRate = 0.095; // 9.5% fallback
-        const taxAmount = subtotal * taxRate;
-        const total = subtotal + taxAmount;
+        // Financial sequence: Subtotal → Bond → B&O Tax (if WVU) → Sales Tax → Total
+        const lineItemsSubtotal = hardwarePrice + structurePrice + installPrice + powerPrice + pmTravelPrice + engineeringPrice + cmsPrice;
+        const sellPrice = b ? b.sellPrice : lineItemsSubtotal;
+        const bondCost = b ? b.bondCost : (sellPrice * 0.015);
+        const boTaxCost = b ? (b.boTaxCost || 0) : 0; // Only from audit (Morgantown detection)
+        const subtotalWithBondAndBo = sellPrice + bondCost + boTaxCost;
+        const taxRate = 0.095; // 9.5% Sales Tax
+        const taxAmount = subtotalWithBondAndBo * taxRate;
+        const total = subtotalWithBondAndBo + taxAmount;
 
         return (
             <div className="mb-8 break-inside-avoid">
@@ -185,13 +190,23 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
                         </tr>
 
-                        {/* Totals Section for this screen */}
+                        {/* Totals Section - Correct Financial Sequence */}
                         <tr className="font-bold border-t border-black">
                             <td className="p-2 text-right pr-4 uppercase text-xs">Subtotal:</td>
-                            <td className="p-2 text-right pr-4 text-xs">{formatCurrency(subtotal)}</td>
+                            <td className="p-2 text-right pr-4 text-xs">{formatCurrency(sellPrice)}</td>
                         </tr>
                         <tr className="text-gray-500 italic">
-                            <td className="p-1 text-right pr-4 text-[10px] uppercase">Tax (9.5%):</td>
+                            <td className="p-1 text-right pr-4 text-[10px] uppercase">Performance Bond (1.5%):</td>
+                            <td className="p-1 text-right pr-4 text-[10px]">{formatCurrency(bondCost)}</td>
+                        </tr>
+                        {boTaxCost > 0 && (
+                            <tr className="text-gray-500 italic">
+                                <td className="p-1 text-right pr-4 text-[10px] uppercase">WV B&O Tax (2%):</td>
+                                <td className="p-1 text-right pr-4 text-[10px]">{formatCurrency(boTaxCost)}</td>
+                            </tr>
+                        )}
+                        <tr className="text-gray-500 italic">
+                            <td className="p-1 text-right pr-4 text-[10px] uppercase">Sales Tax (9.5%):</td>
                             <td className="p-1 text-right pr-4 text-[10px]">{formatCurrency(taxAmount)}</td>
                         </tr>
                         <tr className="border-t-2 border-black font-bold text-sm bg-gray-50">
