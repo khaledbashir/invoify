@@ -16,6 +16,11 @@ export interface AuditExcelOptions {
     proposalDate?: string;
     status?: 'DRAFT' | 'FINAL';
     boTaxApplies?: boolean;
+    // REQ-86: Structural Steel Inputs
+    structuralTonnage?: number;
+    reinforcingTonnage?: number;
+    // For PDF/Excel total matching verification
+    pdfTotal?: number;
 }
 
 // Standard P&L Categories (Standard Enterprise Gold Standard)
@@ -215,6 +220,50 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
         currentRow += 2; // Spacer
     });
 
+    // REQ-86: STRUCTURAL STEEL INPUT SECTION (Thornton Tomasetti)
+    if (options?.structuralTonnage || options?.reinforcingTonnage) {
+        sheet.mergeCells(`A${currentRow}:I${currentRow}`);
+        sheet.getCell(`A${currentRow}`).value = 'STRUCTURAL STEEL (TTE REPORT)';
+        sheet.getCell(`A${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF6B7280' } };
+        sheet.getCell(`A${currentRow}`).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        currentRow++;
+
+        const steelStartRow = currentRow;
+        
+        // Structural Tonnage Input
+        sheet.getCell(`A${currentRow}`).value = 'New Steel Columns/Beams';
+        sheet.getCell(`B${currentRow}`).value = 'Tonnage';
+        sheet.getCell(`C${currentRow}`).value = options?.structuralTonnage || 0;
+        sheet.getCell(`C${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // YELLOW INPUT
+        sheet.getCell(`D${currentRow}`).value = 'Tonnage × $3,000/ton';
+        sheet.getCell(`H${currentRow}`).value = 3000; // $3,000/ton rate
+        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // YELLOW INPUT
+        sheet.getCell(`H${currentRow}`).numFmt = '"$"#,##0';
+        sheet.getCell(`I${currentRow}`).value = { formula: `C${currentRow}*H${currentRow}` };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+        currentRow++;
+
+        // Reinforcing Tonnage Input
+        sheet.getCell(`A${currentRow}`).value = 'Reinforcing Steel';
+        sheet.getCell(`B${currentRow}`).value = 'Tonnage';
+        sheet.getCell(`C${currentRow}`).value = options?.reinforcingTonnage || 0;
+        sheet.getCell(`C${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // YELLOW INPUT
+        sheet.getCell(`D${currentRow}`).value = 'Tonnage × $3,000/ton';
+        sheet.getCell(`H${currentRow}`).value = 3000;
+        sheet.getCell(`H${currentRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // YELLOW INPUT
+        sheet.getCell(`H${currentRow}`).numFmt = '"$"#,##0';
+        sheet.getCell(`I${currentRow}`).value = { formula: `C${currentRow}*H${currentRow}` };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+        currentRow++;
+
+        // Steel Subtotal
+        sheet.getCell(`A${currentRow}`).value = 'STRUCTURAL STEEL TOTAL';
+        sheet.getCell(`I${currentRow}`).value = { formula: `SUM(I${steelStartRow}:I${currentRow-1})` };
+        sheet.getCell(`I${currentRow}`).font = { bold: true };
+        sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+        currentRow += 2;
+    }
+
     // Summary Totals at the bottom
     sheet.mergeCells(`A${currentRow}:I${currentRow}`);
     sheet.getCell(`A${currentRow}`).value = 'GRAND TOTAL SUMMARY';
@@ -222,10 +271,34 @@ function buildFormulaicAudit(sheet: ExcelJS.Worksheet, screens: any[], options?:
     sheet.getCell(`A${currentRow}`).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     currentRow++;
 
-    sheet.getCell(`A${currentRow}`).value = 'PROJECT TOTAL';
+    const projectTotalRow = currentRow;
+    sheet.getCell(`A${currentRow}`).value = 'PROJECT TOTAL (EXCEL)';
     sheet.getCell(`I${currentRow}`).value = { formula: `SUMIF(A1:A${currentRow - 1}, "FINAL CLIENT TOTAL", I1:I${currentRow - 1})` };
     sheet.getCell(`I${currentRow}`).font = { bold: true, size: 14 };
     sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+    currentRow++;
+
+    // REQ-117: PDF/Excel Matching Verification ("Zero Math Error" Criterion)
+    sheet.getCell(`A${currentRow}`).value = 'PDF TOTAL (REFERENCE)';
+    sheet.getCell(`I${currentRow}`).value = options?.pdfTotal || 0;
+    sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+    sheet.getCell(`I${currentRow}`).font = { italic: true, color: { argb: 'FF6B7280' } };
+    const pdfRefRow = currentRow;
+    currentRow++;
+
+    // Variance Check Formula
+    sheet.getCell(`A${currentRow}`).value = 'VARIANCE (Must = $0.00)';
+    sheet.getCell(`I${currentRow}`).value = { formula: `I${projectTotalRow}-I${pdfRefRow}` };
+    sheet.getCell(`I${currentRow}`).numFmt = '"$"#,##0.00';
+    // Conditional formatting: Red if variance != 0
+    const varianceCell = sheet.getCell(`I${currentRow}`);
+    varianceCell.font = { bold: true };
+    // Note: ExcelJS doesn't support conditional formatting directly, so we add a helper formula
+    currentRow++;
+
+    sheet.getCell(`A${currentRow}`).value = 'AUDIT STATUS';
+    sheet.getCell(`I${currentRow}`).value = { formula: `IF(ABS(I${currentRow-1})<0.01, "✓ MATCHED", "⚠ VARIANCE DETECTED")` };
+    sheet.getCell(`I${currentRow}`).font = { bold: true };
 }
 
 export async function generateAuditExcelBuffer(screens: any[], options?: AuditExcelOptions): Promise<Buffer> {
