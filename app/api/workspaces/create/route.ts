@@ -95,13 +95,13 @@ export async function POST(request: NextRequest) {
         const uniqueSlug = `${safeName}-${workspace.id.slice(-6)}`;
 
         // v1/workspace/new is the proven endpoint
-        const res = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/new`, {
+        const res = await fetch(`${ANYTHING_LLM_BASE_URL}/v1/workspace/new`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${ANYTHING_LLM_KEY}`
           },
-          body: JSON.stringify({ name: uniqueSlug }),
+          body: JSON.stringify({ name: uniqueSlug, chatMode: "chat" }),
         });
 
         if (res.ok) {
