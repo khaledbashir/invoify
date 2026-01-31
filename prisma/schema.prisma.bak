@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NOTE: Switched to PostgreSQL for production.
+// Ensure DATABASE_URL is set in your .env file.
+
+enum CalculationMode {
+  MIRROR
+  INTELLIGENCE
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  WARNING
+  ERROR
+  BLOCKED
+}
+
+// REQ-114: Proposal Lifecycle State Machine (Section 4.14 & 9.2)
+enum ProposalStatus {
+  DRAFT                 // Editable, not yet submitted
+  PENDING_VERIFICATION  // Submitted for internal extraction check
+  AUDIT                 // Mathematical & financial review
+  APPROVED              // Ready for client signature / Exported
+  SHARED                // Share link generated/active
+  SIGNED                // Client signed - IMMUTABLE
+  CLOSED                // Fully executed - IMMUTABLE
+  ARCHIVED              // Historical record
+  CANCELLED             // Voided
+}
+
+model Workspace {
+  id              String     @id @default(cuid())
+  name            String
+  clientLogo      String?    // New field for brand thumbnail
+  aiWorkspaceSlug String?
+  proposals       Proposal[]
+  users           User[]
+}
+
+// REQ-120: User Roles & Permissions (PRD Section 2, Table 2)
+enum UserRole {
+  ADMIN           // Full access
+  ESTIMATOR       // Core proposal creation/editing
+  PRODUCT_EXPERT  // Technical spec validation
+  PROPOSAL_LEAD   // Review and approval authority
+  FINANCE         // Cost/margin auditing
+  OUTSIDER        // Subcontractor - RESTRICTED financial access
+  VIEWER          // Read-only (Client or internal stakeholder)
+}
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String?
+  role        UserRole  @default(VIEWER)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Proposal {
+  id                    String              @id @default(cuid())
+  workspaceId          String
+  clientName           String
+  clientLogo           String?             // New field for brand thumbnail
+  status               ProposalStatus      @default(DRAFT)
+  calculationMode      CalculationMode     @default(INTELLIGENCE)
+  internalAudit        String?
+  clientSummary        String?
+  aiThreadId           String?
+  aiWorkspaceSlug      String?
+  taxRateOverride      Decimal?            // Changed from Float to Decimal for money
+  bondRateOverride     Decimal?            // Changed from Float to Decimal for money
+  shareHash            String?             @unique
+  shareExpiresAt       DateTime?                          // Default 30 days
+  sharePasswordHash    String?                            // Optional password protection
+  
+  // REQ-86: Thornton Tomasetti Structural Steel Tonnage
+  structuralTonnage    Decimal?            // New steel columns/beams tonnage (e.g., 17 tons)
+  reinforcingTonnage   Decimal?            // Reinforcing steel tonnage (e.g., 17 tons)
+  
+  // REQ-114: Immutability & Lifecycle (Section 4.14 & 9.2)
+  isLocked             Boolean             @default(false)  // True when SIGNED/CLOSED
+  lockedAt             DateTime?                            // Timestamp of lock
+  documentHash         String?                              // SHA-256 hash at signing
+  parentProposalId     String?                              // If cloned from signed version
+  versionNumber        Int                 @default(1)      // v1, v2, etc.
+
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @default(now()) @updatedAt
+  
+  // NEW: Verification fields
+  verificationManifest   Json?
+  reconciliationReport   Json?
+  verificationStatus     VerificationStatus @default(PENDING)
+  // REQ-126: AI Verification State Persistence (Blue Glow tracking)
+  // Stores which fields were auto-filled by AI and which have been human-verified
+  aiFilledFields         String[]            // Array of field paths filled by AI ["pitchMm", "brightness", etc.]
+  verifiedFields         Json?               // Object of { [fieldPath]: { verifiedBy, verifiedAt } }
+  
+  lastVerifiedBy         String?
+  lastVerifiedAt         DateTime?           // Forensic audit of the most recent verification event
+  
+  // REQ-WVU: Contractual Handover specific fields
+  insuranceRateOverride  Decimal?            // Separate from Performance Bond
+  overheadRate           Decimal?            @default(0.10) // Change Order Overhead %
+  profitRate             Decimal?            @default(0.05) // Change Order Profit %
+  signerName             String?             // For consistent auto-population in Exhibits
+  signerTitle            String?             // For consistent auto-population in Exhibits
+  
+  // NEW: Manual overrides and versions
+  manualOverrides       ManualOverride[]
+  proposalVersions      ProposalVersion[]
+  signatureAuditTrail   SignatureAuditTrail[]
+  
+  // Existing relations
+  versions             BidVersion[]
+  workspace            Workspace           @relation(fields: [workspaceId], references: [id])
+  screens              ScreenConfig[]
+  snapshots            ProposalSnapshot[]
+  rfpDocuments         RfpDocument[]
+}
+
+// NEW: Manual Override model
+model ManualOverride {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id])
+  
+  // What was overridden
+  entityType      String   // "screen", "charge", "proposalTotal"
+  entityId        String   // screen ID or "proposal"
+  field           String   // "unitCost", "subtotal", "finalTotal"
+  
+  // Override details (Decimal for money - never Float)
+  originalValue   Decimal  // Use Decimal type for money
+  overrideValue   Decimal  // Use Decimal type for money
+  reason          String   // "Client discount", "Executive adjustment"
+  approver        String   // Who approved
+  
+  // Audit trail
+  createdBy       String   // User ID
+  createdAt       DateTime @default(now())
+  
+  @@index([proposalId])
+}
+
+// NEW: Proposal Version model (immutable snapshots)
+model ProposalVersion {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id])
+  
+  // Immutable snapshot
+  versionNumber   Int
+  manifest        Json     // VerificationManifest snapshot
+  auditData       Json     // InternalAudit snapshot
+  pdfUrl          String?
+  uglySheetUrl    String?
+  
+  // Version metadata
+  createdAt       DateTime @default(now())
+  createdBy       String
+  changeReason    String   // "Initial import", "Manual edit", "Auto-fix"
+  
+  @@index([proposalId])
+}
+
+model RfpDocument {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  createdAt  DateTime @default(now())
+  proposalId String?
+  proposal   Proposal? @relation(fields: [proposalId], references: [id])
+}
+
+model ProposalSnapshot {
+  id           String   @id @default(cuid())
+  proposalId   String
+  shareHash    String   @unique
+  snapshotData String   // JSON string of the proposal state at time of share
+  expiresAt    DateTime?                          // Default 30 days
+  passwordHash String?                            // Optional password protection
+  createdAt    DateTime @default(now())
+  proposal     Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+model BidVersion {
+  id                String   @id @default(cuid())
+  proposalId        String
+  versionNumber     Int
+  taxRate           Decimal?  // Changed from Float to Decimal for money
+  bondRate          Decimal?  // Changed from Float to Decimal for money
+  margin            Decimal?  // Changed from Float to Decimal for money
+  totalSellingPrice Decimal?  // Changed from Float to Decimal for money
+  createdAt         DateTime @default(now())
+  proposal          Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+model ScreenConfig {
+  id         String         @id @default(cuid())
+  proposalId String
+  name       String
+  pixelPitch Float
+  width      Float
+  height     Float
+  lineItems  CostLineItem[]
+  proposal   Proposal       @relation(fields: [proposalId], references: [id])
+}
+
+model CostLineItem {
+  id             String       @id @default(cuid())
+  screenConfigId String
+  category       String
+  cost           Decimal
+  margin         Decimal
+  price          Decimal
+  screenConfig   ScreenConfig @relation(fields: [screenConfigId], references: [id])
+}
+
+// NEW: Collaboration & History
+model Comment {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId          String?
+  authorName      String   // For simple display if user not logged in
+  content         String
+  parentCommentId String?  // For threading
+  parentComment   Comment? @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies         Comment[] @relation("CommentReplies")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([proposalId])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  userId          String?
+  action          String   // "CREATE", "UPDATE", "STATUS_CHANGE", "EXPORT"
+  description     String
+  metadata        Json?    // Store diffs or extra info
+  createdAt       DateTime @default(now())
+
+  @@index([proposalId])
+}
+
+// REQ-114: E-Signature Audit Trail (Section 9.2)
+model SignatureAuditTrail {
+  id              String   @id @default(cuid())
+  proposalId      String
+  proposal        Proposal @relation(fields: [proposalId], references: [id])
+  
+  // Signer Identity
+  signerEmail     String
+  signerName      String
+  signerTitle     String?
+  signerRole      String   // "ANC_REPRESENTATIVE" | "PURCHASER"
+  
+  // Authentication Evidence
+  ipAddress       String
+  userAgent       String?
+  authMethod      String   // "EMAIL_LINK" | "SSO" | "MANUAL"
+  
+  // Document Integrity
+  documentHash    String   // SHA-256 of proposal JSON at signing moment
+  pdfHash         String?  // SHA-256 of generated PDF
+  auditExcelHash  String?  // SHA-256 of Internal Audit Excel
+  
+  // Timestamps
+  signedAt        DateTime @default(now())
+  
+  @@index([proposalId])
+}
