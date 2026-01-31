@@ -162,6 +162,7 @@ export const ProposalContextProvider = ({
     importProposalError,
     aiExtractionSuccess,
     aiExtractionError,
+    error: showError,
   } = useToasts();
 
   // Get form values and methods from form context
@@ -783,11 +784,12 @@ export const ProposalContextProvider = ({
       }
     } catch (err) {
       console.error("PDF generation catch error:", err);
+      showError("PDF Generation Failed", err instanceof Error ? err.message : "Unable to generate PDF. Please try again.");
     } finally {
       setProposalPdfLoading(false);
     }
     return generated as Blob;
-  }, [getValues, pdfGenerationSuccess]);
+  }, [getValues, pdfGenerationSuccess, showError]);
 
   /**
    * Removes the final PDF file and switches to Live Preview
@@ -1375,6 +1377,12 @@ export const ProposalContextProvider = ({
     const id = formValues?.details?.proposalId ?? formValues?.details?.proposalNumber ?? "";
     const isMirror = !!formValues?.details?.mirrorMode || formValues?.details?.calculationMode === "MIRROR";
 
+    // Validate we have data to export
+    if (!screens || screens.length === 0) {
+      showError("Export Failed", "Add at least one screen before exporting the audit.");
+      return;
+    }
+
     try {
       const res = await fetch("/api/proposals/export/audit", {
         method: "POST",
@@ -1395,6 +1403,7 @@ export const ProposalContextProvider = ({
       if (!res.ok) {
         const errText = await res.text();
         console.error("Audit export failed", errText);
+        showError("Export Failed", "Server error while generating audit file.");
         return;
       }
 
@@ -1402,12 +1411,14 @@ export const ProposalContextProvider = ({
       if (contentType.includes("application/json")) {
         const err = await res.json().catch(() => ({}));
         console.error("Audit export returned JSON error", err);
+        showError("Export Failed", err?.error || "Unable to generate audit file.");
         return;
       }
 
       const blob = await res.blob();
       if (blob.size === 0) {
         console.error("Audit export returned empty file");
+        showError("Export Failed", "Generated file is empty. Make sure screens have valid dimensions.");
         return;
       }
 
@@ -1419,6 +1430,7 @@ export const ProposalContextProvider = ({
       window.URL.revokeObjectURL(url);
     } catch (e) {
       console.error("exportAudit error:", e);
+      showError("Export Failed", e instanceof Error ? e.message : "Unable to export audit file.");
     }
   };
 
