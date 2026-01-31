@@ -310,38 +310,61 @@ const ProposalTemplate1 = (data: ProposalType) => {
 					{(() => {
 						return (details?.screens || []).map((screen: any, idx: number) => (
 							<div key={idx} className="break-inside-avoid">
-								<h4 className="text-xs font-bold mb-1" style={{ fontFamily: "Work Sans, sans-serif" }}>{screen.name}</h4>
+								{/* REQ: French Blue and Work Sans Bold for Headlines */}
+								<h4 className="text-xs font-bold mb-1 uppercase text-[#0A52EF]" style={{ fontFamily: "Work Sans, sans-serif" }}>{screen.name || "[DISPLAY NAME MISSING]"}</h4>
 								<div className="w-full border-t border-black">
 									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>MM Pitch</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pitchMm || screen.pixelPitch || 0}mm</span>
+										{/* REQ: Work Sans SemiBold for Labels */}
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>MM Pitch</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.pitchMm || screen.pixelPitch || "[PITCH]"}mm</span>
 									</div>
-									{screen.brightness && (
-										<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
-											<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Brightness</span>
-											<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.brightness}</span>
+									
+									<div className="flex justify-between items-center py-1 bg-zinc-50 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Brightness</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.brightness || "[BRIGHTNESS]"}</span>
+									</div>
+
+									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Quantity</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.quantity || 1}</span>
+									</div>
+									
+									<div className="flex justify-between items-center py-1 bg-zinc-50 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Active Display Height (ft.)</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</span>
+									</div>
+									
+									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Active Display Width (ft.)</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</span>
+									</div>
+									
+									<div className="flex justify-between items-center py-1 bg-zinc-50 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Pixel Resolution (H)</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.pixelsH || "[RESOLUTION]"} p</span>
+									</div>
+									
+									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Pixel Resolution (W)</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.pixelsW || "[RESOLUTION]"} p</span>
+									</div>
+
+									{/* REQ: Service Type (Gap Fill) */}
+									<div className="flex justify-between items-center py-1 bg-zinc-50 border-b border-zinc-200">
+										<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Service Type</span>
+										<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.serviceType || "[FRONT/REAR/TOP]"}</span>
+									</div>
+
+									{/* REQ: Structural Tonnage (Optional) */}
+									{screen.structuralTonnage && (
+										<div className="flex justify-between items-center py-1 border-b border-black">
+											<span className="text-[9px] font-semibold pl-2 text-zinc-600" style={{ fontFamily: "'Work Sans', sans-serif" }}>Structural Tonnage (TTE)</span>
+											<span className="text-[9px] pr-2 text-right min-w-[100px] font-medium">{screen.structuralTonnage} Tons</span>
 										</div>
 									)}
-									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Quantity</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.quantity || 1}</span>
-									</div>
-									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Active Display Height (ft.)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</span>
-									</div>
-									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-zinc-200">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Active Display Width (ft.)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</span>
-									</div>
-									<div className="flex justify-between items-center py-1 border-b border-zinc-200">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Pixel Resolution (H)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsH || Math.round((Number(screen.heightFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
-									</div>
-									<div className="flex justify-between items-center py-1 bg-zinc-100 border-b border-black">
-										<span className="text-[9px] font-bold pl-2" style={{ fontFamily: "'Work Sans', sans-serif" }}>Pixel Resolution (W)</span>
-										<span className="text-[9px] pr-2 text-right min-w-[100px]">{screen.pixelsW || Math.round((Number(screen.widthFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p</span>
-									</div>
+									{!screen.structuralTonnage && (
+										<div className="border-b border-black h-[1px] w-full"></div>
+									)}
 								</div>
 							</div>
 						));
