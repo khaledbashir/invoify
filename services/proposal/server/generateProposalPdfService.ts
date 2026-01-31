@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Chromium
+// Chromium (fallback for serverless)
 import chromium from "@sparticuz/chromium";
 
 // Helpers
@@ -33,9 +33,19 @@ export async function generateProposalPdfService(req: NextRequest) {
 			ProposalTemplate(body)
 		);
 
-		if (ENV === "production") {
-			const puppeteer = (await import("puppeteer-core")).default;
-			// Try system Chromium first (Docker), then fall back to @sparticuz/chromium (serverless)
+		const puppeteer = (await import("puppeteer-core")).default;
+		
+		// Check for external Browserless service first (recommended for production)
+		const browserlessUrl = process.env.BROWSERLESS_URL;
+		
+		if (browserlessUrl) {
+			// Connect to external Browserless service
+			console.log("Connecting to Browserless service:", browserlessUrl);
+			browser = await puppeteer.connect({
+				browserWSEndpoint: browserlessUrl,
+			});
+		} else if (ENV === "production") {
+			// Fallback: Try system Chromium (Docker) or @sparticuz/chromium (serverless)
 			const execPath = process.env.PUPPETEER_EXECUTABLE_PATH || await chromium.executablePath();
 			browser = await puppeteer.launch({
 				args: [
@@ -50,8 +60,9 @@ export async function generateProposalPdfService(req: NextRequest) {
 				headless: true,
 			});
 		} else {
-			const puppeteer = (await import("puppeteer")).default;
-			browser = await puppeteer.launch({
+			// Development: use full puppeteer
+			const puppeteerFull = (await import("puppeteer")).default;
+			browser = await puppeteerFull.launch({
 				args: ["--no-sandbox", "--disable-setuid-sandbox"],
 				headless: true,
 			});
