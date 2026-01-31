@@ -7,6 +7,7 @@ import Providers from "@/contexts/Providers";
 // Fonts
 import {
     workSans,
+    playfairDisplay,
 } from "@/lib/fonts";
 // SEO
 import { JSONLD, ROOTKEYWORDS } from "@/lib/seo";
@@ -66,7 +67,7 @@ export default function RootLayout({
                 />
             </head>
             <body
-                className={`${workSans.className} antialiased bg-zinc-50 dark:bg-zinc-950`}
+                className={`${workSans.className} ${playfairDisplay.variable} antialiased bg-zinc-50 dark:bg-zinc-950`}
                 suppressHydrationWarning
             >
                 <NextIntlClientProvider locale={locale} messages={messages}>
@@ -81,9 +82,9 @@ export default function RootLayout({
                         <Toaster />
 
                         {/* Umami Analytics */}
-                        <script 
-                            defer 
-                            src="https://basheer-umami.prd42b.easypanel.host/script.js" 
+                        <script
+                            defer
+                            src="https://basheer-umami.prd42b.easypanel.host/script.js"
                             data-website-id="004671e9-1b1b-4108-8e03-6610a03ee9dc"
                         ></script>
                     </Providers>
