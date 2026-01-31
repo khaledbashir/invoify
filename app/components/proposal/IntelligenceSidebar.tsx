@@ -1,62 +1,189 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { AlertCircle, CheckCircle2, ChevronRight, Info, Target, Zap, X, AlertTriangle } from "lucide-react";
+import {
+    AlertCircle,
+    CheckCircle2,
+    X,
+    AlertTriangle,
+    Zap,
+    Upload,
+    FileText,
+    Loader2,
+    Send,
+    Trash2,
+    Target,
+    Info
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { analyzeGaps, calculateCompletionRate } from "@/lib/gap-analysis";
 import { useProposalContext } from "@/contexts/ProposalContext";
-import { isFieldVerified } from "@/lib/ai-verification";
-import { RiskItem } from "@/services/risk-detector";
+import ReactMarkdown from "react-markdown";
+
+interface Message {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    sources?: any[];
+}
+
+interface UploadedDoc {
+    name: string;
+    url: string;
+    uploadedAt: Date;
+}
 
 export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolean; onToggle: () => void }) {
     const { control } = useFormContext();
     const formValues = useWatch({ control });
+    const { risks } = useProposalContext();
 
     const gaps = analyzeGaps(formValues);
     const completionRate = calculateCompletionRate(gaps.length);
 
-    // Check for Empty/Reset State to avoid "Bid Ready" false positive
     const isDefaultClient = !formValues?.receiver?.name || formValues?.receiver?.name === "Client Name";
     const isNoScreens = (formValues?.details?.screens || []).length === 0;
     const isNoProjectName = !formValues?.details?.proposalName;
     const isEmptyState = isDefaultClient && isNoScreens && isNoProjectName;
 
-    const {
-        aiFields,
-        verifiedFields,
-        sidebarMode,
-        setSidebarMode,
-        aiMessages,
-        executeAiCommand,
-        aiLoading,
-        rfpQuestions,
-        answerRfpQuestion
-    } = useProposalContext();
-    const [chatInput, setChatInput] = React.useState("");
-    const scrollRef = React.useRef<HTMLDivElement>(null);
+    const [sidebarMode, setSidebarMode] = React.useState<"HEALTH" | "CHAT">("HEALTH");
+    const [messages, setMessages] = React.useState<Message[]>([{
+        id: "welcome",
+        role: "assistant",
+        content: "I'm your AI proposal assistant. Upload an RFP or spec doc, and I'll help you extract requirements, answer questions, and fill gaps."
+    }]);
+    const [input, setInput] = React.useState("");
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [uploadedDocs, setUploadedDocs] = React.useState<UploadedDoc[]>([]);
+    const [isUploading, setIsUploading] = React.useState(false);
 
-    // Auto-scroll chat
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
     React.useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [aiMessages, sidebarMode]);
-    const unverifiedCount = aiFields.filter(f => !isFieldVerified(verifiedFields, f)).length;
+        scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }, [messages]);
 
-    // RISK DETECTION
-    // Real-time detection from ProposalContext
-    const { risks } = useProposalContext();
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+        setIsUploading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("proposalId", formValues?.details?.proposalId || "new");
+
+            const response = await fetch("/api/rfp/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.ok) {
+                const newDoc: UploadedDoc = {
+                    name: file.name,
+                    url: data.url,
+                    uploadedAt: new Date(),
+                };
+                setUploadedDocs(prev => [...prev, newDoc]);
+
+                // Auto-switch to chat and send confirmation message
+                setSidebarMode("CHAT");
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString(),
+                    role: "assistant",
+                    content: `✅ **${file.name}** uploaded successfully! I've analyzed it and embedded it in the knowledge base. Ask me anything about this document.`
+                }]);
+
+                // If extracted data exists, show it
+                if (data.extractedData) {
+                    setMessages(prev => [...prev, {
+                        id: (Date.now() + 1).toString(),
+                        role: "assistant",
+                        content: `I found some key details:\n\n${JSON.stringify(data.extractedData, null, 2)}\n\nWould you like me to auto-fill these into the proposal?`
+                    }]);
+                }
+            } else {
+                throw new Error(data.error || "Upload failed");
+            }
+        } catch (error: any) {
+            console.error("Upload error:", error);
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: "assistant",
+                content: `❌ Upload failed: ${error.message}`
+            }]);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+    };
+
+    const handleSendMessage = async () => {
+        if (!input.trim() || isLoading) return;
+
+        const userMessage = input.trim();
+        setInput("");
+
+        setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            role: "user",
+            content: userMessage
+        }]);
+
+        setIsLoading(true);
+
+        try {
+            // Use the project's workspace if available
+            const workspaceSlug = formValues?.aiWorkspaceSlug || "anc-estimator";
+
+            const response = await fetch("/api/dashboard/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: userMessage,
+                    workspace: workspaceSlug
+                }),
+            });
+
+            const data = await response.json();
+
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: data.response || "No response received.",
+                sources: data.sources
+            }]);
+        } catch (error: any) {
+            console.error("Chat error:", error);
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: "I encountered an error. Please try again."
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const removeDoc = (index: number) => {
+        setUploadedDocs(prev => prev.filter((_, i) => i !== index));
+    };
 
     if (!isVisible) {
         return (
             <button
                 onClick={onToggle}
                 className="group absolute right-4 top-24 z-50 p-3 bg-zinc-900 border border-zinc-800 rounded-full shadow-2xl hover:bg-zinc-800 transition-all animate-in fade-in zoom-in duration-300"
-                title="Show Project Health"
+                title="Show Intelligence Panel"
             >
                 <div className="relative">
-                    <Target className="w-5 h-5 text-brand-blue" />
+                    <Zap className="w-5 h-5 text-[#0A52EF]" />
                     {gaps.length > 0 && (
                         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-900" />
                     )}
@@ -66,137 +193,120 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
     }
 
     return (
-        <div className="flex flex-col h-full bg-zinc-950/90 border-l border-zinc-800 w-96 shrink-0 overflow-hidden animate-in slide-in-from-right duration-500 shadow-2xl backdrop-blur-xl">
-            {/* Header - Ferrari Style */}
-            <div className="p-6 border-b border-zinc-800 bg-zinc-900/50 flex justify-between items-start relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent pointer-events-none" />
-
-                <div className="relative font-mono z-10 flex-1">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-brand-blue mb-1 flex items-center gap-2">
-                        <Zap className="w-3 h-3 text-brand-blue animate-pulse" />
-                        Intelligence Engine
-                    </h3>
-
-                    {/* Mode Switcher */}
-                    <div className="flex items-center gap-2 mt-2">
-                        <button
-                            onClick={() => setSidebarMode("HEALTH")}
-                            className={cn(
-                                "text-[10px] font-bold px-2 py-1 rounded transition-colors",
-                                sidebarMode === "HEALTH" ? "bg-brand-blue/20 text-brand-blue" : "text-zinc-500 hover:text-zinc-300"
-                            )}
-                        >
-                            HEALTH
-                        </button>
-                        <div className="w-px h-3 bg-zinc-800" />
-                        <button
-                            onClick={() => setSidebarMode("CHAT")}
-                            className={cn(
-                                "text-[10px] font-bold px-2 py-1 rounded transition-colors",
-                                sidebarMode === "CHAT" ? "bg-brand-blue/20 text-brand-blue" : "text-zinc-500 hover:text-zinc-300"
-                            )}
-                        >
-                            CHAT
-                        </button>
+        <div className="flex flex-col h-full bg-[#09090b] border-l border-zinc-800 w-96 shrink-0 overflow-hidden animate-in slide-in-from-right duration-300 shadow-2xl">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-[#0A52EF]/10 rounded-lg flex items-center justify-center">
+                            <Zap className="w-4 h-4 text-[#0A52EF]" />
+                        </div>
+                        <h3 className="text-sm font-bold text-white">Intelligence Panel</h3>
                     </div>
+                    <button
+                        onClick={onToggle}
+                        className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-white"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
                 </div>
-                <button
-                    onClick={onToggle}
-                    className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-white relative z-10"
-                >
-                    <X className="w-4 h-4" />
-                </button>
+
+                {/* Mode Switcher */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setSidebarMode("HEALTH")}
+                        className={cn(
+                            "flex-1 text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg transition-all",
+                            sidebarMode === "HEALTH"
+                                ? "bg-[#0A52EF]/20 text-[#0A52EF] border border-[#0A52EF]/30"
+                                : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
+                        )}
+                    >
+                        Health
+                    </button>
+                    <button
+                        onClick={() => setSidebarMode("CHAT")}
+                        className={cn(
+                            "flex-1 text-xs font-bold uppercase tracking-wider px-3 py-2 rounded-lg transition-all",
+                            sidebarMode === "CHAT"
+                                ? "bg-[#0A52EF]/20 text-[#0A52EF] border border-[#0A52EF]/30"
+                                : "bg-zinc-900 text-zinc-500 hover:text-zinc-300"
+                        )}
+                    >
+                        Ask AI
+                        {uploadedDocs.length > 0 && (
+                            <span className="ml-1.5 px-1.5 py-0.5 bg-[#0A52EF] text-white rounded text-[9px]">
+                                {uploadedDocs.length}
+                            </span>
+                        )}
+                    </button>
+                </div>
             </div>
 
-            {/* Vitality Score (Only in HEALTH mode) */}
-            {sidebarMode === "HEALTH" && (
-                <div className="p-6 border-b border-zinc-800 bg-zinc-900/20 relative group">
-                    <div className="flex items-end justify-between mb-4">
-                        <div>
-                            <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Bid Vitality</div>
-                            <div className={cn(
-                                "text-4xl font-black tracking-tighter tabular-nums transition-colors duration-500",
-                                completionRate >= 85 ? "text-emerald-500" : completionRate >= 50 ? "text-amber-500" : "text-zinc-600"
-                            )}>
-                                {Math.round(completionRate)}<span className="text-lg text-zinc-500 font-bold">%</span>
-                            </div>
-                        </div>
-                        <div className={cn(
-                            "text-xs font-bold px-2 py-1 rounded-md uppercase tracking-wider mb-2",
-                            completionRate >= 85 ? "bg-emerald-500/10 text-emerald-500" : completionRate >= 50 ? "bg-amber-500/10 text-amber-500" : "bg-zinc-800 text-zinc-500"
-                        )}>
-                            {completionRate >= 85 ? "Excellent" : completionRate >= 50 ? "Needs Work" : "Critical"}
-                        </div>
-                    </div>
-
-                    {/* Genetic Bar Visualization */}
-                    <div className="h-2 w-full bg-zinc-900 rounded-full overflow-hidden relative">
-                        <div className="absolute inset-0 opacity-20 bg-[url('/stripes.png')] bg-[length:4px_4px]" />
-                        <div
-                            className={cn(
-                                "h-full transition-all duration-1000 ease-out relative overflow-hidden",
-                                completionRate >= 85 ? "bg-emerald-500" : completionRate >= 50 ? "bg-amber-500" : "bg-zinc-700"
-                            )}
-                            style={{ width: `${completionRate}%` }}
-                        >
-                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
-                        </div>
-                    </div>
-
-                    {gaps.length > 0 && (
-                        <p className="text-[10px] text-zinc-500 mt-4 flex items-center gap-2">
-                            <AlertCircle className="w-3 h-3 text-amber-500" />
-                            <span>{gaps.length} critical data points missing</span>
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {/* Content Area */}
+            {/* Content */}
             {sidebarMode === "HEALTH" ? (
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-
-                    {/* Critical Risks Section */}
-                    {risks && risks.length > 0 && (
-                        <div className="relative overflow-hidden rounded-xl border border-red-500/20 bg-red-950/10">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
-                            <div className="p-4">
-                                <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <AlertTriangle className="w-3 h-3" />
-                                    Critical Risks Detected
-                                </h4>
-                                <div className="space-y-3">
-                                    {risks.map(r => (
-                                        <div key={r.id} className="bg-red-900/20 rounded-lg p-3 border border-red-500/10">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-xs font-bold text-red-200">{r.risk}</span>
-                                                <span className="text-[9px] font-bold bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded uppercase border border-red-500/20">{r.priority}</span>
-                                            </div>
-                                            <div className="text-[10px] text-red-300/70 pl-2 border-l border-red-500/20">
-                                                {r.actionRequired}
-                                            </div>
-                                        </div>
-                                    ))}
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
+                    {/* Vitality Score */}
+                    <div className="p-4 border border-zinc-800 rounded-xl bg-zinc-900/50">
+                        <div className="flex items-end justify-between mb-3">
+                            <div>
+                                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">Bid Health</div>
+                                <div className={cn(
+                                    "text-3xl font-black",
+                                    completionRate >= 85 ? "text-emerald-500" : completionRate >= 50 ? "text-amber-500" : "text-zinc-600"
+                                )}>
+                                    {Math.round(completionRate)}<span className="text-lg text-zinc-500">%</span>
                                 </div>
                             </div>
+                            <div className={cn(
+                                "text-[10px] font-bold px-2 py-1 rounded uppercase",
+                                completionRate >= 85 ? "bg-emerald-500/10 text-emerald-500" : completionRate >= 50 ? "bg-amber-500/10 text-amber-500" : "bg-zinc-800 text-zinc-500"
+                            )}>
+                                {completionRate >= 85 ? "Ready" : completionRate >= 50 ? "Needs Work" : "Critical"}
+                            </div>
+                        </div>
+                        <div className="h-2 w-full bg-zinc-950 rounded-full overflow-hidden">
+                            <div
+                                className={cn(
+                                    "h-full transition-all duration-1000",
+                                    completionRate >= 85 ? "bg-emerald-500" : completionRate >= 50 ? "bg-amber-500" : "bg-zinc-700"
+                                )}
+                                style={{ width: `${completionRate}%` }}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Risks */}
+                    {risks && risks.length > 0 && (
+                        <div className="border border-red-500/20 rounded-xl bg-red-950/10 p-4">
+                            <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <AlertTriangle className="w-3 h-3" />
+                                Critical Risks
+                            </h4>
+                            <div className="space-y-2">
+                                {risks.map(r => (
+                                    <div key={r.id} className="bg-red-900/20 rounded-lg p-3 border border-red-500/10 text-xs">
+                                        <div className="font-bold text-red-200 mb-1">{r.risk}</div>
+                                        <div className="text-red-300/70 text-[10px]">{r.actionRequired}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
-                    {/* Gaps List */}
+                    {/* Gaps */}
                     <div className="space-y-3">
-                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1 sticky top-0 bg-zinc-950/90 py-2 backdrop-blur-sm z-10 flex items-center justify-between">
-                            <span>Analysis Report</span>
-                            <span className="text-zinc-600">{gaps.length} items</span>
+                        <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                            Gaps ({gaps.length})
                         </h4>
-
-                        {gaps.length > 0 ? gaps.map((gap) => (
+                        {gaps.length > 0 ? gaps.map(gap => (
                             <div
                                 key={gap.id}
                                 className={cn(
-                                    "group p-4 rounded-xl border transition-all hover:-translate-y-0.5 relative overflow-hidden",
+                                    "p-4 rounded-xl border transition-all",
                                     gap.priority === "high"
-                                        ? "bg-gradient-to-br from-red-500/10 to-transparent border-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.1)]"
-                                        : "bg-zinc-900/50 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
+                                        ? "bg-red-500/10 border-red-500/20"
+                                        : "bg-zinc-900/50 border-zinc-800"
                                 )}
                             >
                                 <div className="flex items-start gap-3">
@@ -204,166 +314,147 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                                         "mt-1 p-1.5 rounded-md",
                                         gap.priority === "high" ? "bg-red-500/20 text-red-500" : "bg-amber-500/20 text-amber-500"
                                     )}>
-                                        {gap.priority === "high" ?
-                                            <AlertTriangle className="w-3.5 h-3.5" /> :
-                                            <Target className="w-3.5 h-3.5" />
-                                        }
+                                        <Target className="w-3 h-3" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <span className="text-xs font-bold text-zinc-200">{gap.field}</span>
-                                            {gap.section && (
-                                                <span className="text-[9px] font-mono text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800">
-                                                    {gap.section}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-[11px] text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors">
-                                            {gap.description}
-                                        </p>
+                                    <div className="flex-1">
+                                        <div className="text-xs font-bold text-zinc-200 mb-1">{gap.field}</div>
+                                        <p className="text-[11px] text-zinc-400">{gap.description}</p>
                                     </div>
                                 </div>
                             </div>
                         )) : !isEmptyState && (
-                            <div className="p-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-b from-emerald-500/10 to-transparent text-center">
-                                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-                                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                                </div>
-                                <h4 className="text-sm font-bold text-white mb-2">Systems Nominal</h4>
-                                <p className="text-xs text-zinc-400">
-                                    All 20 critical specifications identified and verified. Ready for export.
-                                </p>
+                            <div className="p-6 border border-emerald-500/20 rounded-xl bg-emerald-500/10 text-center">
+                                <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                                <div className="text-sm font-bold text-white mb-1">All Systems Nominal</div>
+                                <p className="text-xs text-zinc-400">Ready for export</p>
                             </div>
                         )}
 
                         {isEmptyState && (
-                            <div className="p-8 border border-dashed border-zinc-800 rounded-xl text-center">
-                                <Info className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
-                                <p className="text-xs text-zinc-500">
-                                    Waiting for RFP data...
-                                </p>
+                            <div className="p-6 border border-dashed border-zinc-800 rounded-xl text-center">
+                                <Info className="w-6 h-6 text-zinc-600 mx-auto mb-2" />
+                                <p className="text-xs text-zinc-500">Waiting for RFP data...</p>
                             </div>
                         )}
                     </div>
                 </div>
             ) : (
                 <div className="flex-1 flex flex-col min-h-0">
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
-                        {/* Intro Message */}
-                        <div className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center shrink-0">
-                                <Zap className="w-4 h-4 text-brand-blue" />
-                            </div>
-                            <div className="flex-1 space-y-2">
-                                <div className="bg-zinc-900/80 rounded-2xl rounded-tl-sm p-4 text-xs leading-relaxed text-zinc-300">
-                                    I've analyzed the uploaded documents. I have a few clarifying questions to complete your proposal with 100% confidence.
-                                </div>
-                            </div>
-                        </div>
+                    {/* Document Upload Section */}
+                    <div className="p-4 border-b border-zinc-800 bg-zinc-900/30">
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.docx,.txt"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="w-full px-4 py-3 bg-zinc-900 border-2 border-dashed border-zinc-700 hover:border-[#0A52EF]/50 rounded-xl transition-all flex items-center justify-center gap-2 text-sm font-medium text-zinc-400 hover:text-zinc-200 disabled:opacity-50"
+                        >
+                            {isUploading ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Uploading & Analyzing...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Upload className="w-4 h-4" />
+                                    <span>Upload RFP or Spec Doc</span>
+                                </>
+                            )}
+                        </button>
 
-                        {/* Extracted Questions */}
-                        {rfpQuestions.filter(q => !q.answered).map(q => (
-                            <div key={q.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2">
-                                <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
-                                    <Target className="w-4 h-4 text-amber-500" />
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <div className="bg-zinc-900/80 rounded-2xl rounded-tl-sm p-4 text-xs leading-relaxed text-zinc-300 border border-amber-500/20">
-                                        <p className="font-bold text-amber-500 mb-1">Clarification Needed</p>
-                                        {q.question}
-                                    </div>
-                                    <div className="flex gap-2">
+                        {/* Uploaded Docs List */}
+                        {uploadedDocs.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                                {uploadedDocs.map((doc, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 bg-zinc-950 border border-zinc-800 rounded-lg">
+                                        <FileText className="w-4 h-4 text-[#0A52EF]" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-medium text-zinc-300 truncate">{doc.name}</div>
+                                            <div className="text-[9px] text-zinc-600">{doc.uploadedAt.toLocaleTimeString()}</div>
+                                        </div>
                                         <button
-                                            onClick={() => answerRfpQuestion(q.id, "Yes")}
-                                            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-zinc-300"
+                                            onClick={() => removeDoc(idx)}
+                                            className="p-1 hover:bg-zinc-800 rounded text-zinc-500 hover:text-red-400 transition-colors"
                                         >
-                                            Yes
-                                        </button>
-                                        <button
-                                            onClick={() => answerRfpQuestion(q.id, "No")}
-                                            className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-zinc-300"
-                                        >
-                                            No
-                                        </button>
-                                        <button
-                                            onClick={() => setChatInput(`Answer for ${q.question}: `)}
-                                            className="px-3 py-1.5 bg-brand-blue/20 hover:bg-brand-blue/30 text-brand-blue rounded text-xs"
-                                        >
-                                            Type Answer...
+                                            <Trash2 className="w-3 h-3" />
                                         </button>
                                     </div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
+                        )}
+                    </div>
 
-                        {/* History */}
-                        {aiMessages.map(m => (
-                            <div key={m.id} className={cn("flex gap-3 animate-in fade-in slide-in-from-bottom-2", m.role === "user" && "flex-row-reverse")}>
+                    {/* Chat Messages */}
+                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+                        {messages.map(msg => (
+                            <div key={msg.id} className={cn("flex gap-3", msg.role === "user" && "flex-row-reverse")}>
                                 <div className={cn(
                                     "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                                    m.role === "user" ? "bg-zinc-800" : "bg-brand-blue/20"
+                                    msg.role === "user" ? "bg-zinc-800" : "bg-[#0A52EF]/20"
                                 )}>
-                                    {m.role === "user" ? <div className="w-2 h-2 bg-zinc-500 rounded-full" /> : <Zap className="w-4 h-4 text-brand-blue" />}
+                                    {msg.role === "user" ? (
+                                        <div className="w-2 h-2 bg-zinc-500 rounded-full" />
+                                    ) : (
+                                        <Zap className="w-4 h-4 text-[#0A52EF]" />
+                                    )}
                                 </div>
                                 <div className={cn(
-                                    "rounded-2xl p-4 text-xs leading-relaxed max-w-[80%]",
-                                    m.role === "user" ? "bg-brand-blue text-white rounded-tr-sm" : "bg-zinc-900/80 text-zinc-300 rounded-tl-sm"
+                                    "rounded-2xl p-3 text-xs leading-relaxed max-w-[80%]",
+                                    msg.role === "user"
+                                        ? "bg-[#0A52EF] text-white rounded-tr-sm"
+                                        : "bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-sm prose prose-invert prose-sm max-w-none"
                                 )}>
-                                    {m.content}
+                                    {msg.role === "assistant" ? (
+                                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                    ) : (
+                                        msg.content
+                                    )}
                                 </div>
                             </div>
                         ))}
 
-                        {aiLoading && (
+                        {isLoading && (
                             <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-brand-blue/20 flex items-center justify-center shrink-0">
-                                    <Zap className="w-4 h-4 text-brand-blue animate-pulse" />
+                                <div className="w-8 h-8 rounded-full bg-[#0A52EF]/20 flex items-center justify-center">
+                                    <Loader2 className="w-4 h-4 text-[#0A52EF] animate-spin" />
                                 </div>
-                                <div className="bg-zinc-900/80 rounded-2xl rounded-tl-sm p-4 text-xs text-zinc-500 italic">
-                                    Thinking...
+                                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl rounded-tl-sm p-3 text-xs text-zinc-500">
+                                    Analyzing...
                                 </div>
                             </div>
                         )}
                     </div>
 
+                    {/* Input */}
                     <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
                         <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                if (!chatInput.trim()) return;
-                                executeAiCommand(chatInput);
-                                setChatInput("");
-                            }}
+                            onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
                             className="relative"
                         >
                             <input
                                 type="text"
-                                value={chatInput}
-                                onChange={(e) => setChatInput(e.target.value)}
-                                placeholder="Ask Natalia or answer questions..."
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-4 pr-12 py-3 text-sm text-zinc-200 focus:outline-none focus:border-brand-blue/50 transition-colors"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                placeholder={uploadedDocs.length > 0 ? "Ask about the documents..." : "Upload a doc first to start chatting"}
+                                disabled={isLoading}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-4 pr-12 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-[#0A52EF]/50 transition-colors disabled:opacity-50"
                             />
                             <button
                                 type="submit"
-                                disabled={!chatInput.trim() || aiLoading}
-                                className="absolute right-2 top-2 p-1.5 bg-brand-blue text-white rounded-lg hover:bg-brand-blue/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                disabled={!input.trim() || isLoading}
+                                className="absolute right-2 top-2 p-1.5 bg-[#0A52EF] text-white rounded-lg hover:bg-[#0A52EF]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                             >
-                                <ChevronRight className="w-4 h-4" />
+                                <Send className="w-4 h-4" />
                             </button>
                         </form>
                     </div>
                 </div>
             )}
-
-            {/* Pro-Tip Footer */}
-            <div className="p-4 bg-zinc-900/80 border-t border-zinc-800">
-                <div className="flex items-center gap-3 py-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
-                    <p className="text-[10px] text-zinc-500 font-mono">
-                        AI MODEL: <span className="text-zinc-300">NATALIA V2.4 (O1-PREVIEW)</span>
-                    </p>
-                </div>
-            </div>
         </div>
     );
 }
