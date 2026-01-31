@@ -45,6 +45,8 @@ export async function GET(req: NextRequest) {
                     status: true,
                     calculationMode: true,
                     aiWorkspaceSlug: true,
+                    createdAt: true,
+                    updatedAt: true,
                 } as any,
             }),
             prisma.proposal.count({ where }),
@@ -89,13 +91,13 @@ export async function POST(req: NextRequest) {
                 const slugName = `project-${clientName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
 
                 // Endpoint: /api/v1/workspace/new
-                const workspaceRes = await fetch(`${ANYTHING_LLM_BASE_URL}/workspace/new`, {
+                const workspaceRes = await fetch(`${ANYTHING_LLM_BASE_URL}/v1/workspace/new`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${ANYTHING_LLM_KEY}`,
                     },
-                    body: JSON.stringify({ name: slugName }),
+                    body: JSON.stringify({ name: slugName, chatMode: "chat" }),
                 });
 
                 if (workspaceRes.ok) {

@@ -110,6 +110,9 @@ const defaultProposalContext = {
   rfpQuestions: [] as Array<{ id: string; question: string; answer: string | null; answered: boolean; order: number }>,
   uploadRfpDocument: (file: File) => Promise.resolve(),
   answerRfpQuestion: (questionId: string, answer: string) => Promise.resolve(),
+  filterStats: null as { originalPages: number; keptPages: number; drawingCandidates: number[] } | null,
+  sidebarMode: "HEALTH" as "HEALTH" | "CHAT",
+  setSidebarMode: (mode: "HEALTH" | "CHAT") => { },
   // Command execution
   applyCommand: (command: any) => { },
   executeAiCommand: async (message: string) => { },
@@ -200,7 +203,10 @@ export const ProposalContextProvider = ({
   const [aiMessages, setAiMessages] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [risks, setRisks] = useState<RiskItem[]>([]);
+
   const [rulesDetected, setRulesDetected] = useState<any>(null);
+  const [filterStats, setFilterStats] = useState<{ originalPages: number; keptPages: number; drawingCandidates: number[] } | null>(null);
+  const [sidebarMode, setSidebarMode] = useState<"HEALTH" | "CHAT">("HEALTH");
 
   // Computed Gatekeeper State
   const unverifiedAiFields = useMemo(() => {
@@ -1990,6 +1996,7 @@ export const ProposalContextProvider = ({
                 setValue("details.aiWorkspaceSlug", data.workspaceSlug);
               }
               if (data.questions) setRfpQuestions(data.questions);
+              if (data.filterStats) setFilterStats(data.filterStats);
 
               // Refresh the vault list
               refreshRfpDocuments();
@@ -2112,6 +2119,9 @@ export const ProposalContextProvider = ({
         setCalculationMode,
         // Excel Editing
         updateExcelCell,
+        filterStats,
+        sidebarMode,
+        setSidebarMode,
       }}
     >
       {children}

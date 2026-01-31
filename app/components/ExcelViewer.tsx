@@ -69,6 +69,7 @@ export default function ExcelViewer({
   focusedRow,
   onFocusedRowChange,
   editable = false,
+  scanningRow,
 }: ExcelViewerProps) {
   const { excelPreview, excelPreviewLoading, updateExcelCell } = useProposalContext();
   const [activeSheetName, setActiveSheetName] = useState<string | null>(null);
@@ -332,6 +333,7 @@ export default function ExcelViewer({
                 const hasError = !!rowErrors && rowErrors.length > 0;
                 const isHighlightedRow = highlightedRowsSet.has(r);
                 const isFocusedRow = typeof focusedRow === "number" && r === focusedRow;
+                const isScanningRow = typeof scanningRow === "number" && r === scanningRow;
 
                 return (
                   <tr
