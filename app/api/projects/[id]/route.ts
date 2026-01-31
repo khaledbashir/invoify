@@ -66,7 +66,7 @@ export async function PATCH(
         // Block edits on SIGNED/CLOSED proposals (fully immutable)
         if (isImmutable(existingProject.status as any) || existingProject.isLocked) {
             return NextResponse.json(
-                { 
+                {
                     error: `Proposal is ${existingProject.status} and cannot be edited. This version is a permanent contractual record.`,
                     action: "clone",
                     message: "To make changes, create a new version (clone) of this proposal."
@@ -76,11 +76,11 @@ export async function PATCH(
         }
 
         const body = await req.json();
-        const { 
-            clientName, 
-            proposalName, 
-            status, 
-            calculationMode, 
+        const {
+            clientName,
+            proposalName,
+            status,
+            calculationMode,
             internalAudit,
             clientSummary,
             screens,
@@ -100,20 +100,20 @@ export async function PATCH(
                 where: { id },
                 select: { aiFilledFields: true, verifiedFields: true }
             });
-            
+
             const currentAiFields = (fullProposal?.aiFilledFields as string[]) || aiFilledFields || [];
             const currentVerifiedFields = (fullProposal?.verifiedFields as any[]) || verifiedFields || [];
             const verifiedFieldNames = currentVerifiedFields.map((v: any) => v.field || v);
-            
+
             const validation = validateApprovalTransition(
                 existingProject.status,
                 currentAiFields,
                 verifiedFieldNames
             );
-            
+
             if (!validation.valid) {
                 return NextResponse.json(
-                    { 
+                    {
                         error: validation.error,
                         unverifiedFields: validation.unverifiedFields,
                         message: "All AI-extracted fields must be human-verified before approval. Click the checkmark on each Blue Glow field to verify.",
@@ -126,12 +126,12 @@ export async function PATCH(
 
         // REQ-125: Block financial field edits on APPROVED proposals
         if (isFinancialLocked(existingProject.status as any)) {
-            const financialFieldsInRequest = Object.keys(body).filter(key => 
+            const financialFieldsInRequest = Object.keys(body).filter(key =>
                 LOCKED_FINANCIAL_FIELDS.includes(key as any)
             );
             if (financialFieldsInRequest.length > 0) {
                 return NextResponse.json(
-                    { 
+                    {
                         error: `Proposal is APPROVED. Financial fields are locked: ${financialFieldsInRequest.join(', ')}`,
                         lockedFields: financialFieldsInRequest,
                         message: "Only cosmetic/branding changes are allowed on APPROVED proposals."
@@ -146,7 +146,7 @@ export async function PATCH(
         // Map proposalName to clientName if clientName is missing
         const effectiveClientName = clientName || proposalName;
         if (effectiveClientName !== undefined) updateData.clientName = effectiveClientName;
-        
+
         if (status !== undefined) updateData.status = status;
         if (calculationMode !== undefined) updateData.calculationMode = calculationMode;
         if (taxRateOverride !== undefined) updateData.taxRateOverride = taxRateOverride;
@@ -185,7 +185,21 @@ export async function PATCH(
 
             // If screens are provided, sync them (destructive sync for screens)
             if (screens && Array.isArray(screens)) {
-                // Delete existing screens and line items
+                // Step 1: Get existing screens to delete their children
+                const existingScreens = await tx.screenConfig.findMany({
+                    where: { proposalId: id },
+                    select: { id: true }
+                });
+                const screenIds = existingScreens.map(s => s.id);
+
+                // Step 2: Delete child CostLineItems first (FK constraint)
+                if (screenIds.length > 0) {
+                    await tx.costLineItem.deleteMany({
+                        where: { screenConfigId: { in: screenIds } }
+                    });
+                }
+
+                // Step 3: Delete existing screens
                 await tx.screenConfig.deleteMany({
                     where: { proposalId: id }
                 });

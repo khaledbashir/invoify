@@ -27,17 +27,17 @@ export async function generateProposalPdfService(req: NextRequest) {
 
 	try {
 		const ReactDOMServer = (await import("react-dom/server")).default;
-		const templateId = body.details.pdfTemplate;
+		const templateId = body.details?.pdfTemplate ?? 1; // Default to template 1
 		const ProposalTemplate = await getProposalTemplate(templateId);
 		const htmlTemplate = ReactDOMServer.renderToStaticMarkup(
 			ProposalTemplate(body)
 		);
 
 		const puppeteer = (await import("puppeteer-core")).default;
-		
+
 		// Check for external Browserless service first (recommended for production)
 		const browserlessUrl = process.env.BROWSERLESS_URL;
-		
+
 		if (browserlessUrl) {
 			// Connect to external Browserless service
 			console.log("Connecting to Browserless service:", browserlessUrl);
