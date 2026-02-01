@@ -16,7 +16,8 @@ type LogoSelectorServerProps = {
  */
 const LogoSelectorServer = ({ theme = "light", width = 160, height = 80, className = "" }: LogoSelectorServerProps) => {
     // Use absolute URLs for PDF rendering
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://basheer-natalia.prd42b.easypanel.host";
+    const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://basheer-natalia.prd42b.easypanel.host";
+    const baseUrl = rawBaseUrl.trim().replace(/\)+$/, "").replace(/\/+$/, "");
     const logoSrc = theme === "light" 
         ? `${baseUrl}/ANC_Logo_2023_blue.png` 
         : `${baseUrl}/ANC_Logo_2023_white.png`;

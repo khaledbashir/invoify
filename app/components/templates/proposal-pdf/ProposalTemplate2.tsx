@@ -222,7 +222,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             <div className="flex justify-between items-start mb-10 px-4 pt-4 break-inside-avoid">
                 {/* Logo Left */}
                 <div className="w-1/2 flex items-center">
-                    <LogoSelectorServer theme={forceWhiteLogo ? "dark" : "light"} width={160} height={80} />
+                    <LogoSelectorServer theme="light" width={160} height={80} />
                 </div>
                 {/* Title Right - Prevent layout shift with min-height */}
                 <div className="w-1/2 text-right flex flex-col justify-center">

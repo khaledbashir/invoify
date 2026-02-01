@@ -28,9 +28,6 @@ const PdfViewer = () => {
     // Use a shorter debounce so preview feels snappy
     const [debouncedValues] = useDebounce(formValues, 300);
 
-    // Enterprise Template 2 uses a Blue header, so we force the White Logo.
-    const forceWhiteLogo = debouncedValues.details?.pdfTemplate === 2;
-
     // Cast to any to accept the custom prop without TS errors
     const Template = DynamicProposalTemplate as any;
 
@@ -39,7 +36,6 @@ const PdfViewer = () => {
             {Template ? (
                 <Template
                     {...debouncedValues}
-                    forceWhiteLogo={forceWhiteLogo}
                 />
             ) : (
                 <div className="flex items-center justify-center h-full text-gray-400">
