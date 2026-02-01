@@ -95,19 +95,14 @@ export async function generateProposalPdfService(req: NextRequest) {
 			preferCSSPageSize: true,
 			displayHeaderFooter: true,
 			footerTemplate: `
-                <div style="font-family: 'Work Sans', sans-serif; font-size: 9px; width: 100%; padding: 0 40px; color: #6B7280; display: flex; flex-direction: column; justify-content: center;">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #D1D5DB; padding-top: 8px; margin-bottom: 4px;">
-                        <div>ANC Intelligence Core - Confidential Proposal</div>
-                        <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
-                    </div>
-                    <div style="width: 100%; text-align: center; font-size: 8px; color: #9CA3AF;">
-                        ANC Sports Enterprises, LLC <span style="margin: 0 4px;">&bull;</span> 2 Manhattanville Road, Suite 402, Purchase, NY 10577 <span style="margin: 0 4px;">&bull;</span> www.anc.com
-                    </div>
+                <div style="font-family: 'Open Sans', sans-serif; font-size: 8px; width: 100%; padding: 0 40px; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                    <div>ANC Intelligence Core - Confidential Proposal</div>
+                    <div>Page <span class="pageNumber"></span> of <span class="totalPages"></span></div>
                 </div>
             `,
 			margin: {
 				top: "60px",
-				bottom: "80px",
+				bottom: "70px",
 				left: "40px",
 				right: "40px"
 			}

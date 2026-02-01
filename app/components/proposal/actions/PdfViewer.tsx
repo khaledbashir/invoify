@@ -35,19 +35,17 @@ const PdfViewer = () => {
     const Template = DynamicProposalTemplate as any;
 
     return (
-        <div className="w-full h-full flex flex-col items-center bg-[#E2E8F0] p-8 overflow-y-auto custom-scrollbar">
-            <div className="w-full max-w-[215mm] transform scale-[0.95] origin-top opacity-100 transition-all">
-                {Template ? (
-                    <Template
-                        {...debouncedValues}
-                        forceWhiteLogo={forceWhiteLogo}
-                    />
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400">
-                        Generator Loading...
-                    </div>
-                )}
-            </div>
+        <div className="w-full h-full flex flex-col items-center">
+            {Template ? (
+                <Template
+                    {...debouncedValues}
+                    forceWhiteLogo={forceWhiteLogo}
+                />
+            ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">
+                    Generator Loading...
+                </div>
+            )}
         </div>
     );
 };

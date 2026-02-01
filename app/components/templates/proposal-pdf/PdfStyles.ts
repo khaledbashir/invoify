@@ -1,33 +1,26 @@
 export const PDF_COLORS = {
     // Brand Colors (ANC Standard)
-    FRENCH_BLUE: "#0A52EF", // Primary Brand Color
-    
-    // Decorative Colors (Graphics Only)
-    SPLISH_SPLASH: "#03B8FF",
-    MALIBU_BLUE: "#0385DD",
-    BLUE_OPAL: "#002C73",
+    FRENCH_BLUE: "#0A52EF", // ANC/Enterprise Blue
+    ACCENT_RED: "#C8102E",  // Brand Red
+    ACCENT_YELLOW: "#FFCD00", // Brand Yellow
 
     // UI Neutrals
-    TABLE_HEADER_BG: "#0A52EF", // French Blue for headers
+    TABLE_HEADER_BG: "#E5E7EB", // Gray-200 for zebra headers
     BORDER_GRAY: "#D1D5DB",     // Gray-300
-    TEXT_DARK: "#000000",       // Black
-    TEXT_LIGHT: "#000000",      // Body copy also black primarily, or dark gray
-    BACKGROUND_GRAY: "#F5F5F5", // Light gray for alternating rows
-    STUDIO_GREY: "#E2E8F0",     // Background for paper preview
-    ACCENT_RED: "#C8102E",  // Brand Red (Legacy)
-    ACCENT_YELLOW: "#FFCD00", // Brand Yellow (Legacy)
+    TEXT_DARK: "#111827",       // Gray-900
+    TEXT_LIGHT: "#6B7280",      // Gray-500
 };
 
 export const PDF_STYLES = {
     // Typography
-    Heading1: "text-2xl font-bold text-[#0A52EF]",
-    Heading2: "text-lg font-bold text-[#0A52EF]",
-    Body: "text-[12px] font-normal text-black",
+    Heading1: "text-2xl font-bold tracking-tight",
+    Heading2: "text-lg font-bold tracking-wide",
+    Body: "text-xs font-normal",
 
     // Table Styles
-    Table: "w-full text-[11px] border-collapse",
-    TableHeaderCell: `bg-[#0A52EF] p-2 font-bold text-left text-white border-b border-[#D1D5DB]`,
-    TableCell: "p-2 border-b border-[#D1D5DB] text-black",
+    Table: "w-full text-xs border-collapse",
+    TableHeaderCell: `bg-[${PDF_COLORS.TABLE_HEADER_BG}] p-2 font-bold text-left text-gray-700 border-b border-gray-300`,
+    TableCell: "p-2 border-b border-gray-100 text-gray-800",
 
     // Layout
     PageBreak: "break-before-page",
