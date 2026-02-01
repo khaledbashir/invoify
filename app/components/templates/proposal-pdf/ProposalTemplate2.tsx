@@ -222,30 +222,43 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             </td>
                             <td className="p-2 text-right pr-4 font-bold text-gray-900 w-1/4 align-bottom">{formatCurrency(hardwarePrice)}</td>
                         </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Structural Materials</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(structurePrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Structural Labor and LED Installation</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(installPrice)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Electrical and Data - Materials and Subcontracting</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(powerPrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Project Management, General Conditions, Travel & Expenses</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(pmTravelPrice)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Submittals, Engineering, and Permits</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(engineeringPrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Content Management System Equipment, Installation, and Commissioning</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
-                        </tr>
+                        {/* REQ-UserFeedback: Hide Zero-Cost Rows */}
+                        {structurePrice > 0 && (
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Structural Materials</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(structurePrice)}</td>
+                            </tr>
+                        )}
+                        {installPrice > 0 && (
+                            <tr className="bg-white border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Structural Labor and LED Installation</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(installPrice)}</td>
+                            </tr>
+                        )}
+                        {powerPrice > 0 && (
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Electrical and Data - Materials and Subcontracting</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(powerPrice)}</td>
+                            </tr>
+                        )}
+                        {pmTravelPrice > 0 && (
+                            <tr className="bg-white border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Project Management, General Conditions, Travel & Expenses</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(pmTravelPrice)}</td>
+                            </tr>
+                        )}
+                        {engineeringPrice > 0 && (
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Submittals, Engineering, and Permits</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(engineeringPrice)}</td>
+                            </tr>
+                        )}
+                        {cmsPrice > 0 && (
+                            <tr className="bg-white border-b border-gray-100">
+                                <td className="p-1.5 pl-4 text-gray-600">Content Management System Equipment, Installation, and Commissioning</td>
+                                <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
+                            </tr>
+                        )}
 
                         {/* REQ-124: Screen subtotal only - Bond/Tax shown at project level */}
                         <tr className="font-bold border-t-2 border-black bg-gray-50">
