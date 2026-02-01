@@ -5,7 +5,7 @@ import ProposalLayout from "./ProposalLayout";
 import LogoSelectorServer from "@/app/components/reusables/LogoSelectorServer";
 
 // Helpers
-import { formatNumberWithCommas, isDataUrl, formatCurrency } from "@/lib/helpers";
+import { formatNumberWithCommas, isDataUrl, formatCurrency, formatCurrencyForPdf } from "@/lib/helpers";
 
 // Variables
 import { DATE_OPTIONS } from "@/lib/variables";
@@ -36,8 +36,24 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     const documentType = (details as any).documentType as "LOI" | "First Round" | undefined;
     const pricingType = (details as any).pricingType as "Hard Quoted" | "Budget" | undefined;
-    const headerType = documentType === "LOI" ? "LOI" : pricingType === "Hard Quoted" ? "PROPOSAL" : "BUDGET";
-    const docLabel = headerType === "BUDGET" ? "BUDGET ESTIMATE" : "SALES QUOTATION";
+    
+    // Master Truth Header Logic: 3-Option Toggle
+    // 1. "Sales Quotation" (Firm commitment)
+    // 2. "Budget Estimate" (Preliminary)
+    // 3. "Proposal" (Standard)
+    let headerType = "PROPOSAL";
+    let docLabel = "PROPOSAL";
+
+    if (documentType === "LOI" || pricingType === "Hard Quoted") {
+        headerType = "SALES_QUOTATION";
+        docLabel = "SALES QUOTATION";
+    } else if (pricingType === "Budget") {
+        headerType = "BUDGET";
+        docLabel = "BUDGET ESTIMATE";
+    } else {
+        headerType = "PROPOSAL";
+        docLabel = "PROPOSAL";
+    }
 
     const purchaserName = receiver?.name || "Client Name";
     const purchaserAddress =
@@ -268,30 +284,30 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 <h3 className="font-bold text-sm uppercase text-black mb-4" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                     Project Financial Summary
                 </h3>
-                <table className="w-full text-[11px]">
+                <table className="w-full text-[11px]" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                     <tbody>
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Combined Display Subtotal:</td>
-                            <td className="p-2 text-right font-medium">{formatCurrency(projectSubtotal)}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectSubtotal, "[SUBTOTAL]")}</td>
                         </tr>
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Performance Bond ({(bondRate * 100).toFixed(1)}%):</td>
-                            <td className="p-2 text-right font-medium">{formatCurrency(projectBondCost)}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectBondCost, "[BOND]")}</td>
                         </tr>
                         {projectBoTaxCost > 0 && (
                             <tr className="border-b border-gray-200">
                                 <td className="p-2 text-gray-700">WV B&O Tax (2%):</td>
-                                <td className="p-2 text-right font-medium">{formatCurrency(projectBoTaxCost)}</td>
+                                <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectBoTaxCost, "[TAX]")}</td>
                             </tr>
                         )}
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Sales Tax ({(taxRate * 100).toFixed(1)}%):</td>
-                            <td className="p-2 text-right font-medium">{formatCurrency(projectSalesTax)}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectSalesTax, "[TAX]")}</td>
                         </tr>
                         <tr className="bg-[#0A52EF] text-white">
                             <td className="p-3 font-bold uppercase">Project Grand Total:</td>
                             <td className="p-3 text-right font-bold text-lg">
-                                {projectGrandTotal > 0 ? formatCurrency(projectGrandTotal) : PDF_PLACEHOLDERS.TOTAL_PRICE}
+                                {formatCurrencyForPdf(projectGrandTotal, "[PROJECT TOTAL]")}
                             </td>
                         </tr>
                     </tbody>
@@ -325,18 +341,18 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </div>
 
             {/* Intro Paragraph */}
-            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4">
-                {headerType === "LOI" ? (
+            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+                {headerType === "SALES_QUOTATION" ? (
                     <p>
                         This Sales Quotation will set forth the terms by which {purchaserName} (“Purchaser”) located at {purchaserAddress} and ANC Sports Enterprises, LLC (“ANC”) located at {ancAddress} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (the “Display System”) described below for {details?.location || details?.proposalName || "the project"}.
                     </p>
-                ) : headerType === "PROPOSAL" ? (
+                ) : headerType === "BUDGET" ? (
                     <p>
-                        ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
+                        ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
                     </p>
                 ) : (
                     <p>
-                        ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
+                        ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
                     </p>
                 )}
             </div>
