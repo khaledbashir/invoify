@@ -64,6 +64,9 @@ function makeMergeMaps(merges: ExcelPreviewSheet["merges"]) {
 const LED_HIGHLIGHT_COLS = new Set([0, 4, 5, 6, 12]);
 const LED_BRIGHTNESS_COL_INDEX = 12;
 
+// REQ-UserFeedback: Hide "Type" column and other unnecessary columns from display
+const HIDDEN_COLUMN_HEADERS = new Set(["type"]);
+
 export default function ExcelViewer({
   highlightedRows,
   focusedRow,
@@ -157,14 +160,36 @@ export default function ExcelViewer({
     return makeMergeMaps(activeSheet.merges);
   }, [activeSheet]);
 
+  // REQ-UserFeedback: Identify column indices that should be hidden (e.g., "Type")
+  const hiddenColumnIndices = useMemo(() => {
+    if (!activeSheet) return new Set<number>();
+    const headerRow = activeSheet.grid[ledHeaderRowIndex] || [];
+    const hidden = new Set<number>();
+    headerRow.forEach((cell, idx) => {
+      const normalized = normalizeValue(cell).toLowerCase();
+      if (HIDDEN_COLUMN_HEADERS.has(normalized)) {
+        hidden.add(idx);
+      }
+    });
+    return hidden;
+  }, [activeSheet, ledHeaderRowIndex]);
+
   const colWidths = useMemo(() => {
     if (!activeSheet) return [];
-    return activeSheet.colWidths.map((w) => {
-      if (w === 0) return "0px";
-      if (typeof w === "number") return `${Math.max(44, w * 8)}px`;
-      return "140px";
-    });
-  }, [activeSheet]);
+
+    // REQ-UserFeedback: Filter out hidden columns + Expand first column
+    return activeSheet.colWidths
+      .map((w, idx) => ({ w, idx }))
+      .filter(({ idx }) => !hiddenColumnIndices.has(idx))
+      .map(({ w, idx }) => {
+        // Expand first column (Display Name)
+        if (idx === 0) return "40%"; // REQ-UserFeedback: Expand Item Name
+
+        if (w === 0) return "0px";
+        if (typeof w === "number") return `${Math.max(44, w * 8)}px`;
+        return "140px";
+      });
+  }, [activeSheet, hiddenColumnIndices]);
 
   const validationSummary = useMemo(() => {
     if (!activeSheet || !isLedCostSheetActive) return null;
@@ -360,6 +385,9 @@ export default function ExcelViewer({
                     {row.map((cell, c) => {
                       const key = `${r}:${c}` as const;
                       if (mergeMaps?.covered.has(key)) return null;
+
+                      // REQ-UserFeedback: Skip hidden columns (e.g., "Type")
+                      if (hiddenColumnIndices.has(c)) return null;
 
                       const span = mergeMaps?.anchorByCell.get(key);
                       const isHighlightedCol = isLedCostSheetActive && LED_HIGHLIGHT_COLS.has(c);

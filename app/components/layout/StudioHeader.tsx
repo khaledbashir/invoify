@@ -93,8 +93,10 @@ export function StudioHeader({
                 // Context already does router.push
             } else if (result.error) {
                 toast({ title: "Save failed", description: result.error, variant: "destructive" });
+            } else {
+                // REQ-UserFeedback: Explicit success feedback for updates
+                toast({ title: "Draft saved!", description: "Your changes have been saved." });
             }
-            // When created: false and no error, context already toasts "modified"
         } finally {
             setSavingDraft(false);
         }

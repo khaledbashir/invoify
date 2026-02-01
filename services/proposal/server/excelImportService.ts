@@ -325,6 +325,68 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
     }
 
     const totals = aggregateTotals(perScreenAudits);
+
+    // REQ-UserFeedback: Include non-LED items (Structure, Installation, Labor, etc.) in Project Total
+    // Extract unmatched margin rows as soft costs
+    const softCostItems: Array<{ name: string; cost: number; sell: number }> = [];
+    let softCostTotal = 0;
+
+    for (const row of marginRows) {
+        // Skip if already matched to a screen, is an alternate, or is a total row
+        if (row.matched || row.isAlternate || row.isTotalLike) continue;
+
+        // Check if this row looks like a soft cost (not an LED screen)
+        const nameNorm = row.name.toLowerCase();
+        const isSoftCost =
+            nameNorm.includes('structure') ||
+            nameNorm.includes('structural') ||
+            nameNorm.includes('install') ||
+            nameNorm.includes('labor') ||
+            nameNorm.includes('electrical') ||
+            nameNorm.includes('power') ||
+            nameNorm.includes('pm ') ||
+            nameNorm.includes('project management') ||
+            nameNorm.includes('travel') ||
+            nameNorm.includes('engineering') ||
+            nameNorm.includes('permits') ||
+            nameNorm.includes('bond') ||
+            nameNorm.includes('insurance') ||
+            nameNorm.includes('shipping') ||
+            nameNorm.includes('freight') ||
+            nameNorm.includes('demolition') ||
+            nameNorm.includes('rigging') ||
+            nameNorm.includes('crane') ||
+            nameNorm.includes('commissioning') ||
+            nameNorm.includes('training') ||
+            nameNorm.includes('warranty') ||
+            nameNorm.includes('general conditions') ||
+            nameNorm.includes('overhead');
+
+        if (isSoftCost) {
+            softCostItems.push({
+                name: row.name,
+                cost: row.cost,
+                sell: row.sell
+            });
+            softCostTotal += row.sell;
+        } else if ((row.cost > 0 || row.sell > 0) && !row.name.toLowerCase().includes('display') && !row.name.toLowerCase().includes('screen')) {
+            // REQ-UserFeedback: Include any unmatched row with valid pricing (catches items not in keyword list)
+            softCostItems.push({
+                name: row.name,
+                cost: row.cost,
+                sell: row.sell
+            });
+            softCostTotal += row.sell;
+        }
+    }
+
+    // Add soft costs to totals
+    if (softCostTotal > 0) {
+        console.log(`[EXCEL IMPORT] Including ${softCostItems.length} soft cost items totaling $${softCostTotal.toFixed(2)}`);
+        totals.sellPrice += softCostTotal;
+        totals.finalClientTotal += softCostTotal;
+    }
+
     if (subTotalRow) {
         totals.totalCost = Number(subTotalRow.cost || totals.totalCost);
         totals.sellPrice = Number(subTotalRow.sell || totals.sellPrice);
@@ -334,7 +396,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
     }
     const internalAudit: InternalAudit = {
         perScreen: perScreenAudits,
-        totals: totals
+        totals: totals,
+        softCostItems: softCostItems // REQ-UserFeedback: Track soft costs separately
     };
 
     // Construct the Unified FormData object
