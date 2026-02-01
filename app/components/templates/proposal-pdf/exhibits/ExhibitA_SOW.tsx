@@ -80,42 +80,8 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE - HIDDEN per user feedback (Target Screenshot does not show this) */}
-            {(false && (constraintSections.length > 0 || details?.venue)) && (
-                <div className="mb-12">
-                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">3. Project Constraints & Compliance</h4>
-
-                    {/* Venue Specific Dates (REQ-47) - Integrated into Constraints */}
-                    {(details?.venue === "Milan Puskar Stadium" || details?.venue === "WVU Coliseum") && (
-                        <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl break-inside-avoid">
-                            <h5 className="text-[10px] font-bold text-gray-900 uppercase mb-3 border-b border-gray-300 pb-1">Site Logistics & Liquidated Damages</h5>
-                            <div className="grid grid-cols-2 gap-4 text-[10px]">
-                                <div>
-                                    <span className="font-bold text-gray-500 uppercase">Substantial Completion:</span>
-                                    <p className="text-brand-blue font-bold">
-                                        {details?.venue === 'Milan Puskar Stadium' ? 'July 30, 2020' : 'August 28, 2020'}
-                                    </p>
-                                </div>
-                                <div>
-                                    <span className="font-bold text-gray-500 uppercase">Liquidated Damages:</span>
-                                    <p className="text-red-600 font-bold">
-                                        {details?.venue === 'Milan Puskar Stadium' ? '$2,500 per day' : '$5,000 per day'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-6 px-2">
-                        {constraintSections.map((section, idx) => (
-                            <div key={idx} className="break-inside-avoid">
-                                <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>
-                                <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{section.content}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE - REMOVED per client feedback (marked with X in screenshots) */}
+            {/* Venue Specifications and Site Logistics sections have been removed */}
 
             {/* OTHER / GENERAL */}
             {

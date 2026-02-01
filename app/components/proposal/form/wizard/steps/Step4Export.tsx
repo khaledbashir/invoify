@@ -494,6 +494,58 @@ const Step4Export = () => {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 space-y-3">
+                                {/* Exhibit A Toggle */}
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Exhibit A (Statement of Work)</label>
+                                        <p className="text-[10px] text-zinc-500">Detailed scope of work and technical specifications</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showExhibitA") ?? false;
+                                            setValue("details.showExhibitA", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showExhibitA") ?? false) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showExhibitA") ?? false) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Exhibit B Toggle */}
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Exhibit B (Cost Schedule)</label>
+                                        <p className="text-[10px] text-zinc-500">Simplified cost breakdown table</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showExhibitB") ?? false;
+                                            setValue("details.showExhibitB", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showExhibitB") ?? false) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showExhibitB") ?? false) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
                                 <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
                                     <div className="space-y-1">
                                         <label className="text-xs font-bold text-zinc-300 block">Show Pricing Breakdown</label>

@@ -79,6 +79,11 @@ function mapDbToFormSchema(dbProject: any) {
             aiWorkspaceSlug: dbProject.aiWorkspaceSlug || null,
             venue: "Generic" as const,
             includePricingBreakdown: true, // Default: show pricing breakdown
+            showPaymentTerms: true,
+            showSignatureBlock: true,
+            showAssumptions: false,
+            showExhibitA: false,
+            showExhibitB: false,
         },
     };
 }

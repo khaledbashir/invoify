@@ -309,6 +309,8 @@ const ProposalDetailsSchema = z.object({
     showPaymentTerms: z.boolean().optional().default(true), // Toggle for payment terms section
     showSignatureBlock: z.boolean().optional().default(true), // Toggle for signature block
     showAssumptions: z.boolean().optional().default(false), // Toggle for assumptions text (default OFF per client)
+    showExhibitA: z.boolean().optional().default(false), // Toggle for Exhibit A (Statement of Work)
+    showExhibitB: z.boolean().optional().default(false), // Toggle for Exhibit B (Cost Schedule)
 });
 
 const ProposalSchema = z.object({

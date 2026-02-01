@@ -61,7 +61,7 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                 </h3>
             </div>
 
-            {/* 1. Base Bid: Display System Pricing */}
+            {/* 1. Base Bid: Display System Pricing - SIMPLIFIED: 2 columns only (Name + Price) */}
             <div className="mb-8 p-6 border border-gray-200 rounded-2xl bg-gray-50/30">
                 <h4 className="text-sm font-bold border-b border-black pb-2 mb-6 uppercase tracking-widest">1. Base Bid Display System(s)</h4>
                 <table className="w-full text-[11px]">
@@ -70,16 +70,9 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                             const audit = internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
                             const price = audit?.breakdown?.sellPrice || (screen.lineItems || []).reduce((acc: number, li: any) => acc + (li.price || 0), 0);
 
-                            // REQ-UserFeedback: Detect soft costs in screens list
-                            const isSoftCost = (!screen.pitchMm || screen.pitchMm === 0) && (!screen.widthFt || screen.widthFt === 0);
-                            const description = isSoftCost
-                                ? "Project Service Line Item"
-                                : "Complete LED Display System as per Exhibit A Specifications";
-
                             return (
                                 <tr key={idx} className="border-b border-gray-200">
                                     <td className="py-3 pr-4 font-bold text-[#0A52EF]">{screen.name}</td>
-                                    <td className="py-3 text-gray-600">{description}</td>
                                     <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(price)}</td>
                                 </tr>
                             );
@@ -88,7 +81,6 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                         {internalAudit?.softCostItems?.map((item: any, idx: number) => (
                             <tr key={`soft-${idx}`} className="border-b border-gray-200 bg-gray-50/50">
                                 <td className="py-3 pr-4 font-bold text-gray-700">{item.name}</td>
-                                <td className="py-3 text-gray-500 italic">Project Service Line Item</td>
                                 <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(item.sell)}</td>
                             </tr>
                         ))}
@@ -96,7 +88,7 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                 </table>
             </div>
 
-            {/* 2. Alternates / Options */}
+            {/* 2. Alternates / Options - SIMPLIFIED: 2 columns only */}
             {alternates.length > 0 && (
                 <div className="mb-8 p-6 border border-gray-200 rounded-2xl bg-white">
                     <h4 className="text-sm font-bold border-b border-gray-300 pb-2 mb-6 uppercase tracking-widest text-[#0A52EF]">2. Project Alternates (Add/Deduct)</h4>
@@ -105,7 +97,6 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                             {alternates.map((item: any, idx: number) => (
                                 <tr key={idx} className="border-b border-gray-100 last:border-0">
                                     <td className="py-3 pr-4 font-bold text-gray-800">{item.name}</td>
-                                    <td className="py-3 text-gray-500 italic">{item.description || "Project Alternate"}</td>
                                     <td className="py-3 text-right font-bold text-[#0A52EF] min-w-[120px]">{formatCurrency(item.total || 0)}</td>
                                 </tr>
                             ))}
