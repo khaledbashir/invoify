@@ -5,10 +5,7 @@ import ProposalLayout from "./ProposalLayout";
 import LogoSelectorServer from "@/app/components/reusables/LogoSelectorServer";
 
 // Helpers
-import { formatNumberWithCommas, isDataUrl, formatCurrency, formatCurrencyForPdf } from "@/lib/helpers";
-
-// Base64 Logo for PDF (relative paths don't work in Puppeteer)
-import { ANC_LOGO_BLUE_BASE64 } from "@/lib/logoBase64";
+import { formatNumberWithCommas, isDataUrl, formatCurrency } from "@/lib/helpers";
 
 // Variables
 import { DATE_OPTIONS } from "@/lib/variables";
@@ -39,24 +36,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     const documentType = (details as any).documentType as "LOI" | "First Round" | undefined;
     const pricingType = (details as any).pricingType as "Hard Quoted" | "Budget" | undefined;
-    
-    // Master Truth Header Logic: 3-Option Toggle
-    // 1. "Sales Quotation" (Firm commitment)
-    // 2. "Budget Estimate" (Preliminary)
-    // 3. "Proposal" (Standard)
-    let headerType = "PROPOSAL";
-    let docLabel = "PROPOSAL";
-
-    if (documentType === "LOI" || pricingType === "Hard Quoted") {
-        headerType = "SALES_QUOTATION";
-        docLabel = "SALES QUOTATION";
-    } else if (pricingType === "Budget") {
-        headerType = "BUDGET";
-        docLabel = "BUDGET ESTIMATE";
-    } else {
-        headerType = "PROPOSAL";
-        docLabel = "PROPOSAL";
-    }
+    const headerType = documentType === "LOI" ? "LOI" : pricingType === "Hard Quoted" ? "PROPOSAL" : "BUDGET";
+    const docLabel = headerType === "BUDGET" ? "BUDGET ESTIMATE" : "SALES QUOTATION";
 
     const purchaserName = receiver?.name || "Client Name";
     const purchaserAddress =
@@ -79,8 +60,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
-        <div className="w-full bg-[#0A52EF] py-3 mb-6 mt-8 break-inside-avoid print:bg-[#0A52EF]">
-            <h2 className="text-[22px] font-bold text-white text-center uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>{title}</h2>
+        <div className="text-center mb-6 mt-8">
+            <h2 className="text-xl font-medium tracking-[0.2em] text-gray-500 uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>{title}</h2>
         </div>
     );
 
@@ -93,9 +74,9 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         if (isSoftCost) {
             return (
                 <div className="mb-4 break-inside-avoid">
-                    <div className="flex justify-between items-center bg-[#0A52EF] px-3 py-2 mb-0 print:bg-[#0A52EF]">
-                        <h3 className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Service Item"}</h3>
-                        <span className="text-xs text-white uppercase">Service / Soft Cost</span>
+                    <div className="flex justify-between items-center border-b-2 border-gray-200 pb-1 mb-1">
+                        <h3 className="font-bold text-sm uppercase text-gray-500" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Service Item"}</h3>
+                        <span className="text-xs text-gray-400 uppercase">Service / Soft Cost</span>
                     </div>
                     <div className="p-2 bg-gray-50 border border-gray-100 rounded text-[10px] text-gray-500 italic">
                         Technical specifications not applicable for this service item.
@@ -105,44 +86,46 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         }
 
         return (
-            <div className="mb-8 break-inside-avoid shadow-sm rounded-sm overflow-hidden border border-[#D1D5DB]">
-                {/* Header Bar as Table Header */}
-                <div className="flex justify-between items-center bg-[#0A52EF] px-3 py-2 border-b border-[#D1D5DB] print:bg-[#0A52EF]">
-                    <h3 className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
-                    <span className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
+            <div className="mb-8 break-inside-avoid">
+                {/* Header Bar */}
+                <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
+                    <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
+                    <span className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
                 </div>
-                <table className="w-full text-[12px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+                <table className="w-full text-[11px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                     <tbody>
                         <tr className="bg-white">
-                            <td className="p-2 pl-4 text-black w-2/3 border-b border-[#D1D5DB]">MM Pitch</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen.pitchMm ?? screen.pixelPitch ?? 0} mm</td>
+                            <td className="p-1.5 pl-4 text-gray-700 w-2/3">MM Pitch</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen.pitchMm ?? screen.pixelPitch ?? 0} mm</td>
                         </tr>
-                        <tr className="bg-[#F5F5F5]">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Quantity</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen.quantity || 1}</td>
-                        </tr>
-                        <tr className="bg-white">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Active Display Height (ft.)</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</td>
-                        </tr>
-                        <tr className="bg-[#F5F5F5]">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Active Display Width (ft.)</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</td>
+                        <tr className="bg-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Quantity</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen.quantity || 1}</td>
                         </tr>
                         <tr className="bg-white">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Pixel Resolution (H)</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen?.pixelsH || Math.round((Number(screen?.heightFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                            <td className="p-1.5 pl-4 text-gray-700">Active Display Height (ft.)</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</td>
                         </tr>
-                        <tr className="bg-[#F5F5F5]">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Pixel Resolution (W)</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen?.pixelsW || Math.round((Number(screen?.widthFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        <tr className="bg-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Active Display Width (ft.)</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</td>
                         </tr>
                         <tr className="bg-white">
-                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Brightness</td>
-                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">
+                            <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (H)</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen?.pixelsH || Math.round((Number(screen?.heightFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        </tr>
+                        <tr className="bg-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (W)</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen?.pixelsW || Math.round((Number(screen?.widthFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        </tr>
+                        {/* Pixel Density row REMOVED per client feedback */}
+                        <tr className="bg-white">
+                            <td className="p-1.5 pl-4 text-gray-700">Brightness</td>
+                            <td className="p-1.5 text-right pr-4 text-gray-900">
                                 {screen.brightness ? `${formatNumberWithCommas(screen.brightness)}` : "Standard"}
                             </td>
                         </tr>
+                        {/* HDR Status row REMOVED per client feedback */}
                     </tbody>
                 </table>
             </div>
@@ -287,30 +270,30 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 <h3 className="font-bold text-sm uppercase text-black mb-4" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                     Project Financial Summary
                 </h3>
-                <table className="w-full text-[11px]" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+                <table className="w-full text-[11px]">
                     <tbody>
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Combined Display Subtotal:</td>
-                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectSubtotal, "[SUBTOTAL]")}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrency(projectSubtotal)}</td>
                         </tr>
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Performance Bond ({(bondRate * 100).toFixed(1)}%):</td>
-                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectBondCost, "[BOND]")}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrency(projectBondCost)}</td>
                         </tr>
                         {projectBoTaxCost > 0 && (
                             <tr className="border-b border-gray-200">
                                 <td className="p-2 text-gray-700">WV B&O Tax (2%):</td>
-                                <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectBoTaxCost, "[TAX]")}</td>
+                                <td className="p-2 text-right font-medium">{formatCurrency(projectBoTaxCost)}</td>
                             </tr>
                         )}
                         <tr className="border-b border-gray-200">
                             <td className="p-2 text-gray-700">Sales Tax ({(taxRate * 100).toFixed(1)}%):</td>
-                            <td className="p-2 text-right font-medium">{formatCurrencyForPdf(projectSalesTax, "[TAX]")}</td>
+                            <td className="p-2 text-right font-medium">{formatCurrency(projectSalesTax)}</td>
                         </tr>
                         <tr className="bg-[#0A52EF] text-white">
                             <td className="p-3 font-bold uppercase">Project Grand Total:</td>
                             <td className="p-3 text-right font-bold text-lg">
-                                {formatCurrencyForPdf(projectGrandTotal, "[PROJECT TOTAL]")}
+                                {projectGrandTotal > 0 ? formatCurrency(projectGrandTotal) : PDF_PLACEHOLDERS.TOTAL_PRICE}
                             </td>
                         </tr>
                     </tbody>
@@ -323,11 +306,11 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         <ProposalLayout data={data} disableFixedFooter>
             {/* 1. HEADER (Summary Page) - Refined for ABCDE Layout */}
             <div className="flex justify-between items-start mb-10 px-4 pt-4 break-inside-avoid">
-                {/* Logo Left - Using base64 for PDF compatibility */}
+                {/* Logo Left */}
                 <div className="w-1/2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                        src={ANC_LOGO_BLUE_BASE64}
+                        src="/ANC_Logo_2023_blue.png"
                         alt="ANC"
                         style={{ width: '160px', height: 'auto', objectFit: 'contain' }}
                     />
@@ -344,18 +327,18 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </div>
 
             {/* Intro Paragraph */}
-            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4" style={{ fontFamily: "'Work Sans', sans-serif" }}>
-                {headerType === "SALES_QUOTATION" ? (
+            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4">
+                {headerType === "LOI" ? (
                     <p>
                         This Sales Quotation will set forth the terms by which {purchaserName} (“Purchaser”) located at {purchaserAddress} and ANC Sports Enterprises, LLC (“ANC”) located at {ancAddress} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (the “Display System”) described below for {details?.location || details?.proposalName || "the project"}.
                     </p>
-                ) : headerType === "BUDGET" ? (
+                ) : headerType === "PROPOSAL" ? (
                     <p>
-                        ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
+                        ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
                     </p>
                 ) : (
                     <p>
-                        ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
+                        ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
                     </p>
                 )}
             </div>
@@ -377,12 +360,10 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
             </div>
 
-            {/* EXHIBIT A: SOW & TECH SPECS - Controlled by toggle (default: OFF) */}
-            {(details?.showExhibitA === true) && (
-                <div className="break-before-page px-4">
-                    <ExhibitA_SOW data={data} />
-                </div>
-            )}
+            {/* EXHIBIT A: SOW & TECH SPECS - HIDDEN per client template (not in approved format) */}
+            {/* <div className="break-before-page px-4">
+                <ExhibitA_SOW data={data} />
+            </div> */}
 
             {/* 3. PRICING SECTION - Controlled by toggle (default: ON) */}
             {(details?.includePricingBreakdown !== false) && (
@@ -403,12 +384,10 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             )}
 
-            {/* EXHIBIT B: COST SCHEDULE - Controlled by toggle (default: OFF) */}
-            {(details?.showExhibitB === true) && (
-                <div className="break-before-page px-4">
-                    <ExhibitB_CostSchedule data={data} />
-                </div>
-            )}
+            {/* EXHIBIT B: COST SCHEDULE - HIDDEN per client template (not in approved format) */}
+            {/* <div className="break-before-page px-4">
+                <ExhibitB_CostSchedule data={data} />
+            </div> */}
 
             {/* 6. PROJECT CONSTRAINTS & ASSUMPTIONS - REMOVED per user feedback (marked with X) */}
 
@@ -449,59 +428,45 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     {/* SIGNATURE BLOCK - Controlled by toggle (default: ON) */}
                     {(details?.showSignatureBlock !== false) && (
                         <>
-                            <div className="w-full bg-[#0A52EF] py-4 mb-8 mt-4 break-inside-avoid print:bg-[#0A52EF]">
-                                <h2 className="text-[22px] font-bold text-white text-center uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>AGREED TO AND ACCEPTED</h2>
-                            </div>
+                            <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
 
-                            <div className="space-y-16">
+                            <div className="space-y-10">
                                 {/* ANC Signature Block */}
                                 <div>
-                                    <p className="font-bold text-[14px] text-black mb-1">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
-                                    <p className="text-[12px] text-gray-600 mb-8">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
-                                    <div className="flex gap-8 items-end">
-                                        <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">By:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                    <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
+                                    <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
+                                    <div className="flex gap-6">
+                                        <div className="flex-[2]">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Title:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Date:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Purchaser Signature Block */}
                                 <div>
-                                    <p className="font-bold text-[14px] text-black mb-1">{receiver?.name?.toUpperCase() || "PURCHASER"} ("PURCHASER")</p>
-                                    <p className="text-[12px] text-gray-600 mb-8">{purchaserAddress}</p>
-                                    <div className="flex gap-8 items-end">
-                                        <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">By:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                    <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} ("PURCHASER")</p>
+                                    <p className="text-[10px] text-gray-500 mb-4">{purchaserAddress}</p>
+                                    <div className="flex gap-6">
+                                        <div className="flex-[2]">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Title:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-end">
-                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Date:</span>
-                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
-                                            </div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                            <div className="border-b border-black h-8" />
                                         </div>
                                     </div>
                                 </div>
