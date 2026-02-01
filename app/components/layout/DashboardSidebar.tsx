@@ -30,8 +30,15 @@ export default function DashboardSidebar() {
             {/* Minimal Logo */}
             <div className="mb-12">
                 <Link href="/projects" className="flex items-center justify-center">
-                    <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg">
-                        A
+                    <div className="w-10 h-10 flex items-center justify-center">
+                        {/* <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg">
+                            A
+                        </div> */}
+                        <img
+                            src="/ANC_Logo_2023_white.png"
+                            alt="ANC"
+                            className="w-full h-auto object-contain"
+                        />
                     </div>
                 </Link>
             </div>
