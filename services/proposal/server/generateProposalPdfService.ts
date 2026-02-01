@@ -27,7 +27,7 @@ export async function generateProposalPdfService(req: NextRequest) {
 
 	try {
 		const ReactDOMServer = (await import("react-dom/server")).default;
-		const templateId = body.details?.pdfTemplate ?? 1; // Default to template 1
+		const templateId = body.details?.pdfTemplate ?? 2; // Default to template 2
 		const ProposalTemplate = await getProposalTemplate(templateId);
 
 		if (!ProposalTemplate) {
@@ -106,7 +106,7 @@ export async function generateProposalPdfService(req: NextRequest) {
 			}
 		});
 
-		return new NextResponse(new Blob([pdf], { type: "application/pdf" }), {
+		return new NextResponse(new Blob([pdf as any], { type: "application/pdf" }), {
 			headers: {
 				"Content-Type": "application/pdf",
 				"Content-Disposition": "attachment; filename=proposal.pdf",
