@@ -104,7 +104,75 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         </div>
     );
 
-    // Simple Pricing Section - Shows Name + Total Price only (per Natalia feedback: "mirror" Exhibit B format)
+    // Toggle from details
+    const includePricingBreakdown = (details as any)?.includePricingBreakdown ?? true;
+
+    // Detailed Pricing Table - Shows category breakdown (when toggle is ON)
+    const DetailedPricingTable = ({ screen }: { screen: any }) => {
+        const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+        const b = auditRow?.breakdown;
+        
+        const getPrice = (category: string) => {
+            if (b) return b[category] || 0;
+            return 0;
+        };
+
+        const hardwarePrice = b ? (b.hardware * 1.3) : getPrice("Hardware");
+        const structurePrice = b ? b.structure : getPrice("Structure");
+        const installPrice = b ? b.install : getPrice("Install");
+        const powerPrice = b ? b.power : getPrice("Power");
+        const pmTravelPrice = b ? (b.pm + b.travel + b.generalConditions) : getPrice("PM");
+        const engineeringPrice = b ? (b.engineering + b.permits + b.submittals) : getPrice("Engineering");
+        const cmsPrice = b ? b.cms : getPrice("CMS");
+        const subtotal = b?.finalClientTotal || (hardwarePrice + structurePrice + installPrice + powerPrice + pmTravelPrice + engineeringPrice + cmsPrice);
+
+        return (
+            <div className="mb-6 break-inside-avoid">
+                <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
+                    <h3 className="font-bold text-sm uppercase text-[#0A52EF]">{screen.name || "Display"}</h3>
+                    <span className="font-bold text-sm uppercase text-[#0A52EF]">Pricing</span>
+                </div>
+                <table className="w-full text-[11px] border-collapse">
+                    <tbody>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">LED Display System</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(hardwarePrice)}</td>
+                        </tr>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Structural Materials</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(structurePrice)}</td>
+                        </tr>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Installation Labor</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(installPrice)}</td>
+                        </tr>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Electrical & Data</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(powerPrice)}</td>
+                        </tr>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">PM, Travel & General Conditions</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(pmTravelPrice)}</td>
+                        </tr>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">Engineering & Permits</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(engineeringPrice)}</td>
+                        </tr>
+                        <tr className="bg-white border-b border-gray-100">
+                            <td className="p-1.5 pl-4 text-gray-700">CMS & Commissioning</td>
+                            <td className="p-1.5 pr-4 text-right text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
+                        </tr>
+                        <tr className="border-t-2 border-black font-bold">
+                            <td className="p-2 pl-4 text-gray-900 uppercase text-xs">Subtotal</td>
+                            <td className="p-2 pr-4 text-right text-[#0A52EF]">{formatCurrency(subtotal)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    // Simple Pricing Section - Shows Name + Total Price only (when toggle is OFF)
     const SimplePricingSection = () => {
         const softCostItems = internalAudit?.softCostItems || [];
         
@@ -193,9 +261,19 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </div>
 
             <div className="break-before-page px-4">
-                {/* 3. PRICING SECTION - Simple Name | Price format per Natalia */}
+                {/* 3. PRICING SECTION - Toggle controls detail level */}
                 <SectionHeader title="PRICING" />
-                <SimplePricingSection />
+                {includePricingBreakdown ? (
+                    // Detailed: Per-screen breakdown by category
+                    screens && screens.length > 0 ? (
+                        screens.map((screen: any, idx: number) => (
+                            <DetailedPricingTable key={idx} screen={screen} />
+                        ))
+                    ) : null
+                ) : (
+                    // Simple: Just Name + Price table
+                    <SimplePricingSection />
+                )}
 
                 {/* PROJECT GRAND TOTAL */}
                 <div className="mt-8 border-t-4 border-[#0A52EF] pt-4 flex justify-end">
