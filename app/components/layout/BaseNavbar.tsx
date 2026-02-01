@@ -35,7 +35,7 @@ const BaseNavbar = () => {
   // 1. Root ("/") - The main editor
   // 2. Projects Dashboard ("/projects") - Dashboard view
   // 3. Project Editor ("/projects/[id]") - Individual project
-  const isEditor = pathname === "/" || pathname.startsWith("/projects");
+  const isEditor = pathname === "/" || pathname.startsWith("/projects") || pathname.startsWith("/share");
 
   if (isEditor) return null;
 
