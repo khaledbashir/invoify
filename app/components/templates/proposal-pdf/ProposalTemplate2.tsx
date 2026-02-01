@@ -368,15 +368,13 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
             </div>
 
-            {/* EXHIBIT A: SOW & TECH SPECS (AUTO-GENERATED) */}
-            <div className="break-before-page px-4">
+            {/* EXHIBIT A: SOW & TECH SPECS - HIDDEN per client template (not in approved format) */}
+            {/* <div className="break-before-page px-4">
                 <ExhibitA_SOW data={data} />
-            </div>
+            </div> */}
 
             <div className="break-before-page px-4">
-                {/* 3. PRICING SECTION */}
-                {/* 3. PRICING SECTION - HIDDEN per user feedback (Redundant with Exhibit B) */}
-                {/* 
+                {/* 3. PRICING SECTION - RESTORED per client template */}
                 <SectionHeader title="PRICING" />
                 {screens && screens.length > 0 ? (
                     screens.map((screen: any, idx: number) => {
@@ -390,13 +388,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 ) : null}
 
                 <ProjectTotalsSummary />
-                */}
             </div>
 
-            {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */}
-            <div className="break-before-page px-4">
+            {/* EXHIBIT B: COST SCHEDULE - HIDDEN per client template (not in approved format) */}
+            {/* <div className="break-before-page px-4">
                 <ExhibitB_CostSchedule data={data} />
-            </div>
+            </div> */}
 
             {/* 6. PROJECT CONSTRAINTS & ASSUMPTIONS - REMOVED per user feedback (marked with X) */}
 
