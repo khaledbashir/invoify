@@ -154,7 +154,8 @@ export async function POST(
                 taxRateOverride: Number(project.taxRateOverride) || undefined,
                 overheadRate: 0.10,
                 profitRate: 0.05,
-                internalAudit: undefined
+                internalAudit: undefined,
+                includePricingBreakdown: true // Default for shared views
             }
         };
 
