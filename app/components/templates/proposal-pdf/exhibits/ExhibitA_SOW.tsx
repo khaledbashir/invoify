@@ -80,8 +80,8 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE */}
-            {(constraintSections.length > 0 || details?.venue) && (
+            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE - HIDDEN per user feedback (Target Screenshot does not show this) */}
+            {(false && (constraintSections.length > 0 || details?.venue)) && (
                 <div className="mb-12">
                     <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">3. Project Constraints & Compliance</h4>
 
@@ -118,19 +118,21 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
             )}
 
             {/* OTHER / GENERAL */}
-            {otherSections.length > 0 && (
-                <div className="mb-12">
-                    <div className="space-y-6 px-2">
-                        {otherSections.map((section, idx) => (
-                            <div key={idx} className="break-inside-avoid">
-                                <h5 className="text-[11px] font-bold text-gray-900 border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>
-                                <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{section.content}</p>
-                            </div>
-                        ))}
+            {
+                otherSections.length > 0 && (
+                    <div className="mb-12">
+                        <div className="space-y-6 px-2">
+                            {otherSections.map((section, idx) => (
+                                <div key={idx} className="break-inside-avoid">
+                                    <h5 className="text-[11px] font-bold text-gray-900 border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>
+                                    <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{section.content}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
