@@ -375,6 +375,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
             <div className="break-before-page px-4">
                 {/* 3. PRICING SECTION */}
+                {/* 3. PRICING SECTION - HIDDEN per user feedback (Redundant with Exhibit B) */}
+                {/* 
                 <SectionHeader title="PRICING" />
                 {screens && screens.length > 0 ? (
                     screens.map((screen: any, idx: number) => {
@@ -387,8 +389,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     })
                 ) : null}
 
-                {/* REQ-124: Project-Level Financial Summary (Bond, B&O Tax, Sales Tax consolidated) */}
                 <ProjectTotalsSummary />
+                */}
             </div>
 
             {/* EXHIBIT B: COST SCHEDULE (AUTO-GENERATED) */}
