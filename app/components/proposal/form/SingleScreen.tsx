@@ -267,11 +267,17 @@ const SingleScreen = ({
                     </div>
 
                     {/* Primary Fields */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                         <FormInput
                             name={`${name}[${index}].name`}
                             label="Screen Name"
                             placeholder="e.g., Main Scoreboard"
+                            vertical
+                        />
+                        <FormInput
+                            name={`${name}[${index}].externalName`}
+                            label="PDF / Client Name"
+                            placeholder="e.g., Ribbon - North Upper"
                             vertical
                         />
                         <FormInput

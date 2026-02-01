@@ -498,6 +498,11 @@ export const ProposalContextProvider = ({
           overheadRate: details.overheadRate ?? 0.10,
           profitRate: details.profitRate ?? 0.05,
           includePricingBreakdown: details.includePricingBreakdown ?? true, // Default: show pricing
+          showPricingTables: (details as any).showPricingTables ?? true,
+          showIntroText: (details as any).showIntroText ?? true,
+          showBaseBidTable: (details as any).showBaseBidTable ?? true,
+          showSpecifications: (details as any).showSpecifications ?? true,
+          showCompanyFooter: (details as any).showCompanyFooter ?? true,
           showPaymentTerms: details.showPaymentTerms ?? true,
           showSignatureBlock: details.showSignatureBlock ?? true,
           showAssumptions: details.showAssumptions ?? false,

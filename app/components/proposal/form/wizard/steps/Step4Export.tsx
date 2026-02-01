@@ -494,6 +494,106 @@ const Step4Export = () => {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="p-4 space-y-3">
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Intro Text</label>
+                                        <p className="text-[10px] text-zinc-500">LOI/Budget/Proposal opening paragraph</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showIntroText") ?? true;
+                                            setValue("details.showIntroText", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showIntroText") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showIntroText") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Base Bid Table</label>
+                                        <p className="text-[10px] text-zinc-500">Project Total table on page one</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showBaseBidTable") ?? true;
+                                            setValue("details.showBaseBidTable", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showBaseBidTable") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showBaseBidTable") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Specifications</label>
+                                        <p className="text-[10px] text-zinc-500">Per-display specifications section</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showSpecifications") ?? true;
+                                            setValue("details.showSpecifications", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showSpecifications") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showSpecifications") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Company Footer</label>
+                                        <p className="text-[10px] text-zinc-500">ANC footer line at the end</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showCompanyFooter") ?? true;
+                                            setValue("details.showCompanyFooter", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showCompanyFooter") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showCompanyFooter") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
                                 {/* Exhibit A Toggle */}
                                 <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
                                     <div className="space-y-1">
@@ -548,7 +648,32 @@ const Step4Export = () => {
 
                                 <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold text-zinc-300 block">Show Pricing Breakdown</label>
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Pricing Tables</label>
+                                        <p className="text-[10px] text-zinc-500">If off, PDF shows only Project Grand Total</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showPricingTables") ?? true;
+                                            setValue("details.showPricingTables", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showPricingTables") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showPricingTables") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Detailed Per-Screen Breakdown</label>
                                         <p className="text-[10px] text-zinc-500">Per-screen cost breakdown (Structure, Install, Power, etc.)</p>
                                     </div>
                                     <button

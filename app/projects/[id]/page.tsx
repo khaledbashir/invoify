@@ -59,6 +59,7 @@ function mapDbToFormSchema(dbProject: any) {
             screens: (dbProject.screens || []).map((s: any) => ({
                 id: s.id,
                 name: s.name || "Display",
+                externalName: s.externalName || "",
                 pitchMm: Number(s.pixelPitch) || 0,
                 widthFt: Number(s.width) || 0,
                 heightFt: Number(s.height) || 0,
@@ -79,6 +80,11 @@ function mapDbToFormSchema(dbProject: any) {
             aiWorkspaceSlug: dbProject.aiWorkspaceSlug || null,
             venue: "Generic" as const,
             includePricingBreakdown: true, // Default: show pricing breakdown
+            showPricingTables: true,
+            showIntroText: true,
+            showBaseBidTable: true,
+            showSpecifications: true,
+            showCompanyFooter: true,
             showPaymentTerms: true,
             showSignatureBlock: true,
             showAssumptions: false,

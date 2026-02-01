@@ -121,6 +121,7 @@ export async function POST(
                 screens: project.screens.map(s => ({
                     id: s.id,
                     name: s.name,
+                    externalName: (s as any).externalName || "",
                     pitchMm: s.pixelPitch,
                     widthFt: s.width,
                     heightFt: s.height,
@@ -156,6 +157,11 @@ export async function POST(
                 profitRate: 0.05,
                 internalAudit: undefined,
                 includePricingBreakdown: true, // Default for shared views
+                showPricingTables: true,
+                showIntroText: true,
+                showBaseBidTable: true,
+                showSpecifications: true,
+                showCompanyFooter: true,
                 showPaymentTerms: true,
                 showSignatureBlock: true,
                 showAssumptions: false,

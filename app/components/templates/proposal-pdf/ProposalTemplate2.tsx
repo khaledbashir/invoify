@@ -4,6 +4,7 @@ import React from "react";
 import { ProposalLayout } from "@/app/components";
 import LogoSelectorServer from "@/app/components/reusables/LogoSelectorServer";
 import BaseBidDisplaySystemSection from "@/app/components/templates/proposal-pdf/BaseBidDisplaySystemSection";
+import ExhibitB_CostSchedule from "@/app/components/templates/proposal-pdf/exhibits/ExhibitB_CostSchedule";
 
 // Helpers
 import { formatNumberWithCommas, isDataUrl, formatCurrency } from "@/lib/helpers";
@@ -34,6 +35,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const pricingType = (details as any).pricingType as "Hard Quoted" | "Budget" | undefined;
     const headerType = documentType === "LOI" ? "LOI" : pricingType === "Hard Quoted" ? "PROPOSAL" : "BUDGET";
     const docLabel = headerType === "BUDGET" ? "BUDGET ESTIMATE" : "SALES QUOTATION";
+    const isLOI = documentType === "LOI";
 
     const purchaserName = receiver?.name || "Client Name";
     const purchaserAddress =
@@ -54,6 +56,43 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     const ancAddress = sender?.address || "2 Manhattanville Road, Suite 402, Purchase, NY 10577";
 
+    const formatFeet = (value: any) => {
+        const n = Number(value);
+        if (!isFinite(n)) return "";
+        const rounded = Math.round(n * 100) / 100;
+        const asInt = Math.round(rounded);
+        if (Math.abs(rounded - asInt) < 0.00001) return `${asInt}'`;
+        return `${rounded.toFixed(2)}'`;
+    };
+
+    const getScreenLabel = (screen: any) => {
+        const label = (screen?.externalName || screen?.name || "Display").toString().trim();
+        return label.length > 0 ? label : "Display";
+    };
+
+    const getScreenHeader = (screen: any) => {
+        const externalName = (screen?.externalName || "").toString().trim();
+        if (externalName) return externalName;
+
+        const name = (screen?.name || "Display").toString().trim();
+        const serviceType = (screen?.serviceType || "").toString().toLowerCase();
+        const serviceLabel = serviceType.includes("top") ? "RIBBON DISPLAY" : serviceType ? "VIDEO DISPLAY" : "";
+
+        const heightFt = screen?.heightFt ?? screen?.height;
+        const widthFt = screen?.widthFt ?? screen?.width;
+        const pitchMm = screen?.pitchMm ?? screen?.pixelPitch;
+
+        const parts: string[] = [name];
+        if (serviceLabel) parts.push(serviceLabel);
+        if (heightFt != null && widthFt != null && Number(heightFt) > 0 && Number(widthFt) > 0) {
+            parts.push(`${formatFeet(heightFt)} H X ${formatFeet(widthFt)} W`);
+        }
+        if (pitchMm != null && Number(pitchMm) > 0) {
+            parts.push(`${Math.round(Number(pitchMm))}MM`);
+        }
+        return parts.filter(Boolean).join(" - ");
+    };
+
     // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
         <div className="text-center mb-6 mt-8">
@@ -66,7 +105,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         <div className="mb-8 break-inside-avoid">
             {/* Header Bar */}
             <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
-                <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
+                <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{getScreenHeader(screen)}</h3>
                 <span className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
             </div>
             <table className="w-full text-[11px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
@@ -108,7 +147,13 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     // ===== TOGGLES FROM DETAILS =====
     const includePricingBreakdown = (details as any)?.includePricingBreakdown ?? true;
-    const showStatementOfWork = (details as any)?.showExhibitA ?? true; // showExhibitA controls Statement of Work
+    const showPricingTables = (details as any)?.showPricingTables ?? true;
+    const showIntroText = (details as any)?.showIntroText ?? true;
+    const showBaseBidTable = (details as any)?.showBaseBidTable ?? true;
+    const showSpecifications = (details as any)?.showSpecifications ?? true;
+    const showCompanyFooter = (details as any)?.showCompanyFooter ?? true;
+    const showStatementOfWork = (details as any)?.showExhibitA ?? false;
+    const showExhibitB = (details as any)?.showExhibitB ?? false;
     const showSignatureBlock = (details as any)?.showSignatureBlock ?? true;
     const showPaymentTerms = (details as any)?.showPaymentTerms ?? true;
 
@@ -144,7 +189,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         return (
             <div className="mb-6 break-inside-avoid">
                 <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
-                    <h3 className="font-bold text-sm uppercase text-[#0A52EF]">{screen.name || "Display"}</h3>
+                    <h3 className="font-bold text-sm uppercase text-[#0A52EF]">{getScreenHeader(screen)}</h3>
                     <span className="font-bold text-sm uppercase text-[#0A52EF]">Pricing</span>
                 </div>
                 <table className="w-full text-[11px] border-collapse">
@@ -187,7 +232,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             
                             return (
                                 <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                    <td className="p-2 pl-4 text-gray-900 font-medium">{screen.name}</td>
+                                    <td className="p-2 pl-4 text-gray-900 font-medium">{getScreenLabel(screen)}</td>
                                     <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(price)}</td>
                                 </tr>
                             );
@@ -210,6 +255,90 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         );
     };
 
+    const PaymentTermsSection = () => {
+        const raw = (details?.paymentTerms || "").toString();
+        const lines = raw
+            .split(/\r?\n|,/g)
+            .map((l) => l.trim())
+            .filter(Boolean);
+
+        if (lines.length === 0) return null;
+
+        return (
+            <div className="px-4 mt-8 break-inside-avoid">
+                <SectionHeader title="PAYMENT TERMS" />
+                <div className="text-[11px] text-gray-700 space-y-1">
+                    {lines.map((line, idx) => (
+                        <div key={idx}>{line}</div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const CompanyFooter = () => (
+        <div className="px-4 mt-12 pb-6 border-t border-gray-100 text-center">
+            <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
+            <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
+            <div className="flex justify-center mt-6 opacity-20">
+                <BrandSlashes count={3} width={50} height={15} />
+            </div>
+        </div>
+    );
+
+    const SignatureBlock = () => (
+        <div className="mt-12 break-inside-avoid">
+            <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>
+                Please sign below to indicate Purchaser&apos;s agreement to purchase the Display System as described herein and to authorize ANC to commence production.
+                <br /><br />
+                If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
+            </p>
+            <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
+            <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-8">
+                    <div>
+                        <p className="font-bold text-[10px] text-[#0A52EF] mb-2">ANC SPORTS ENTERPRISES, LLC</p>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                <div className="border-b border-black h-6" />
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-6" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="font-bold text-[10px] text-[#0A52EF] mb-2">{receiver?.name || "PURCHASER"}</p>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                <div className="border-b border-black h-6" />
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                    <div className="border-b border-black h-6" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                    <div className="border-b border-black h-6" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <ProposalLayout data={data} disableFixedFooter>
             {/* 1. HEADER (Summary Page) - Refined for ABCDE Layout */}
@@ -229,52 +358,65 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             </div>
 
-            {/* Intro Paragraph */}
-            <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4">
-                {headerType === "LOI" ? (
-                    <p>
-                        This Sales Quotation will set forth the terms by which {purchaserName} (“Purchaser”) located at {purchaserAddress} and ANC Sports Enterprises, LLC (“ANC”) located at {ancAddress} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (the “Display System”) described below for {details?.location || details?.proposalName || "the project"}.
-                    </p>
-                ) : headerType === "PROPOSAL" ? (
-                    <p>
-                        ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
-                    </p>
-                ) : (
-                    <p>
-                        ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
-                    </p>
-                )}
-            </div>
+            {showIntroText && (
+                <div className="mb-10 text-[11px] text-gray-700 text-justify leading-relaxed px-4">
+                    {headerType === "LOI" ? (
+                        <p>
+                            This Sales Quotation will set forth the terms by which {purchaserName} (“Purchaser”) located at {purchaserAddress} and ANC Sports Enterprises, LLC (“ANC”) located at {ancAddress} (collectively, the “Parties”) agree that ANC will provide following LED Display and services (the “Display System”) described below for {details?.location || details?.proposalName || "the project"}.
+                        </p>
+                    ) : headerType === "PROPOSAL" ? (
+                        <p>
+                            ANC is pleased to present the following LED Display proposal to {purchaserName} per the specifications and pricing below.
+                        </p>
+                    ) : (
+                        <p>
+                            ANC is pleased to present the following LED Display budget to {purchaserName} per the specifications and pricing below.
+                        </p>
+                    )}
+                </div>
+            )}
 
-            <div className="break-before-page px-4">
-                <BaseBidDisplaySystemSection data={data} />
-            </div>
+            {showBaseBidTable && (
+                <div className="px-4">
+                    <BaseBidDisplaySystemSection data={data} />
+                </div>
+            )}
 
-            {/* 2. SPECIFICATIONS SECTION */}
-            <div className="px-4">
-                <SectionHeader title="SPECIFICATIONS" />
-                {screens && screens.length > 0 ? (
-                    screens.map((screen: any, idx: number) => (
-                        <SpecTable key={idx} screen={screen} />
-                    ))
-                ) : (
-                    <div className="text-center text-gray-400 italic py-8">No screens configured.</div>
-                )}
-            </div>
+            {showPaymentTerms && <PaymentTermsSection />}
 
-            <div className="break-before-page px-4">
-                {/* 3. PRICING SECTION - Toggle controls detail level */}
-                <SectionHeader title="PRICING" />
-                {includePricingBreakdown ? (
-                    // Detailed: Per-screen breakdown by category
-                    screens && screens.length > 0 ? (
+            {isLOI && showSignatureBlock && (
+                <div className="px-4">
+                    <SignatureBlock />
+                </div>
+            )}
+
+            {showSpecifications && (
+                <div className={isLOI ? "break-before-page px-4" : "px-4"}>
+                    <SectionHeader title="SPECIFICATIONS" />
+                    {screens && screens.length > 0 ? (
                         screens.map((screen: any, idx: number) => (
-                            <DetailedPricingTable key={idx} screen={screen} />
+                            <SpecTable key={idx} screen={screen} />
                         ))
-                    ) : null
-                ) : (
-                    // Simple: Just Name + Price table
-                    <SimplePricingSection />
+                    ) : (
+                        <div className="text-center text-gray-400 italic py-8">No screens configured.</div>
+                    )}
+                </div>
+            )}
+
+            <div className="break-before-page px-4">
+                {showPricingTables && (
+                    <>
+                        <SectionHeader title="PRICING" />
+                        {includePricingBreakdown ? (
+                            screens && screens.length > 0 ? (
+                                screens.map((screen: any, idx: number) => (
+                                    <DetailedPricingTable key={idx} screen={screen} />
+                                ))
+                            ) : null
+                        ) : (
+                            <SimplePricingSection />
+                        )}
+                    </>
                 )}
 
                 {/* PROJECT GRAND TOTAL */}
@@ -333,73 +475,21 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </div>
             )}
 
-            {/* 7. SIGNATURES - Toggle controlled */}
-            {showSignatureBlock && (
-            <div className="break-before-page px-4">
-                {/* REQ-112: Footer moved BEFORE signatures to ensure signatures are absolute final element */}
-                <div className="mb-12 pb-6 border-b border-gray-100 text-center">
-                    <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
-                    <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
-                    <div className="flex justify-center mt-6 opacity-20">
-                        <BrandSlashes count={3} width={50} height={15} />
-                    </div>
+            {showExhibitB && (
+                <div className="break-before-page px-4">
+                    <ExhibitB_CostSchedule data={data} />
                 </div>
-
-                {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
-                <div className="mt-12 break-inside-avoid">
-                    <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>
-                        Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
-                        <br /><br />
-                        If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
-                    </p>
-                    <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
-
-                    {/* Single Signature Block per Natalia feedback */}
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-8">
-                            <div>
-                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">ANC SPORTS ENTERPRISES, LLC</p>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                        <div className="border-b border-black h-6" />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                            <div className="border-b border-black h-6" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-6" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">{receiver?.name || "PURCHASER"}</p>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                        <div className="border-b border-black h-6" />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                            <div className="border-b border-black h-6" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-6" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             )}
+
+            {!isLOI && showCompanyFooter && showSignatureBlock && <CompanyFooter />}
+
+            {!isLOI && showSignatureBlock && (
+                <div className="break-before-page px-4">
+                    <SignatureBlock />
+                </div>
+            )}
+
+            {showCompanyFooter && (!showSignatureBlock || isLOI) && <CompanyFooter />}
 
         </ProposalLayout>
     );

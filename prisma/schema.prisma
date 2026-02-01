@@ -212,6 +212,7 @@ model ScreenConfig {
   id         String         @id @default(cuid())
   proposalId String
   name       String
+  externalName String?
   pixelPitch Float
   width      Float
   height     Float
