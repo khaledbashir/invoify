@@ -167,31 +167,68 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
             </div>
 
             {/* Authorization Block */}
-            <div className="mt-16 p-8 border-2 border-dashed border-gray-200 rounded-2xl break-inside-avoid">
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-8 text-center italic">Exhibit B Authorization Block</h4>
-                <div className="grid grid-cols-2 gap-12">
-                    <div className="space-y-4">
-                        <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest border-b border-gray-100 pb-1">ANC SPORTS ENTERPRISES, LLC</p>
-                        <div className="mt-8 border-b border-black h-8"></div>
-                        <div className="flex justify-between text-[8px] text-gray-400 uppercase font-bold">
-                            <span>Authorized Signature</span>
-                            <span>Date</span>
+            <div className="mt-16 border border-gray-300 break-inside-avoid">
+                <div className="text-center py-2 border-b border-gray-300 bg-gray-50">
+                     <h4 className="text-[11px] font-bold text-black uppercase tracking-widest">Exhibit B Authorization Block</h4>
+                </div>
+                <div className="flex">
+                    {/* ANC Authorization */}
+                    <div className="w-1/2 p-6 border-r border-gray-300 flex flex-col justify-between">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase text-black tracking-widest mb-1">ANC SPORTS ENTERPRISES, LLC</p>
                         </div>
-                        <div className="pt-2">
-                            <p className="text-[10px] font-bold text-gray-900">Name: ________________________</p>
-                            <p className="text-[10px] font-bold text-gray-900">Title: _________________________</p>
+                        
+                        <div className="mt-10 space-y-8">
+                            <div>
+                                <div className="border-b border-gray-300 h-4"></div>
+                                <p className="text-[8px] text-gray-400 font-bold uppercase mt-1">Authorized Signature</p>
+                                <p className="text-[8px] text-gray-400 font-bold uppercase absolute -mt-4 ml-[70%] bg-white px-1">Date</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <div className="flex items-end">
+                                        <span className="text-[10px] font-bold text-black mr-2">Name:</span>
+                                        <div className="flex-1 border-b border-gray-300"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex items-end">
+                                        <span className="text-[10px] font-bold text-black mr-2">Title:</span>
+                                        <div className="flex-1 border-b border-gray-300"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="space-y-4">
-                        <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest border-b border-gray-100 pb-1">{receiver?.name?.toUpperCase() || "PURCHASER"} ACCEPTANCE</p>
-                        <div className="mt-8 border-b border-black h-8"></div>
-                        <div className="flex justify-between text-[8px] text-gray-400 uppercase font-bold">
-                            <span>Signature</span>
-                            <span>Date</span>
+
+                    {/* Client Acceptance */}
+                    <div className="w-1/2 p-6 flex flex-col justify-between">
+                        <div>
+                             <p className="text-[10px] font-bold uppercase text-black tracking-widest mb-1">{receiver?.name?.toUpperCase() || "PURCHASER"} ACCEPTANCE</p>
                         </div>
-                        <div className="pt-2">
-                            <p className="text-[10px] font-bold text-gray-900">Name: <span className="border-b border-gray-300 min-w-[120px] inline-block">{signerName}</span></p>
-                            <p className="text-[10px] font-bold text-gray-900">Title: <span className="border-b border-gray-300 min-w-[120px] inline-block">{signerTitle}</span></p>
+
+                        <div className="mt-10 space-y-8">
+                            <div>
+                                <div className="border-b border-gray-300 h-4"></div>
+                                <p className="text-[8px] text-gray-400 font-bold uppercase mt-1">Authorized Signature</p>
+                                <p className="text-[8px] text-gray-400 font-bold uppercase absolute -mt-4 ml-[70%] bg-white px-1">Date</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <div className="flex items-end">
+                                        <span className="text-[10px] font-bold text-black mr-2">Name:</span>
+                                        <div className="flex-1 border-b border-gray-300 text-[10px] ml-2">{signerName}</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex items-end">
+                                        <span className="text-[10px] font-bold text-black mr-2">Title:</span>
+                                        <div className="flex-1 border-b border-gray-300 text-[10px] ml-2">{signerTitle}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

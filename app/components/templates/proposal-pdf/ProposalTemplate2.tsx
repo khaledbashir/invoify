@@ -60,8 +60,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
-        <div className="text-center mb-6 mt-8">
-            <h2 className="text-xl font-medium tracking-[0.2em] text-gray-500 uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>{title}</h2>
+        <div className="w-full bg-[#0A52EF] py-3 mb-6 mt-8 break-inside-avoid print:bg-[#0A52EF]">
+            <h2 className="text-[22px] font-bold text-white text-center uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>{title}</h2>
         </div>
     );
 
@@ -74,9 +74,9 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         if (isSoftCost) {
             return (
                 <div className="mb-4 break-inside-avoid">
-                    <div className="flex justify-between items-center border-b-2 border-gray-200 pb-1 mb-1">
-                        <h3 className="font-bold text-sm uppercase text-gray-500" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Service Item"}</h3>
-                        <span className="text-xs text-gray-400 uppercase">Service / Soft Cost</span>
+                    <div className="flex justify-between items-center bg-[#0A52EF] px-3 py-2 mb-0 print:bg-[#0A52EF]">
+                        <h3 className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Service Item"}</h3>
+                        <span className="text-xs text-white uppercase">Service / Soft Cost</span>
                     </div>
                     <div className="p-2 bg-gray-50 border border-gray-100 rounded text-[10px] text-gray-500 italic">
                         Technical specifications not applicable for this service item.
@@ -86,46 +86,44 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         }
 
         return (
-            <div className="mb-8 break-inside-avoid">
-                {/* Header Bar */}
-                <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
-                    <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
-                    <span className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
+            <div className="mb-8 break-inside-avoid shadow-sm rounded-sm overflow-hidden border border-[#D1D5DB]">
+                {/* Header Bar as Table Header */}
+                <div className="flex justify-between items-center bg-[#0A52EF] px-3 py-2 border-b border-[#D1D5DB] print:bg-[#0A52EF]">
+                    <h3 className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>{screen.name || "Display"}</h3>
+                    <span className="font-bold text-sm uppercase text-white" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
                 </div>
-                <table className="w-full text-[11px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+                <table className="w-full text-[12px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                     <tbody>
                         <tr className="bg-white">
-                            <td className="p-1.5 pl-4 text-gray-700 w-2/3">MM Pitch</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen.pitchMm ?? screen.pixelPitch ?? 0} mm</td>
+                            <td className="p-2 pl-4 text-black w-2/3 border-b border-[#D1D5DB]">MM Pitch</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen.pitchMm ?? screen.pixelPitch ?? 0} mm</td>
                         </tr>
-                        <tr className="bg-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-700">Quantity</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen.quantity || 1}</td>
-                        </tr>
-                        <tr className="bg-white">
-                            <td className="p-1.5 pl-4 text-gray-700">Active Display Height (ft.)</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</td>
-                        </tr>
-                        <tr className="bg-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-700">Active Display Width (ft.)</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</td>
+                        <tr className="bg-[#F5F5F5]">
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Quantity</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen.quantity || 1}</td>
                         </tr>
                         <tr className="bg-white">
-                            <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (H)</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen?.pixelsH || Math.round((Number(screen?.heightFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Active Display Height (ft.)</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'</td>
                         </tr>
-                        <tr className="bg-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-700">Pixel Resolution (W)</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">{screen?.pixelsW || Math.round((Number(screen?.widthFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        <tr className="bg-[#F5F5F5]">
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Active Display Width (ft.)</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'</td>
                         </tr>
-                        {/* Pixel Density row REMOVED per client feedback */}
                         <tr className="bg-white">
-                            <td className="p-1.5 pl-4 text-gray-700">Brightness</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900">
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Pixel Resolution (H)</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen?.pixelsH || Math.round((Number(screen?.heightFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        </tr>
+                        <tr className="bg-[#F5F5F5]">
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Pixel Resolution (W)</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">{screen?.pixelsW || Math.round((Number(screen?.widthFt ?? 0) * 304.8) / (screen?.pitchMm || 10)) || 0} p</td>
+                        </tr>
+                        <tr className="bg-white">
+                            <td className="p-2 pl-4 text-black border-b border-[#D1D5DB]">Brightness</td>
+                            <td className="p-2 text-right pr-4 text-black border-b border-[#D1D5DB]">
                                 {screen.brightness ? `${formatNumberWithCommas(screen.brightness)}` : "Standard"}
                             </td>
                         </tr>
-                        {/* HDR Status row REMOVED per client feedback */}
                     </tbody>
                 </table>
             </div>
@@ -432,45 +430,59 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     {/* SIGNATURE BLOCK - Controlled by toggle (default: ON) */}
                     {(details?.showSignatureBlock !== false) && (
                         <>
-                            <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
+                            <div className="w-full bg-[#0A52EF] py-4 mb-8 mt-4 break-inside-avoid print:bg-[#0A52EF]">
+                                <h2 className="text-[22px] font-bold text-white text-center uppercase" style={{ fontFamily: "'Work Sans', sans-serif" }}>AGREED TO AND ACCEPTED</h2>
+                            </div>
 
-                            <div className="space-y-10">
+                            <div className="space-y-16">
                                 {/* ANC Signature Block */}
                                 <div>
-                                    <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
-                                    <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
-                                    <div className="flex gap-6">
-                                        <div className="flex-[2]">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                            <div className="border-b border-black h-8" />
+                                    <p className="font-bold text-[14px] text-black mb-1">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
+                                    <p className="text-[12px] text-gray-600 mb-8">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
+                                    <div className="flex gap-8 items-end">
+                                        <div className="flex-1">
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">By:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                            <div className="border-b border-black h-8" />
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Title:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-8" />
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Date:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Purchaser Signature Block */}
                                 <div>
-                                    <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} ("PURCHASER")</p>
-                                    <p className="text-[10px] text-gray-500 mb-4">{purchaserAddress}</p>
-                                    <div className="flex gap-6">
-                                        <div className="flex-[2]">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                            <div className="border-b border-black h-8" />
+                                    <p className="font-bold text-[14px] text-black mb-1">{receiver?.name?.toUpperCase() || "PURCHASER"} ("PURCHASER")</p>
+                                    <p className="text-[12px] text-gray-600 mb-8">{purchaserAddress}</p>
+                                    <div className="flex gap-8 items-end">
+                                        <div className="flex-1">
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">By:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                            <div className="border-b border-black h-8" />
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Title:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-8" />
+                                            <div className="flex items-end">
+                                                <span className="text-[11px] font-bold text-black mr-2 uppercase">Date:</span>
+                                                <div className="flex-1 border-b border-gray-300 h-4"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
