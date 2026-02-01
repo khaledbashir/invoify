@@ -104,89 +104,40 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         </div>
     );
 
-    // Helper for Pricing Table - MATCHES IMAGE 2
-    const PricingTable = ({ screen }: { screen: any }) => {
-        // REQ-28: Security - If shared view, we MUST NOT use internal audit data directly if it contains costs/margins
-        const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
-        const b = auditRow?.breakdown;
-
-        // Fallback for shared view where internalAudit might be missing/sanitized
-        const getPrice = (category: string) => {
-            if (b) return b[category] || 0;
-            const item = screen.lineItems?.find((li: any) => li.category?.toLowerCase() === category.toLowerCase());
-            return item?.price || 0;
-        };
-
-        const hardwarePrice = b ? (b.hardware * 1.3) : getPrice("Hardware");
-        const structurePrice = b ? b.structure : getPrice("Structure");
-        const installPrice = b ? b.install : getPrice("Install");
-        const powerPrice = b ? b.power : getPrice("Power");
-        const pmTravelPrice = b ? (b.pm + b.travel + b.generalConditions) : getPrice("PM");
-        const engineeringPrice = b ? (b.engineering + b.permits + b.submittals) : getPrice("Engineering");
-        const cmsPrice = b ? b.cms : getPrice("CMS");
-
-        const subtotal = b ? b.finalClientTotal : (hardwarePrice + structurePrice + installPrice + powerPrice + pmTravelPrice + engineeringPrice + cmsPrice);
-        const taxRate = 0.095; // 9.5% fallback
-        const taxAmount = subtotal * taxRate;
-        const total = subtotal + taxAmount;
-
+    // Simple Pricing Section - Shows Name + Total Price only (per Natalia feedback: "mirror" Exhibit B format)
+    const SimplePricingSection = () => {
+        const softCostItems = internalAudit?.softCostItems || [];
+        
         return (
-            <div className="mb-8 break-inside-avoid">
-                {/* Header Bar */}
-                <div className="flex justify-between items-center border-b-2 border-black pb-1 mb-1">
-                    <h3 className="font-bold text-sm uppercase text-black">{screen.name || "Display"}</h3>
-                    <span className="font-bold text-sm uppercase text-black">Pricing</span>
-                </div>
-
+            <div className="mb-8">
                 <table className="w-full text-[11px] border-collapse">
+                    <thead>
+                        <tr className="border-b-2 border-black">
+                            <th className="p-2 pl-4 text-left font-bold text-black uppercase">Item</th>
+                            <th className="p-2 pr-4 text-right font-bold text-black uppercase">Price</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-2 pl-4 text-gray-700 w-3/4">
-                                <div className="font-bold text-black uppercase">{screen.name}</div>
-                                <div className="text-[10px] text-gray-500">
-                                    {Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}' H x {Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}' W - {screen.pitchMm ?? screen.pixelPitch ?? 0}mm - QTY {screen.quantity || 1}
-                                </div>
-                            </td>
-                            <td className="p-2 text-right pr-4 font-bold text-gray-900 w-1/4 align-bottom">{formatCurrency(hardwarePrice)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Structural Materials</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(structurePrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Structural Labor and LED Installation</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(installPrice)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Electrical and Data - Materials and Subcontracting</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(powerPrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Project Management, General Conditions, Travel & Expenses</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(pmTravelPrice)}</td>
-                        </tr>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Submittals, Engineering, and Permits</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(engineeringPrice)}</td>
-                        </tr>
-                        <tr className="bg-white border-b border-gray-100">
-                            <td className="p-1.5 pl-4 text-gray-600">Content Management System Equipment, Installation, and Commissioning</td>
-                            <td className="p-1.5 text-right pr-4 text-gray-900 font-medium">{formatCurrency(cmsPrice)}</td>
-                        </tr>
-
-                        {/* Totals Section for this screen */}
-                        <tr className="font-bold border-t border-black">
-                            <td className="p-2 text-right pr-4 uppercase text-xs">Subtotal:</td>
-                            <td className="p-2 text-right pr-4 text-xs">{formatCurrency(subtotal)}</td>
-                        </tr>
-                        <tr className="text-gray-500 italic">
-                            <td className="p-1 text-right pr-4 text-[10px] uppercase">Tax (9.5%):</td>
-                            <td className="p-1 text-right pr-4 text-[10px]">{formatCurrency(taxAmount)}</td>
-                        </tr>
-                        <tr className="border-t-2 border-black font-bold text-sm bg-gray-50">
-                            <td className="p-2 text-right pr-4 uppercase">Total for {screen.name}:</td>
-                            <td className="p-2 text-right pr-4 text-[#0A52EF]">{formatCurrency(total)}</td>
-                        </tr>
+                        {/* LED Display Screens */}
+                        {screens.map((screen: any, idx: number) => {
+                            const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+                            const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
+                            
+                            return (
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                    <td className="p-2 pl-4 text-gray-900 font-medium">{screen.name}</td>
+                                    <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(price)}</td>
+                                </tr>
+                            );
+                        })}
+                        
+                        {/* Soft Cost Items (Structure, Install, Labor, etc.) */}
+                        {softCostItems.map((item: any, idx: number) => (
+                            <tr key={`soft-${idx}`} className={(screens.length + idx) % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                <td className="p-2 pl-4 text-gray-700">{item.name}</td>
+                                <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(item.sell)}</td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>
@@ -242,13 +193,9 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </div>
 
             <div className="break-before-page px-4">
-                {/* 3. PRICING SECTION */}
+                {/* 3. PRICING SECTION - Simple Name | Price format per Natalia */}
                 <SectionHeader title="PRICING" />
-                {screens && screens.length > 0 ? (
-                    screens.map((screen: any, idx: number) => (
-                        <PricingTable key={idx} screen={screen} />
-                    ))
-                ) : null}
+                <SimplePricingSection />
 
                 {/* PROJECT GRAND TOTAL */}
                 <div className="mt-8 border-t-4 border-[#0A52EF] pt-4 flex justify-end">
