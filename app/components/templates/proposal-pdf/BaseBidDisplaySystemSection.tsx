@@ -33,7 +33,7 @@ export default function BaseBidDisplaySystemSection({ data }: BaseBidDisplaySyst
 
                         return (
                             <tr key={idx} className="border-b border-gray-200">
-                                <td className="py-3 pr-4 font-bold text-[#0A52EF]">{screen.name}</td>
+                                <td className="py-3 pr-4 font-bold text-gray-900">{screen.name}</td>
                                 <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(price)}</td>
                             </tr>
                         );
