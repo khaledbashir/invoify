@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 // RHF
 import { useFormContext } from "react-hook-form";
@@ -33,6 +34,7 @@ import { ProposalType } from "@/types";
 const TemplateSelector = () => {
     const { watch, setValue } = useFormContext<ProposalType>();
     const formValues = watch();
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     // Single consolidated template
     const template = {
@@ -48,6 +50,14 @@ const TemplateSelector = () => {
         setValue("details.pdfTemplate", 2);
     }
 
+    // Prevent flash by hiding preview until data is stable
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsInitialLoad(false);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <>
             <div className="space-y-4">
@@ -56,6 +66,10 @@ const TemplateSelector = () => {
                     <Card
                         className="relative overflow-hidden border-[#0A52EF] ring-2 ring-[#0A52EF]/20"
                     >
+                        {/* Fade-in overlay to prevent flash */}
+                        {isInitialLoad && (
+                            <div className="absolute inset-0 bg-white z-20 animate-pulse" />
+                        )}
                         <div className="absolute top-4 right-4 z-10">
                             <div className="flex items-center gap-2 bg-[#0A52EF] text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
                                 <Check className="w-4 h-4" />

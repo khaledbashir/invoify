@@ -221,15 +221,15 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             {/* 1. HEADER (Summary Page) - Refined for ABCDE Layout */}
             <div className="flex justify-between items-start mb-10 px-4 pt-4 break-inside-avoid">
                 {/* Logo Left */}
-                <div className="w-1/2">
+                <div className="w-1/2 flex items-center">
                     <LogoSelectorServer theme={forceWhiteLogo ? "dark" : "light"} width={160} height={80} />
                 </div>
-                {/* Title Right */}
-                <div className="w-1/2 text-right">
-                    <h1 className="text-2xl font-bold text-[#0A52EF] uppercase leading-tight mb-0">
+                {/* Title Right - Prevent layout shift with min-height */}
+                <div className="w-1/2 text-right flex flex-col justify-center">
+                    <h1 className="text-2xl font-bold text-[#0A52EF] uppercase leading-tight mb-0 min-h-[1.5em]">
                         {receiver?.name || "Client Name"}
                     </h1>
-                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">
+                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest mt-1">
                         {docLabel}
                     </h2>
                 </div>
