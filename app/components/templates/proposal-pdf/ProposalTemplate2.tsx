@@ -411,6 +411,16 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
                 {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
                 <div className="mt-12 break-inside-avoid">
+                    {/* PAYMENT TERMS (Restored per Client Screenshot) */}
+                    <div className="mb-8">
+                        <h4 className="font-bold text-[11px] uppercase mb-2">PAYMENT TERMS:</h4>
+                        <ul className="list-disc pl-4 text-[10px] text-gray-700 space-y-1">
+                            <li>50% Deposit Upon Signing</li>
+                            <li>40% Due Upon Display System Delivery</li>
+                            <li>10% Due Upon Final Acceptance of the Work</li>
+                        </ul>
+                    </div>
+
                     <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Work Sans', sans-serif" }}>
                         Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
                         <br /><br />
