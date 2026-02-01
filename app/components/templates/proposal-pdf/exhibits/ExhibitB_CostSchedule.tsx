@@ -66,29 +66,22 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                 <h4 className="text-sm font-bold border-b border-black pb-2 mb-6 uppercase tracking-widest">1. Base Bid Display System(s)</h4>
                 <table className="w-full text-[11px]">
                     <tbody>
+                        {/* Natalia feedback: Only Name + Price columns */}
                         {screens.map((screen: any, idx: number) => {
                             const audit = internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
                             const price = audit?.breakdown?.sellPrice || (screen.lineItems || []).reduce((acc: number, li: any) => acc + (li.price || 0), 0);
 
-                            // REQ-UserFeedback: Detect soft costs in screens list
-                            const isSoftCost = (!screen.pitchMm || screen.pitchMm === 0) && (!screen.widthFt || screen.widthFt === 0);
-                            const description = isSoftCost
-                                ? "Project Service Line Item"
-                                : "Complete LED Display System as per Exhibit A Specifications";
-
                             return (
                                 <tr key={idx} className="border-b border-gray-200">
                                     <td className="py-3 pr-4 font-bold text-[#0A52EF]">{screen.name}</td>
-                                    <td className="py-3 text-gray-600">{description}</td>
                                     <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(price)}</td>
                                 </tr>
                             );
                         })}
-                        {/* REQ-UserFeedback: Render soft cost items (Structure, Install, Labor) separately */}
+                        {/* Soft cost items (Structure, Install, Labor) */}
                         {internalAudit?.softCostItems?.map((item: any, idx: number) => (
                             <tr key={`soft-${idx}`} className="border-b border-gray-200 bg-gray-50/50">
                                 <td className="py-3 pr-4 font-bold text-gray-700">{item.name}</td>
-                                <td className="py-3 text-gray-500 italic">Project Service Line Item</td>
                                 <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(item.sell)}</td>
                             </tr>
                         ))}

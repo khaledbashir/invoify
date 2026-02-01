@@ -271,43 +271,45 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     </p>
                     <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
 
-                    <div className="space-y-10">
-                        {/* ANC Signature Block */}
-                        <div>
-                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">ANC SPORTS ENTERPRISES, LLC ("ANC")</p>
-                            <p className="text-[10px] text-gray-500 mb-4">2 Manhattanville Road, Suite 402, Purchase, NY 10577</p>
-                            <div className="flex gap-6">
-                                <div className="flex-[2]">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                    <div className="border-b border-black h-8" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                    <div className="border-b border-black h-8" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                    <div className="border-b border-black h-8" />
+                    {/* Single Signature Block per Natalia feedback */}
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-8">
+                            <div>
+                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">ANC SPORTS ENTERPRISES, LLC</p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                        <div className="border-b border-black h-6" />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                            <div className="border-b border-black h-6" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                            <div className="border-b border-black h-6" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Purchaser Signature Block */}
-                        <div>
-                            <p className="font-bold text-[11px] text-[#0A52EF] mb-4">{receiver?.name || "Purchaser"} ("PURCHASER")</p>
-                            <p className="text-[10px] text-gray-500 mb-4">{purchaserAddress}</p>
-                            <div className="flex gap-6">
-                                <div className="flex-[2]">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                    <div className="border-b border-black h-8" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
-                                    <div className="border-b border-black h-8" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                    <div className="border-b border-black h-8" />
+                            <div>
+                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">{receiver?.name || "PURCHASER"}</p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
+                                        <div className="border-b border-black h-6" />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                            <div className="border-b border-black h-6" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                            <div className="border-b border-black h-6" />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
