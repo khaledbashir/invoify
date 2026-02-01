@@ -45,7 +45,7 @@ const Step4Export = () => {
         isGatekeeperLocked,
         unverifiedAiFields,
     } = useProposalContext();
-    const { watch, getValues } = useFormContext<ProposalType>();
+    const { watch, getValues, setValue } = useFormContext<ProposalType>();
     const [exporting, setExporting] = useState(false);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationResponse, setVerificationResponse] = useState<any | null>(null);
@@ -481,6 +481,123 @@ const Step4Export = () => {
                                 </CardContent>
                             </Card>
                         )}
+
+                        {/* PDF Configuration Toggles */}
+                        <Card className="bg-zinc-900/40 border border-zinc-800/60 overflow-hidden mb-6">
+                            <CardHeader className="border-b border-zinc-800/60 pb-3">
+                                <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                                    <Columns className="w-4 h-4 text-brand-blue" />
+                                    PDF Layout Options
+                                </CardTitle>
+                                <CardDescription className="text-xs text-zinc-500">
+                                    Control which sections appear in the client-facing PDF
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-4 space-y-3">
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Pricing Breakdown</label>
+                                        <p className="text-[10px] text-zinc-500">Per-screen cost breakdown (Structure, Install, Power, etc.)</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.includePricingBreakdown") ?? true;
+                                            setValue("details.includePricingBreakdown", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.includePricingBreakdown") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.includePricingBreakdown") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Payment Terms Toggle */}
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Payment Terms</label>
+                                        <p className="text-[10px] text-zinc-500">50% Deposit, 40% Delivery, 10% Acceptance</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showPaymentTerms") ?? true;
+                                            setValue("details.showPaymentTerms", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showPaymentTerms") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showPaymentTerms") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Signature Block Toggle */}
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Signature Block</label>
+                                        <p className="text-[10px] text-zinc-500">ANC + Purchaser authorization signatures</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showSignatureBlock") ?? true;
+                                            setValue("details.showSignatureBlock", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showSignatureBlock") ?? true) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showSignatureBlock") ?? true) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Assumptions Toggle */}
+                                <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-800 bg-zinc-900/50">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold text-zinc-300 block">Show Assumptions Text</label>
+                                        <p className="text-[10px] text-zinc-500">Site access, power requirements, etc.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = watch("details.showAssumptions") ?? false;
+                                            setValue("details.showAssumptions", !current, { shouldDirty: true, shouldTouch: true });
+                                        }}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                                            (watch("details.showAssumptions") ?? false) ? "bg-brand-blue" : "bg-zinc-700"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                (watch("details.showAssumptions") ?? false) ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Consolidated Export Suite */}
                         <Card className="bg-zinc-900/40 border border-zinc-800/60 overflow-hidden">

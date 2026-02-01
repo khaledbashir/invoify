@@ -78,6 +78,7 @@ function mapDbToFormSchema(dbProject: any) {
             bondRateOverride: Number(dbProject.bondRateOverride) || 0,
             aiWorkspaceSlug: dbProject.aiWorkspaceSlug || null,
             venue: "Generic" as const,
+            includePricingBreakdown: true, // Default: show pricing breakdown
         },
     };
 }

@@ -497,6 +497,10 @@ export const ProposalContextProvider = ({
           bondRateOverride: d.bondRateOverride ?? details.bondRateOverride ?? FORM_DEFAULT_VALUES.details.bondRateOverride,
           overheadRate: details.overheadRate ?? 0.10,
           profitRate: details.profitRate ?? 0.05,
+          includePricingBreakdown: details.includePricingBreakdown ?? true, // Default: show pricing
+          showPaymentTerms: details.showPaymentTerms ?? true,
+          showSignatureBlock: details.showSignatureBlock ?? true,
+          showAssumptions: details.showAssumptions ?? false,
         },
       };
 
