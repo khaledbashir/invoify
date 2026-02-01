@@ -501,6 +501,8 @@ export const ProposalContextProvider = ({
           showPaymentTerms: details.showPaymentTerms ?? true,
           showSignatureBlock: details.showSignatureBlock ?? true,
           showAssumptions: details.showAssumptions ?? false,
+          showExhibitA: details.showExhibitA ?? false,
+          showExhibitB: details.showExhibitB ?? false,
         },
       };
 

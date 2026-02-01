@@ -360,10 +360,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
             </div>
 
-            {/* EXHIBIT A: SOW & TECH SPECS - HIDDEN per client template (not in approved format) */}
-            {/* <div className="break-before-page px-4">
-                <ExhibitA_SOW data={data} />
-            </div> */}
+            {/* EXHIBIT A: SOW & TECH SPECS - Controlled by toggle (default: OFF) */}
+            {(details?.showExhibitA === true) && (
+                <div className="break-before-page px-4">
+                    <ExhibitA_SOW data={data} />
+                </div>
+            )}
 
             {/* 3. PRICING SECTION - Controlled by toggle (default: ON) */}
             {(details?.includePricingBreakdown !== false) && (
@@ -384,10 +386,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 </div>
             )}
 
-            {/* EXHIBIT B: COST SCHEDULE - HIDDEN per client template (not in approved format) */}
-            {/* <div className="break-before-page px-4">
-                <ExhibitB_CostSchedule data={data} />
-            </div> */}
+            {/* EXHIBIT B: COST SCHEDULE - Controlled by toggle (default: OFF) */}
+            {(details?.showExhibitB === true) && (
+                <div className="break-before-page px-4">
+                    <ExhibitB_CostSchedule data={data} />
+                </div>
+            )}
 
             {/* 6. PROJECT CONSTRAINTS & ASSUMPTIONS - REMOVED per user feedback (marked with X) */}
 

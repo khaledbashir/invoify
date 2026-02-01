@@ -155,7 +155,12 @@ export async function POST(
                 overheadRate: 0.10,
                 profitRate: 0.05,
                 internalAudit: undefined,
-                includePricingBreakdown: true // Default for shared views
+                includePricingBreakdown: true, // Default for shared views
+                showPaymentTerms: true,
+                showSignatureBlock: true,
+                showAssumptions: false,
+                showExhibitA: false,
+                showExhibitB: false
             }
         };
 
