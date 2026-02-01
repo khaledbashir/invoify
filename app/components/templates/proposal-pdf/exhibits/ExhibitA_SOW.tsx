@@ -44,44 +44,16 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
         <div className="pt-8">
             <div className="text-center mb-10">
                 <h2 className="text-2xl font-bold text-[#0A52EF] uppercase tracking-wider">Exhibit A</h2>
-                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">Statement of Work & Technical Specifications</h3>
+                <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">Statement of Work</h3>
             </div>
 
-            {/* 1. Technical Specifications Table */}
-            <div className="mb-12">
-                <h4 className="text-sm font-bold bg-black text-white py-1 px-3 mb-4 uppercase tracking-widest">1. Technical Specifications</h4>
-                <div className="overflow-hidden border border-gray-200 rounded-lg">
-                    <table className="w-full text-[10px] border-collapse">
-                        <thead>
-                            <tr className="bg-gray-100 border-b border-gray-200 text-left">
-                                <th className="px-3 py-2 font-bold text-gray-700 w-[40%]">Display Name</th>
-                                <th className="px-3 py-2 font-bold text-gray-700">Dimensions (HxW)</th>
-                                <th className="px-3 py-2 font-bold text-gray-700">Pitch</th>
-                                <th className="px-3 py-2 font-bold text-gray-700">Resolution</th>
-                                <th className="px-3 py-2 font-bold text-gray-700">Qty</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {screens.map((screen: any, idx: number) => (
-                                <tr key={idx} className="border-b border-gray-100 last:border-0 odd:bg-white even:bg-gray-50/50">
-                                    <td className="px-3 py-2 font-bold text-[#0A52EF] w-[40%]">{screen.name}</td>
-                                    <td className="px-3 py-2 text-gray-600">
-                                        {Number(screen.heightFt ?? 0).toFixed(2)}' x {Number(screen.widthFt ?? 0).toFixed(2)}'
-                                    </td>
-                                    <td className="px-3 py-2 text-gray-600">{screen.pitchMm || screen.pixelPitch || 10}mm</td>
-                                    <td className="px-3 py-2 text-gray-600">{screen.pixelsH || 0}H x {screen.pixelsW || 0}W</td>
-                                    <td className="px-3 py-2 font-bold text-gray-900">{screen.quantity || 1}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            {/* NOTE: Technical Specifications are rendered in the main SPECIFICATIONS section */}
+            {/* This exhibit focuses on Scope of Work details */}
 
-            {/* 2. DESIGN SERVICES */}
+            {/* 1. DESIGN SERVICES */}
             {designSections.length > 0 && (
                 <div className="mb-12">
-                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">2. Design & Engineering Services</h4>
+                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">1. Design & Engineering Services</h4>
                     <div className="space-y-6 px-2">
                         {designSections.map((section, idx) => (
                             <div key={idx} className="break-inside-avoid">
@@ -93,10 +65,10 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 3. CONSTRUCTION SERVICES */}
+            {/* 2. CONSTRUCTION SERVICES */}
             {constructionSections.length > 0 && (
                 <div className="mb-12">
-                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">3. Construction & Technical Logistics</h4>
+                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">2. Construction & Technical Logistics</h4>
                     <div className="space-y-6 px-2">
                         {constructionSections.map((section, idx) => (
                             <div key={idx} className="break-inside-avoid">
@@ -108,10 +80,10 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 4. PROJECT CONSTRAINTS & COMPLIANCE */}
+            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE */}
             {(constraintSections.length > 0 || details?.venue) && (
                 <div className="mb-12">
-                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">4. Project Constraints & Compliance</h4>
+                    <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">3. Project Constraints & Compliance</h4>
 
                     {/* Venue Specific Dates (REQ-47) - Integrated into Constraints */}
                     {(details?.venue === "Milan Puskar Stadium" || details?.venue === "WVU Coliseum") && (

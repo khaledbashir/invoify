@@ -77,6 +77,14 @@ const ExhibitB_CostSchedule = ({ data }: ExhibitBProps) => {
                                 </tr>
                             );
                         })}
+                        {/* REQ-UserFeedback: Render soft cost items (Structure, Install, Labor) separately */}
+                        {internalAudit?.softCostItems?.map((item: any, idx: number) => (
+                            <tr key={`soft-${idx}`} className="border-b border-gray-200 bg-gray-50/50">
+                                <td className="py-3 pr-4 font-bold text-gray-700">{item.name}</td>
+                                <td className="py-3 text-gray-500 italic">Project Service Line Item</td>
+                                <td className="py-3 text-right font-bold text-gray-900 min-w-[120px]">{formatCurrency(item.sell)}</td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

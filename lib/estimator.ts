@@ -262,6 +262,7 @@ export type ScreenAudit = {
 
 export type InternalAudit = {
   perScreen: ScreenAudit[];
+  softCostItems?: Array<{ name: string; cost: number; sell: number }>; // REQ-UserFeedback: Non-LED items from Excel
   totals: {
     hardware: number;
     structure: number;
