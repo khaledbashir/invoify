@@ -194,11 +194,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                         {screens.map((screen: any, idx: number) => {
                             const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
                             const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
+                            const displayName = screen.customDisplayName || screen.externalName || screen.name;
                             
                             return (
-                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                    <td className="p-2 pl-4 text-gray-900 font-medium">{screen.name}</td>
-                                    <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(price)}</td>
+                                <tr key={idx} className={`${idx % 2 === 1 ? "bg-muted/20" : ""} border-b border-border last:border-b-0`}>
+                                    <td className="p-1.5 pl-4 text-foreground font-medium">{displayName}</td>
+                                    <td className="p-1.5 pr-4 text-right text-foreground font-bold">{formatCurrency(price)}</td>
                                 </tr>
                             );
                         })}
@@ -252,20 +253,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
             </div>
 
-            {/* 2. SPECIFICATIONS SECTION */}
+            {/* 2. PRICING SECTION - Must be first after header */}
             <div className="px-4">
-                <SectionHeader title="SPECIFICATIONS" />
-                {screens && screens.length > 0 ? (
-                    screens.map((screen: any, idx: number) => (
-                        <SpecTable key={idx} screen={screen} />
-                    ))
-                ) : (
-                    <div className="text-center text-gray-400 italic py-8">No screens configured.</div>
-                )}
-            </div>
-
-            <div className="break-before-page px-4">
-                {/* 3. PRICING SECTION - Toggle controls detail level */}
                 <SectionHeader title="PRICING" />
                 {includePricingBreakdown ? (
                     // Detailed: Per-screen breakdown by category
@@ -291,6 +280,20 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     </div>
                 </div>
             </div>
+
+            {/* 3. SPECIFICATIONS SECTION - Moved after pricing */}
+            {showSpecifications && (
+            <div className="break-before-page px-4">
+                <SectionHeader title="SPECIFICATIONS" />
+                {screens && screens.length > 0 ? (
+                    screens.map((screen: any, idx: number) => (
+                        <SpecTable key={idx} screen={screen} />
+                    ))
+                ) : (
+                    <div className="text-center text-muted-foreground italic py-8">No screens configured.</div>
+                )}
+            </div>
+            )}
 
             {/* PROJECT CONSTRAINTS & ASSUMPTIONS - REMOVED per Natalia's feedback */}
 
