@@ -264,11 +264,11 @@ const Step1Ingestion = () => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                <div className="min-h-0 rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 h-[560px] max-h-[70vh]">
+                                <div className="h-full rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
                                     <ScreensGridEditor />
                                 </div>
-                                <div className="min-h-0 rounded-xl border border-border bg-card shadow-2xl overflow-hidden relative group">
+                                <div className="h-full rounded-xl border border-border bg-card shadow-2xl overflow-hidden relative group">
                                     <ExcelGridViewer />
                                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                         <div className="bg-background/80 backdrop-blur text-[10px] text-muted-foreground px-2 py-1 rounded border border-border">

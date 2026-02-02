@@ -27,6 +27,21 @@ function getLedHeaderRowIndex(grid: string[][]) {
 }
 
 const HIDDEN_COLUMN_HEADERS = new Set(["type"]);
+const EDITABLE_HEADERS = new Set([
+  "display name",
+  "display",
+  "height",
+  "h",
+  "width",
+  "w",
+  "qty",
+  "quantity",
+  "mm pitch",
+  "pitch",
+  "pixel pitch",
+  "brightness",
+  "nits",
+]);
 
 export default function ExcelGridViewer({
   highlightedRows,
@@ -38,6 +53,10 @@ export default function ExcelGridViewer({
   const { excelPreview, excelPreviewLoading, updateExcelCell } = useProposalContext();
   const [activeSheetName, setActiveSheetName] = useState<string | null>(null);
   const gridApiRef = useRef<any>(null);
+  const themeClass = useMemo(
+    () => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "ag-theme-quartz-dark" : "ag-theme-quartz"),
+    []
+  );
 
   const sheets = useMemo(() => excelPreview?.sheets || [], [excelPreview]);
 
@@ -99,12 +118,15 @@ export default function ExcelGridViewer({
 
     for (let c = 0; c < cols; c++) {
       if (isLedCostSheetActive && hiddenColumnIndices.has(c)) continue;
+      const headerCell = isLedCostSheetActive ? normalizeValue(activeSheet.grid[ledHeaderRowIndex]?.[c] || "") : "";
+      const headerNorm = headerCell.toLowerCase();
+      const isEditableCol = isLedCostSheetActive && EDITABLE_HEADERS.has(headerNorm);
       colDefs.push({
         colId: `c${c}`,
-        headerName: isLedCostSheetActive ? normalizeValue(activeSheet.grid[ledHeaderRowIndex]?.[c] || "") || `C${c + 1}` : `C${c + 1}`,
+        headerName: isLedCostSheetActive ? headerCell || `C${c + 1}` : `C${c + 1}`,
         minWidth: 110,
         flex: 1,
-        editable: editable && isLedCostSheetActive,
+        editable: editable && isEditableCol,
         valueGetter: (p) => String(p.data?.row?.[c] ?? ""),
         valueSetter: (p) => {
           const newValue = String(p.newValue ?? "");
@@ -201,7 +223,7 @@ export default function ExcelGridViewer({
         })}
       </div>
 
-      <div className="flex-1 min-h-0 ag-theme-quartz">
+      <div className={["flex-1 min-h-0", themeClass].join(" ")}>
         <AgGridReact
           rowData={rowData as any[]}
           columnDefs={columnDefs}

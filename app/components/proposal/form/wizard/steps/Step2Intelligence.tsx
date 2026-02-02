@@ -131,16 +131,16 @@ const Step2Intelligence = () => {
                 </div>
             )}
 
-            <Card className="bg-zinc-900/50 border-zinc-800/50 overflow-hidden">
-                <CardHeader className="pb-3 border-b border-zinc-800/50">
+            <Card className="bg-card/50 border-border overflow-hidden">
+                <CardHeader className="pb-3 border-b border-border">
                     <div className="flex items-center justify-between gap-4">
                         <div className="min-w-0">
-                            <CardTitle className="text-zinc-100 text-base">Document Toggles</CardTitle>
-                            <CardDescription className="text-zinc-500 text-xs">
+                            <CardTitle className="text-foreground text-base">Document Toggles</CardTitle>
+                            <CardDescription className="text-muted-foreground text-xs">
                                 Controls which sections render in the PDF template.
                             </CardDescription>
                         </div>
-                        <Badge variant="outline" className="border-zinc-700/60 bg-zinc-950 text-zinc-300 text-[10px] font-bold uppercase tracking-widest">
+                        <Badge variant="outline" className="border-border bg-muted text-foreground text-[10px] font-bold uppercase tracking-widest">
                             {mode}
                         </Badge>
                     </div>
@@ -148,8 +148,8 @@ const Step2Intelligence = () => {
                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Show Exhibit A</Label>
-                            <div className="text-[11px] text-zinc-500 mt-1">Statement of Work + Technical Specs (LOI exhibits)</div>
+                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Show Exhibit A</Label>
+                            <div className="text-[11px] text-muted-foreground mt-1">Statement of Work + Technical Specs (LOI exhibits)</div>
                         </div>
                         <Switch
                             checked={!!showExhibitA}
@@ -160,8 +160,8 @@ const Step2Intelligence = () => {
 
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Show Exhibit B</Label>
-                            <div className="text-[11px] text-zinc-500 mt-1">Cost Schedule appendix</div>
+                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Show Exhibit B</Label>
+                            <div className="text-[11px] text-muted-foreground mt-1">Cost Schedule appendix</div>
                         </div>
                         <Switch
                             checked={!!showExhibitB}
@@ -172,8 +172,8 @@ const Step2Intelligence = () => {
 
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Show Pricing Breakdown</Label>
-                            <div className="text-[11px] text-zinc-500 mt-1">Per-screen category detail vs simplified rows</div>
+                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Show Pricing Breakdown</Label>
+                            <div className="text-[11px] text-muted-foreground mt-1">Per-screen category detail vs simplified rows</div>
                         </div>
                         <Switch
                             checked={!!includePricingBreakdown}
@@ -184,8 +184,8 @@ const Step2Intelligence = () => {
 
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Show Payment Terms</Label>
-                            <div className="text-[11px] text-zinc-500 mt-1">{isLOI ? "LOI only" : "Disabled (not LOI)"}</div>
+                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Show Payment Terms</Label>
+                            <div className="text-[11px] text-muted-foreground mt-1">{isLOI ? "LOI only" : "Disabled (not LOI)"}</div>
                         </div>
                         <Switch
                             disabled={!isLOI}
@@ -197,8 +197,8 @@ const Step2Intelligence = () => {
 
                     <div className="flex items-center justify-between gap-4">
                         <div>
-                            <Label className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Show Signature Block</Label>
-                            <div className="text-[11px] text-zinc-500 mt-1">{isLOI ? "LOI only" : "Disabled (not LOI)"}</div>
+                            <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Show Signature Block</Label>
+                            <div className="text-[11px] text-muted-foreground mt-1">{isLOI ? "LOI only" : "Disabled (not LOI)"}</div>
                         </div>
                         <Switch
                             disabled={!isLOI}
@@ -210,19 +210,19 @@ const Step2Intelligence = () => {
                 </CardContent>
             </Card>
 
-            <Card className="bg-zinc-900/50 border-zinc-800/50 flex-1 flex flex-col overflow-hidden">
-                <CardHeader className="pb-3 shrink-0 border-b border-zinc-800/50">
+            <Card className="bg-card/50 border-border flex-1 flex flex-col overflow-hidden">
+                <CardHeader className="pb-3 shrink-0 border-b border-border">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-brand-blue/20">
                                 <Calculator className="w-5 h-5 text-brand-blue" />
                             </div>
                             <div>
-                                <CardTitle className="text-zinc-100 text-base">Drafting Table: Screen Configurations</CardTitle>
-                                <CardDescription className="text-zinc-500 text-xs">Define technical specifications for the display system.</CardDescription>
+                                <CardTitle className="text-foreground text-base">Drafting Table: Screen Configurations</CardTitle>
+                                <CardDescription className="text-muted-foreground text-xs">Define technical specifications for the display system.</CardDescription>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-500 bg-zinc-950 px-2 py-1 rounded border border-zinc-800">
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded border border-border">
                             <Info className="w-3 h-3" />
                             Auto-syncing to PDF Anchor
                         </div>

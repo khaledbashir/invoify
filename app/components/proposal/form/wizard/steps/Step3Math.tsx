@@ -346,46 +346,46 @@ const Step3Math = () => {
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
                         {quoteItems.length === 0 ? (
-                            <div className="text-xs text-zinc-500">
+                            <div className="text-xs text-muted-foreground">
                                 No quotation items yet. Click Add or Auto-fill from screens.
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {quoteItems.map((it: any, idx: number) => (
-                                    <div key={it.id || idx} className="rounded-2xl border border-zinc-800 bg-zinc-950/30 p-4 space-y-3">
+                                    <div key={it.id || idx} className="rounded-2xl border border-border bg-card/30 p-4 space-y-3">
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="flex-1">
-                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Location</Label>
+                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Location</Label>
                                                 <Input
                                                     value={it.locationName || ""}
                                                     onChange={(e) => updateQuoteItem(idx, { locationName: e.target.value })}
-                                                    className="mt-2 bg-zinc-950 border-zinc-800 text-zinc-200"
+                                                    className="mt-2 bg-background border-input text-foreground"
                                                 />
                                             </div>
                                             <div className="w-[180px]">
-                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Price</Label>
+                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Price</Label>
                                                 <Input
                                                     value={String(it.price ?? "")}
                                                     onChange={(e) => updateQuoteItem(idx, { price: Number(e.target.value || 0) })}
-                                                    className="mt-2 bg-zinc-950 border-zinc-800 text-zinc-200"
+                                                    className="mt-2 bg-background border-input text-foreground"
                                                     inputMode="decimal"
                                                 />
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => removeQuoteItem(idx)}
-                                                className="mt-6 p-2 rounded-xl border border-zinc-800 bg-zinc-950/50 text-zinc-400 hover:text-white hover:border-brand-blue/30 transition-colors"
+                                                className="mt-6 p-2 rounded-xl border border-border bg-muted text-muted-foreground hover:text-foreground hover:border-brand-blue/30 transition-colors"
                                                 title="Remove item"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                         <div>
-                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Description</Label>
+                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</Label>
                                             <Textarea
                                                 value={it.description || ""}
                                                 onChange={(e) => updateQuoteItem(idx, { description: e.target.value })}
-                                                className="mt-2 bg-zinc-950 border-zinc-800 text-zinc-200 min-h-[84px]"
+                                                className="mt-2 bg-background border-input text-foreground min-h-[84px]"
                                             />
                                         </div>
                                     </div>
@@ -502,8 +502,8 @@ const Step3Math = () => {
                                 </div>
 
                                 {/* Quick Presets */}
-                                <div className="flex flex-col gap-3 p-4 bg-zinc-950/50 rounded-xl border border-zinc-800">
-                                    <Label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Strategic Presets</Label>
+                                <div className="flex flex-col gap-3 p-4 bg-muted/50 rounded-xl border border-border">
+                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Strategic Presets</Label>
                                     <div className="flex flex-wrap gap-2">
                                         {[
                                             { label: "Std", value: 0.25 },
@@ -517,7 +517,7 @@ const Step3Math = () => {
                                                     "px-3 py-1 text-[10px] font-bold uppercase rounded border transition-all",
                                                     globalMargin === preset.value
                                                         ? "bg-brand-blue border-brand-blue text-white shadow-lg shadow-brand-blue/20"
-                                                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                                                        : "bg-muted border-border text-muted-foreground hover:border-border"
                                                 )}
                                             >
                                                 {preset.label}

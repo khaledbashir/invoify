@@ -1,7 +1,9 @@
 const withNextIntl = require("next-intl/plugin")("./i18n/request.ts");
+const path = require("path");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    outputFileTracingRoot: path.join(__dirname),
     serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"],
     webpack: (config, { isServer }) => {
         config.module.rules.push({

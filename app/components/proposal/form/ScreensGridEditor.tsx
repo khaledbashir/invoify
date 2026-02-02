@@ -26,6 +26,10 @@ function parseOptionalNumber(value: unknown) {
 export default function ScreensGridEditor() {
   const { control, setValue } = useFormContext<ProposalType>();
   const screens = useWatch({ control, name: "details.screens" }) || [];
+  const themeClass = useMemo(
+    () => (typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "ag-theme-quartz-dark" : "ag-theme-quartz"),
+    []
+  );
 
   const screensRef = useRef<any[]>(screens);
   screensRef.current = screens;
@@ -108,7 +112,7 @@ export default function ScreensGridEditor() {
         <div className="text-xs font-semibold tracking-wide">Screen Editor</div>
         <div className="text-[11px] text-muted-foreground">Edits here drive preview and export.</div>
       </div>
-      <div className="flex-1 min-h-0 ag-theme-quartz">
+      <div className={["flex-1 min-h-0", themeClass].join(" ")}>
         <AgGridReact
           rowData={screens as any[]}
           columnDefs={columnDefs}
@@ -123,4 +127,3 @@ export default function ScreensGridEditor() {
     </div>
   );
 }
-
