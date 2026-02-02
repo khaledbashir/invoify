@@ -28,7 +28,7 @@ const ActionToolbar = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50 h-7 px-2"
+            className="text-muted-foreground hover:text-foreground hover:bg-muted h-7 px-2 transition-colors"
             disabled={proposalPdfLoading}
             title="Start a new project"
           >
@@ -46,7 +46,7 @@ const ActionToolbar = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 h-7 px-2"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 px-2 transition-colors"
             disabled={proposalPdfLoading}
             title="Reset to last saved state"
           >

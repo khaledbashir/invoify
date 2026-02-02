@@ -26,18 +26,22 @@ export default function DashboardSidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="w-16 md:w-20 border-r border-zinc-900 bg-[#000000] flex flex-col items-center py-8 z-50">
+        <aside className="w-16 md:w-20 border-r border-border bg-background flex flex-col items-center py-8 z-50 transition-colors duration-300">
             {/* Minimal Logo */}
             <div className="mb-12">
                 <Link href="/projects" className="flex items-center justify-center">
-                    <div className="w-10 h-10 flex items-center justify-center">
-                        {/* <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg">
-                            A
-                        </div> */}
+                    <div className="w-10 h-10 flex items-center justify-center relative">
+                        {/* Light Mode Logo */}
+                        <img
+                            src="/ANC_Logo_2024_blue.png"
+                            alt="ANC"
+                            className="w-full h-auto object-contain dark:hidden"
+                        />
+                        {/* Dark Mode Logo */}
                         <img
                             src="/ANC_Logo_2023_white.png"
                             alt="ANC"
-                            className="w-full h-auto object-contain"
+                            className="w-full h-auto object-contain hidden dark:block"
                         />
                     </div>
                 </Link>
@@ -55,14 +59,14 @@ export default function DashboardSidebar() {
                                 "group relative p-3 rounded-xl transition-all duration-300",
                                 isActive
                                     ? "bg-[#0A52EF]/10 text-[#0A52EF]"
-                                    : "text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900/50",
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
                                 item.soon && "pointer-events-none opacity-40"
                             )}
                         >
                             <item.icon className="w-5 h-5" />
 
                             {/* Tooltip */}
-                            <div className="absolute left-full ml-4 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-white text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                            <div className="absolute left-full ml-4 px-2 py-1 rounded bg-popover border border-border text-popover-foreground text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 shadow-md">
                                 {item.label} {item.soon && "(Soon)"}
                             </div>
                         </Link>
@@ -72,11 +76,11 @@ export default function DashboardSidebar() {
 
             {/* Bottom Nav */}
             <div className="flex flex-col gap-6 mt-auto">
-                <button className="text-zinc-600 hover:text-zinc-300 transition-colors">
+                <button className="text-muted-foreground hover:text-foreground transition-colors">
                     <Settings className="w-5 h-5" />
                 </button>
-                <div className="w-8 h-8 rounded-full border border-zinc-900 bg-zinc-950 flex items-center justify-center overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black" />
+                <div className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-full bg-gradient-to-br from-muted to-muted-foreground/20" />
                 </div>
             </div>
         </aside>
