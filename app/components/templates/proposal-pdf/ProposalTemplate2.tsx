@@ -255,12 +255,31 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         };
 
         const quoteItems = (((details as any)?.quoteItems || []) as any[]).filter(Boolean);
+        const stripLeadingLocation = (locationName: string, raw: string) => {
+            const loc = (locationName || "").toString().trim();
+            const text = (raw || "").toString().trim();
+            if (!loc || !text) return text;
+            const locUpper = loc.toUpperCase();
+            const textUpper = text.toUpperCase();
+            if (textUpper === locUpper) return "";
+            const dashPrefix = `${locUpper} - `;
+            if (textUpper.startsWith(dashPrefix)) {
+                return text.slice(dashPrefix.length).trim();
+            }
+            if (textUpper.startsWith(locUpper)) {
+                return text.slice(loc.length).replace(/^(\s*[-–—:]\s*)/, "").trim();
+            }
+            return text;
+        };
         const lineItems =
             quoteItems.length > 0
                 ? quoteItems.map((it: any, idx: number) => ({
                     key: it.id || `quote-${idx}`,
                     locationName: (it.locationName || "ITEM").toString().toUpperCase(),
-                    description: (it.description || "").toString(),
+                    description: stripLeadingLocation(
+                        (it.locationName || "ITEM").toString(),
+                        (it.description || "").toString()
+                    ),
                     price: Number(it.price || 0) || 0,
                 })).filter((it: any) => Math.abs(it.price) >= 0.01)
                 : [
