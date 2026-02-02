@@ -67,7 +67,7 @@ export default function RootLayout({
                 />
             </head>
             <body
-                className={`${workSans.className} ${playfairDisplay.variable} antialiased bg-zinc-50 dark:bg-zinc-950`}
+                className={`${workSans.className} ${playfairDisplay.variable} antialiased bg-background text-foreground`}
                 suppressHydrationWarning
             >
                 <NextIntlClientProvider locale={locale} messages={messages}>
