@@ -298,13 +298,21 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                         // Try to find matching screen to check for customDisplayName
                         // 1. Try ID match
                         // 2. Try exact Name match (case-insensitive)
-                        // 3. Try partial match if name is unique enough? (Skip for now to avoid false positives)
+                        // 3. Try partial match (if quote item contains screen name)
                         const matchingScreen = screens.find((s: any) => {
                             if (s.id && it.id && s.id === it.id) return true;
 
                             const sName = (s.externalName || s.name || "").toString().trim().toUpperCase();
                             const itName = (it.locationName || "").toString().trim().toUpperCase();
-                            return sName === itName && sName.length > 0;
+
+                            // Exact match
+                            if (sName === itName && sName.length > 0) return true;
+
+                            // Partial match (e.g. "BASE - ATRIUM" contains "ATRIUM")
+                            // Ensure sName is substantial enough to avoid false positives
+                            if (sName.length > 3 && itName.includes(sName)) return true;
+
+                            return false;
                         });
 
                         const customOverride = matchingScreen?.customDisplayName;
@@ -315,10 +323,12 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                         const split = splitDisplayNameAndSpecs(effectiveLocation);
                         const header = (split.header || effectiveLocation).toString();
 
-                        // If we are using the rawLocation, strip it from description to avoid dupes.
-                        // If we are using customOverride, we might still want to strip the original location if it was in the description?
-                        // For safety, let's just strip the header we settled on.
-                        const desc = stripLeadingLocation(header, (it.description || "").toString());
+                        // CRITICAL: Strip the ORIGINAL location name from the description
+                        // Otherwise "BASE - ATRIUM DISPLAY" remains in the description text
+                        let desc = (it.description || "").toString();
+                        desc = stripLeadingLocation(rawLocation, desc);
+                        desc = stripLeadingLocation(effectiveLocation, desc); // Also strip new name just in case
+
                         const combined = [split.specs, desc].filter(Boolean).join(" ").trim();
                         return {
                             locationName: header.toUpperCase(),
