@@ -121,29 +121,29 @@ export default function DashboardChat() {
                         initial={{ opacity: 0, scale: 0.98, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.98, y: 20 }}
-                        className="absolute bottom-20 left-0 right-0 h-[500px] mb-4 bg-[#09090b] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50 pointer-events-auto"
+                        className="absolute bottom-20 left-0 right-0 h-[500px] mb-4 bg-[#09090b] border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50 pointer-events-auto"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 bg-[#0A52EF]/10 rounded-lg flex items-center justify-center">
                                     <Brain className="w-4 h-4 text-[#0A52EF]" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-white">Intelligence Core</h3>
-                                    <p className="text-[10px] text-zinc-600">Connected to dashboard-vault</p>
+                                    <h3 className="text-sm font-bold text-foreground">Intelligence Core</h3>
+                                    <p className="text-[10px] text-muted-foreground">Connected to dashboard-vault</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsMinimized(true)}
-                                    className="p-2 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800"
+                                    className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
                                 >
                                     <Minimize2 className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="p-2 text-zinc-500 hover:text-white transition-colors rounded-lg hover:bg-zinc-800"
+                                    className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-accent"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -157,7 +157,7 @@ export default function DashboardChat() {
                                     <Sparkles className="w-8 h-8 text-[#0A52EF]" />
                                     <div className="max-w-sm space-y-2">
                                         <p className="text-sm font-bold">Strategic Intelligence Ready</p>
-                                        <p className="text-xs text-zinc-600">
+                                        <p className="text-xs text-muted-foreground">
                                             Ask me anything about your proposals, budgets, or project history. I have access to all documents in the vault.
                                         </p>
                                     </div>
@@ -178,15 +178,15 @@ export default function DashboardChat() {
                                                     {/* Thinking Accordion */}
                                                     {msg.thinking && (
                                                         <Accordion type="single" collapsible className="w-full">
-                                                            <AccordionItem value="thinking" className="border border-zinc-800 rounded-lg bg-zinc-900/50 px-4">
+                                                            <AccordionItem value="thinking" className="border border-border rounded-lg bg-card/50 px-4">
                                                                 <AccordionTrigger className="py-3 hover:no-underline">
                                                                     <div className="flex items-center gap-2 text-xs">
                                                                         <Brain className="w-3.5 h-3.5 text-purple-400" />
-                                                                        <span className="font-medium text-zinc-400">Thinking Process</span>
+                                                                        <span className="font-medium text-muted-foreground">Thinking Process</span>
                                                                     </div>
                                                                 </AccordionTrigger>
                                                                 <AccordionContent className="pb-4 pt-2">
-                                                                    <div className="text-xs text-zinc-400 leading-relaxed space-y-2">
+                                                                    <div className="text-xs text-muted-foreground leading-relaxed space-y-2">
                                                                         {msg.thinking.split('\n').map((line, idx) => (
                                                                             <p key={idx} className="">{line}</p>
                                                                         ))}
@@ -197,7 +197,7 @@ export default function DashboardChat() {
                                                     )}
 
                                                     {/* Main Response */}
-                                                    <div className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm text-zinc-300 leading-relaxed prose prose-invert prose-sm max-w-none">
+                                                    <div className="px-4 py-3 bg-card border border-border rounded-2xl text-sm text-foreground leading-relaxed prose prose-invert prose-sm max-w-none">
                                                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                                                     </div>
 
@@ -205,7 +205,7 @@ export default function DashboardChat() {
                                                     {msg.sources && msg.sources.length > 0 && (
                                                         <div className="flex flex-wrap gap-2 mt-2">
                                                             {msg.sources.slice(0, 3).map((source: any, idx: number) => (
-                                                                <div key={idx} className="px-2 py-1 bg-zinc-900/50 border border-zinc-800 rounded text-[10px] text-zinc-500">
+                                                                <div key={idx} className="px-2 py-1 bg-card/50 border border-border rounded text-[10px] text-muted-foreground">
                                                                     📄 {source.title || `Source ${idx + 1}`}
                                                                 </div>
                                                             ))}
@@ -216,7 +216,7 @@ export default function DashboardChat() {
                                         </div>
                                     ))}
                                     {isLoading && (
-                                        <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                             <span>Thinking...</span>
                                         </div>
@@ -231,12 +231,12 @@ export default function DashboardChat() {
 
             {/* Bottom Command Bar */}
             <div className={cn(
-                "w-full h-14 bg-[#09090b]/90 backdrop-blur-3xl border border-zinc-800 rounded-xl flex items-center px-4 transition-all duration-300 pointer-events-auto",
+                "w-full h-14 bg-[#09090b]/90 backdrop-blur-3xl border border-border rounded-xl flex items-center px-4 transition-all duration-300 pointer-events-auto",
                 isOpen && !isMinimized ? "ring-2 ring-[#0A52EF]/30 border-[#0A52EF]/50" : "hover:border-zinc-600"
             )}>
                 <div className="flex items-center gap-3 mr-4">
-                    <Command className="w-4 h-4 text-zinc-600" />
-                    <div className="w-px h-6 bg-zinc-800" />
+                    <Command className="w-4 h-4 text-muted-foreground" />
+                    <div className="w-px h-6 bg-muted" />
                 </div>
 
                 <input
@@ -254,8 +254,8 @@ export default function DashboardChat() {
                 <div className="flex items-center gap-2 ml-4">
                     {!input && !isOpen && (
                         <div className="flex gap-2 mr-2">
-                            <div className="px-1.5 py-0.5 border border-zinc-800 rounded text-[9px] font-bold text-zinc-600">⌘</div>
-                            <div className="px-1.5 py-0.5 border border-zinc-800 rounded text-[9px] font-bold text-zinc-600">K</div>
+                            <div className="px-1.5 py-0.5 border border-border rounded text-[9px] font-bold text-muted-foreground">⌘</div>
+                            <div className="px-1.5 py-0.5 border border-border rounded text-[9px] font-bold text-muted-foreground">K</div>
                         </div>
                     )}
                     <button

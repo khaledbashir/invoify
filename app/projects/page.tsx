@@ -84,12 +84,12 @@ export default function ProjectsPage() {
                         {/* ANC Brand Mark */}
                         <Link href="/" className="flex items-center gap-2 shrink-0">
                             <div className="w-8 h-8 bg-gradient-to-br from-[#0A52EF] to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <span className="text-white font-bold text-sm">A</span>
+                                <span className="text-foreground font-bold text-sm">A</span>
                             </div>
-                            <span className="text-zinc-300 font-medium text-sm hidden sm:block">ANC</span>
+                            <span className="text-foreground font-medium text-sm hidden sm:block">ANC</span>
                         </Link>
 
-                        <div className="h-6 w-px bg-zinc-800 hidden sm:block" />
+                        <div className="h-6 w-px bg-border hidden sm:block" />
 
                         {/* Enhanced Search */}
                         <div className="relative group max-w-md w-full">
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
                                 className="w-full pl-10 pr-4 py-2 bg-muted/50 border border-input rounded-xl text-sm text-foreground placeholder-muted-foreground outline-none focus:border-brand-blue/50 focus:bg-muted focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200"
                             />
                             {/* Keyboard shortcut hint */}
-                            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 bg-zinc-900 rounded border border-zinc-800">
+                            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground bg-muted rounded border border-border">
                                 ⌘K
                             </kbd>
                         </div>
@@ -111,17 +111,17 @@ export default function ProjectsPage() {
                     {/* Right: Actions */}
                     <div className="flex items-center gap-2">
                         {/* Notification Bell */}
-                        <button className="p-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 rounded-xl transition-all duration-200 relative">
+                        <button className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all duration-200 relative">
                             <Bell className="w-4 h-4" />
                             <span className="absolute top-2 right-2.5 w-1.5 h-1.5 bg-[#0A52EF] rounded-full animate-pulse" />
                         </button>
 
                         {/* Settings */}
-                        <button className="p-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50 rounded-xl transition-all duration-200">
+                        <button className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl transition-all duration-200">
                             <Settings className="w-4 h-4" />
                         </button>
 
-                        <div className="h-6 w-px bg-zinc-800 mx-1" />
+                        <div className="h-6 w-px bg-border mx-1" />
 
                         {/* New Project Button */}
                         <NewProjectModal>
@@ -164,9 +164,9 @@ export default function ProjectsPage() {
                                     ))}
                                 </div>
 
-                                <div className="h-6 w-px bg-zinc-800" />
+                                <div className="h-6 w-px bg-border" />
 
-                                <button className="p-2 text-zinc-500 hover:text-white transition-colors" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
+                                <button className="p-2 text-muted-foreground hover:text-foreground transition-colors" onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}>
                                     {viewMode === "grid" ? <LayoutGrid className="w-4 h-4" /> : <List className="w-4 h-4" />}
                                 </button>
 
@@ -182,7 +182,7 @@ export default function ProjectsPage() {
                         {loading && projects.length === 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 {[1, 2, 3, 4].map(i => (
-                                    <div key={i} className="h-48 bg-zinc-900/40 rounded-lg animate-pulse border border-zinc-800/50" />
+                                    <div key={i} className="h-48 bg-muted/40 rounded-lg animate-pulse border border-border/50" />
                                 ))}
                             </div>
                         ) : (
