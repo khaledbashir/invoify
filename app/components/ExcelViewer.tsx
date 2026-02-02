@@ -264,8 +264,8 @@ export default function ExcelViewer({
 
   if (excelPreviewLoading) {
     return (
-      <div className="h-full w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 flex items-center justify-center">
-        <div className="flex items-center gap-2 text-zinc-500 text-sm font-medium font-['Work_Sans']">
+      <div className="h-full w-full rounded-2xl border border-border bg-muted/40 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium font-['Work_Sans']">
           <FileSpreadsheet className="w-4 h-4" />
           Loading spreadsheet…
         </div>
@@ -275,8 +275,8 @@ export default function ExcelViewer({
 
   if (!excelPreview || sheets.length === 0 || !activeSheet) {
     return (
-      <div className="h-full w-full rounded-2xl border border-zinc-800 bg-zinc-950/40 flex items-center justify-center">
-        <div className="text-zinc-600 text-sm font-medium font-['Work_Sans']">Upload an Excel file to preview it here.</div>
+      <div className="h-full w-full rounded-2xl border border-border bg-muted/40 flex items-center justify-center">
+        <div className="text-muted-foreground text-sm font-medium font-['Work_Sans']">Upload an Excel file to preview it here.</div>
       </div>
     );
   }
@@ -288,10 +288,10 @@ export default function ExcelViewer({
 
   return (
     <div className="h-full w-full rounded-2xl border-0 bg-transparent overflow-hidden flex flex-col">
-      <div className="shrink-0 border-b border-zinc-800/60 bg-zinc-900/40 px-4 py-3 flex items-center justify-between gap-3">
+      <div className="shrink-0 border-b border-border bg-muted/40 px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <FileSpreadsheet className="w-5 h-5 text-brand-blue shrink-0" />
-          <div className="text-xs text-zinc-300 font-semibold tracking-wide truncate font-['Work_Sans']">
+          <div className="text-xs text-foreground font-semibold tracking-wide truncate font-['Work_Sans']">
             {excelPreview.fileName}
           </div>
         </div>
@@ -301,12 +301,12 @@ export default function ExcelViewer({
             <Badge
               variant="outline"
               className={cn(
-                "text-[10px] font-semibold uppercase tracking-wider border-zinc-800 bg-zinc-900/60 font-['Work_Sans']",
+                "text-[10px] font-semibold uppercase tracking-wider border-border bg-muted/60 font-['Work_Sans']",
                 validationSummary.foundProblems > 0
                   ? "text-red-400"
                   : validationSummary.foundNumeric > 0
                     ? "text-emerald-400"
-                    : "text-zinc-400"
+                    : "text-muted-foreground"
               )}
             >
               {validationSummary.foundProblems > 0 ? "Validation Issues" : validationSummary.foundNumeric > 0 ? "Validation OK" : "No Active Rows"}
@@ -315,7 +315,7 @@ export default function ExcelViewer({
         )}
       </div>
 
-      <div className="shrink-0 border-b border-zinc-800/60 bg-zinc-900/30 px-4 py-2.5 flex items-center gap-2 overflow-x-auto custom-scrollbar">
+      <div className="shrink-0 border-b border-border bg-muted/30 px-4 py-2.5 flex items-center gap-2 overflow-x-auto custom-scrollbar">
         {sheets.map((s) => {
           const isActive = s.name === activeSheet.name;
           const showIssue = s.validationIssue && (s.name.toLowerCase().includes("led") || s.name.toLowerCase().includes("cost"));
@@ -328,8 +328,8 @@ export default function ExcelViewer({
               className={cn(
                 "px-4 py-2 rounded-lg border text-xs font-medium font-['Work_Sans'] whitespace-nowrap flex items-center gap-2 transition-colors",
                 isActive
-                  ? "bg-[#0A52EF]/15 border-[#0A52EF]/50 text-white"
-                  : "bg-zinc-800/30 border-zinc-700/60 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+                  ? "bg-brand-blue/15 border-brand-blue/50 text-foreground"
+                  : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
               )}
             >
               <span className="truncate max-w-[260px]">{s.name}</span>
@@ -368,7 +368,7 @@ export default function ExcelViewer({
                       // Handle row click
                     }}
                     className={cn(
-                      "hover:bg-zinc-900/40 relative transition-all duration-300",
+                      "hover:bg-muted/40 relative transition-all duration-300",
                       isGhosted && "opacity-50",
                       hasError && "bg-red-500/10 hover:bg-red-500/20",
                       isHighlightedRow && "bg-brand-blue/10 hover:bg-brand-blue/15",
@@ -400,18 +400,18 @@ export default function ExcelViewer({
                       const isEditableCell = editable && !isGhosted;
 
                       const baseClass = cn(
-                        "text-xs text-zinc-200 align-top px-3 py-2 border-b border-zinc-800/50",
-                        "border-r border-zinc-800/50",
-                        isGhosted && "line-through",
-                        isHighlightedCol && "bg-blue-50/5",
-                        isHighlightedCol && "border-r-[#0A52EF]/35",
-                        isHighlightedCol && c === 0 && "border-l-[#0A52EF]/35 border-l",
+                        "text-xs text-foreground align-top px-3 py-2 border-b border-border/50",
+                        "border-r border-border/50",
+                        isGhosted && "line-through opacity-50",
+                        isHighlightedCol && "bg-brand-blue/5",
+                        isHighlightedCol && "border-r-brand-blue/35",
+                        isHighlightedCol && c === 0 && "border-l-brand-blue/35 border-l",
                         isHighlightedCol && "shadow-[inset_0_0_0_1px_rgba(10,82,239,0.20)]",
-                        isHeaderRow && "bg-zinc-900/60 text-zinc-100 font-semibold",
-                        isHeaderHighlighted && "bg-blue-50/10",
+                        isHeaderRow && "bg-muted/60 text-foreground font-semibold",
+                        isHeaderHighlighted && "bg-brand-blue/10",
                         hasError && "border-b-red-500/20",
-                        isEditableCell && "cursor-pointer hover:bg-zinc-800/60 group/cell",
-                        isEditing && "p-0 bg-zinc-800"
+                        isEditableCell && "cursor-pointer hover:bg-muted/60 group/cell",
+                        isEditing && "p-0 bg-muted"
                       );
 
                       // Editing mode - show input
@@ -430,7 +430,7 @@ export default function ExcelViewer({
                               onChange={(e) => setEditValue(e.target.value)}
                               onKeyDown={handleKeyDown}
                               onBlur={commitEdit}
-                              className="w-full h-full px-3 py-2 bg-zinc-800 text-white text-xs border-2 border-brand-blue outline-none"
+                              className="w-full h-full px-3 py-2 bg-muted text-foreground text-xs border-2 border-brand-blue outline-none"
                             />
                           </td>
                         );
@@ -443,7 +443,7 @@ export default function ExcelViewer({
                         content = (
                           <div className="flex items-center gap-2 group/edit">
                             <span className="flex-1 whitespace-pre-wrap break-words">{cellValue}</span>
-                            <Pencil className="w-3 h-3 text-zinc-600 opacity-0 group-hover/cell:opacity-100 transition-opacity shrink-0" />
+                            <Pencil className="w-3 h-3 text-muted-foreground opacity-0 group-hover/cell:opacity-100 transition-opacity shrink-0" />
                           </div>
                         );
                       }
