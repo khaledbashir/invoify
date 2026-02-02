@@ -275,6 +275,8 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         // We only use quoteItems to look up the CONFIRMED PRICE.
         // The Name and Description come directly from the Screen state.
 
+        const quoteItems = (((details as any)?.quoteItems || []) as any[]).filter(Boolean);
+
         console.log("PDF RENDER - Screens:", screens);
 
         const buildScreenItem = (screen: any, idx: number) => {
