@@ -216,43 +216,110 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const SimplePricingSection = () => {
         const softCostItems = internalAudit?.softCostItems || [];
         
+        const toWholeFeet = (value: any) => {
+            const n = Number(value);
+            if (!isFinite(n)) return "";
+            return `${Math.round(n)}'`;
+        };
+
+        const toExactFeet = (value: any) => {
+            const n = Number(value);
+            if (!isFinite(n)) return "";
+            return `${(Math.round(n * 100) / 100).toFixed(2)}'`;
+        };
+
+        const buildDescription = (screen: any) => {
+            const serviceType = (screen?.serviceType || "").toString().toLowerCase();
+            const serviceLabel = serviceType.includes("top") ? "Ribbon Display" : serviceType ? "Video Display" : "Display";
+
+            const heightFt = screen?.heightFt ?? screen?.height;
+            const widthFt = screen?.widthFt ?? screen?.width;
+            const pitchMm = screen?.pitchMm ?? screen?.pixelPitch;
+            const qty = screen?.quantity || 1;
+
+            const label = (screen?.externalName || screen?.name || "Display").toString().trim() || "Display";
+            const parts: string[] = [];
+            parts.push(`${label} - ${serviceLabel}`);
+
+            if (heightFt != null && widthFt != null && Number(heightFt) > 0 && Number(widthFt) > 0) {
+                parts.push(`${toWholeFeet(heightFt)} H x ${toWholeFeet(widthFt)} W`);
+                parts.push(`${toExactFeet(heightFt)} H x ${toExactFeet(widthFt)} W`);
+            }
+
+            if (pitchMm != null && Number(pitchMm) > 0) {
+                parts.push(`${Math.round(Number(pitchMm))}mm`);
+            }
+
+            parts.push(`QTY ${qty}`);
+            return parts.filter(Boolean).join(" - ");
+        };
+
+        const lineItems = [
+            ...(screens || []).map((screen: any, idx: number) => {
+                const auditRow = isSharedView
+                    ? null
+                    : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+                const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
+                return {
+                    key: `screen-${screen?.id || screen?.name || idx}`,
+                    locationName: getScreenLabel(screen).toUpperCase(),
+                    description: buildDescription(screen),
+                    price: Number(price) || 0,
+                };
+            }).filter((it) => Math.abs(it.price) >= 0.01),
+            ...softCostItems
+                .map((item: any, idx: number) => {
+                    const sell = Number(item?.sell || 0);
+                    return {
+                        key: `soft-${idx}`,
+                        locationName: (item?.name || "Item").toString().toUpperCase(),
+                        description: (item?.description || "").toString(),
+                        price: sell,
+                    };
+                })
+                .filter((it: any) => Math.abs(it.price) >= 0.01),
+        ];
+
+        const subtotal = lineItems.reduce((sum: number, it: any) => sum + (Number(it.price) || 0), 0);
+
         return (
-            <div className="mb-8">
-                <table className="w-full text-[11px] border-collapse">
-                    <thead>
-                        <tr className="border-b-2 border-black">
-                            <th className="p-2 pl-4 text-left font-bold text-black uppercase">Item</th>
-                            <th className="p-2 pr-4 text-right font-bold text-black uppercase">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {/* LED Display Screens */}
-                        {screens.map((screen: any, idx: number) => {
-                            const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
-                            const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
-                            if (Math.abs(Number(price) || 0) < 0.01) return null;
-                            
-                            return (
-                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                    <td className="p-2 pl-4 text-gray-900 font-medium">{getScreenLabel(screen)}</td>
-                                    <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(price)}</td>
-                                </tr>
-                            );
-                        })}
-                        
-                        {/* Soft Cost Items (Structure, Install, Labor, etc.) */}
-                        {softCostItems.map((item: any, idx: number) => {
-                            const sell = Number(item?.sell || 0);
-                            if (Math.abs(sell) < 0.01) return null;
-                            return (
-                                <tr key={`soft-${idx}`} className={(screens.length + idx) % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                    <td className="p-2 pl-4 text-gray-700">{item.name}</td>
-                                    <td className="p-2 pr-4 text-right text-gray-900 font-bold">{formatCurrency(sell)}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            <div className="mt-6 mb-8">
+                <div className="flex items-end justify-between border-b border-black pb-2">
+                    <div className="text-lg font-bold text-black">Project Total</div>
+                    <div className="text-lg font-bold text-black">Pricing</div>
+                </div>
+
+                <div className="mt-4 space-y-4">
+                    {lineItems.map((it: any, idx: number) => (
+                        <div
+                            key={it.key}
+                            className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                        >
+                            <div className="grid grid-cols-[1fr_auto] gap-6 px-6 py-4">
+                                <div>
+                                    <div className="text-[13px] font-bold text-black uppercase tracking-wide">
+                                        {it.locationName}
+                                    </div>
+                                    <div className="mt-1 text-[12px] text-gray-500 leading-relaxed">
+                                        {it.description}
+                                    </div>
+                                </div>
+                                <div className="text-[13px] font-bold text-black whitespace-nowrap self-center">
+                                    {formatCurrency(it.price)}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                    <div className="w-full max-w-[360px]">
+                        <div className="flex justify-between items-center text-[13px] font-bold text-gray-500">
+                            <span className="uppercase">Subtotal:</span>
+                            <span className="text-black">{formatCurrency(subtotal)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     };
@@ -421,16 +488,18 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 )}
 
                 {/* PROJECT GRAND TOTAL */}
-                <div className="mt-8 border-t-4 border-[#0A52EF] pt-4 flex justify-end">
-                    <div className="w-1/2">
-                        <div className="flex justify-between items-center py-2 border-b-2 border-black">
-                            <span className="font-bold text-sm uppercase text-black">Project Grand Total</span>
-                            <span className="font-bold text-lg text-black">
-                                {formatCurrency(isSharedView ? details?.totalAmount || 0 : totals?.finalClientTotal || details?.totalAmount || 0)}
-                            </span>
+                {(!showPricingTables || includePricingBreakdown) && (
+                    <div className="mt-8 border-t-4 border-[#0A52EF] pt-4 flex justify-end">
+                        <div className="w-1/2">
+                            <div className="flex justify-between items-center py-2 border-b-2 border-black">
+                                <span className="font-bold text-sm uppercase text-black">Project Grand Total</span>
+                                <span className="font-bold text-lg text-black">
+                                    {formatCurrency(isSharedView ? details?.totalAmount || 0 : totals?.finalClientTotal || details?.totalAmount || 0)}
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {isLOI && (
