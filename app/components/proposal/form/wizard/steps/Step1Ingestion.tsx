@@ -9,18 +9,18 @@ import { AiWand, FormInput } from "@/app/components";
 import { cn } from "@/lib/utils";
 
 const Step1Ingestion = () => {
-    const { 
-        importANCExcel, 
-        excelImportLoading, 
-        excelPreview, 
-        excelPreviewLoading, 
-        excelValidationOk, 
-        uploadRfpDocument, 
-        rfpDocuments, 
-        deleteRfpDocument, 
-        aiWorkspaceSlug 
+    const {
+        importANCExcel,
+        excelImportLoading,
+        excelPreview,
+        excelPreviewLoading,
+        excelValidationOk,
+        uploadRfpDocument,
+        rfpDocuments,
+        deleteRfpDocument,
+        aiWorkspaceSlug
     } = useProposalContext();
-    
+
     const { getValues } = useFormContext();
     const [rfpUploading, setRfpUploading] = useState(false);
     const [showDetails, setShowDetails] = useState(!excelPreview);
@@ -39,27 +39,27 @@ const Step1Ingestion = () => {
     }, [excelPreview, getValues]);
 
     return (
-        <div className="h-full flex flex-col bg-zinc-950/50">
+        <div className="h-full flex flex-col bg-background/20">
             {/* Minimalist Header / Toolbar */}
-            <div className="shrink-0 border-b border-zinc-800/50 bg-zinc-900/40 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+            <div className="shrink-0 border-b border-border bg-background/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
                 <div>
-                    <h1 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
+                    <h1 className="text-lg font-semibold text-foreground tracking-tight flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-blue shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
                         Ingestion Studio
                     </h1>
-                    <p className="text-zinc-500 text-xs mt-0.5">
+                    <p className="text-muted-foreground text-xs mt-0.5">
                         {excelPreview ? "Reviewing Excel Data" : "Initialize Project & Upload Data"}
                     </p>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
-                     <button 
+                    <button
                         onClick={() => setShowDetails(!showDetails)}
                         className={cn(
                             "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border",
-                            showDetails 
-                                ? "bg-zinc-800 text-zinc-200 border-zinc-700" 
-                                : "bg-transparent text-zinc-400 border-transparent hover:bg-zinc-800/50"
+                            showDetails
+                                ? "bg-muted text-foreground border-border"
+                                : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/50"
                         )}
                     >
                         <Settings2 className="w-3.5 h-3.5" />
@@ -86,25 +86,25 @@ const Step1Ingestion = () => {
 
             <div className="flex-1 overflow-hidden flex flex-col">
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                    
+
                     {/* Collapsible Project Details */}
                     {showDetails && (
                         <div className="animate-in slide-in-from-top-2 duration-300">
-                            <div className="p-5 rounded-xl border border-zinc-800/70 bg-zinc-900/30">
+                            <div className="p-5 rounded-xl border border-border bg-muted/30">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <FormInput
                                         vertical
                                         name="details.proposalName"
                                         label="Project Name"
                                         placeholder="e.g., WVU Athletics LED Upgrade"
-                                        className="bg-zinc-950/50 border-zinc-800 focus:border-brand-blue/50 transition-colors"
+                                        className="bg-background border-input focus:border-brand-blue/50 transition-colors"
                                     />
                                     <FormInput
                                         vertical
                                         name="receiver.name"
                                         label="Client Name"
                                         placeholder="e.g., WVU Athletics"
-                                        className="bg-zinc-950/50 border-zinc-800 focus:border-brand-blue/50 transition-colors"
+                                        className="bg-background border-input focus:border-brand-blue/50 transition-colors"
                                         rightElement={
                                             <AiWand
                                                 fieldName="receiver.name"
@@ -119,7 +119,7 @@ const Step1Ingestion = () => {
                                                 name="receiver.address"
                                                 label="Address"
                                                 placeholder="Street address"
-                                                className="bg-zinc-950/50 border-zinc-800"
+                                                className="bg-background border-input"
                                             />
                                         </div>
                                         <FormInput
@@ -127,14 +127,14 @@ const Step1Ingestion = () => {
                                             name="receiver.city"
                                             label="City"
                                             placeholder="City"
-                                            className="bg-zinc-950/50 border-zinc-800"
+                                            className="bg-background border-input"
                                         />
                                         <FormInput
                                             vertical
                                             name="receiver.zipCode"
                                             label="Zip"
                                             placeholder="Zip code"
-                                            className="bg-zinc-950/50 border-zinc-800"
+                                            className="bg-background border-input"
                                         />
                                     </div>
                                 </div>
@@ -147,7 +147,7 @@ const Step1Ingestion = () => {
                         /* Empty State / Upload Mode */
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[500px]">
                             {/* Excel Upload Card */}
-                            <div className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-900/40 hover:border-brand-blue/30 transition-all duration-300 flex flex-col items-center justify-center text-center p-8 cursor-pointer border-dashed">
+                            <div className="group relative rounded-2xl border border-border bg-card hover:bg-muted/50 hover:border-brand-blue/30 transition-all duration-300 flex flex-col items-center justify-center text-center p-8 cursor-pointer border-dashed">
                                 <input
                                     type="file"
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -160,12 +160,12 @@ const Step1Ingestion = () => {
                                 <div className="w-16 h-16 rounded-2xl bg-brand-blue/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
                                     <FileSpreadsheet className="w-8 h-8 text-brand-blue" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Upload Excel Estimate</h3>
-                                <p className="text-zinc-500 text-sm max-w-xs">
+                                <h3 className="text-xl font-bold text-foreground mb-2">Upload Excel Estimate</h3>
+                                <p className="text-muted-foreground text-sm max-w-xs">
                                     Drag and drop your standard .xlsx file here to initialize the mirror mode.
                                 </p>
                                 {excelImportLoading && (
-                                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
+                                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
                                         <div className="flex flex-col items-center gap-3">
                                             <Zap className="w-6 h-6 text-brand-blue animate-pulse" />
                                             <span className="text-brand-blue font-medium text-sm">Processing Excel...</span>
@@ -225,7 +225,7 @@ const Step1Ingestion = () => {
                                         {excelValidationOk ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
                                         <span className="font-medium">{excelValidationOk ? "Excel Validated" : "Validation Issues"}</span>
                                     </div>
-                                    
+
                                     {/* RFP Quick Upload in Preview Mode */}
                                     <div className="flex items-center gap-2">
                                         <label className="cursor-pointer text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5">
@@ -264,10 +264,10 @@ const Step1Ingestion = () => {
                             </div>
 
                             {/* Maximized Viewer - Editable */}
-                            <div className="flex-1 min-h-0 rounded-xl border border-zinc-800/50 bg-zinc-950 shadow-2xl overflow-hidden relative group">
+                            <div className="flex-1 min-h-0 rounded-xl border border-border bg-card shadow-2xl overflow-hidden relative group">
                                 <ExcelViewer editable />
                                 <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    <div className="bg-zinc-950/80 backdrop-blur text-[10px] text-zinc-500 px-2 py-1 rounded border border-zinc-800">
+                                    <div className="bg-background/80 backdrop-blur text-[10px] text-muted-foreground px-2 py-1 rounded border border-border">
                                         Double-click to edit • Changes sync to PDF
                                     </div>
                                 </div>
