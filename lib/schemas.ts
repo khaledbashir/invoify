@@ -236,6 +236,7 @@ const ProposalDetailsSchema = z.object({
     items: z.array(ItemSchema),
     // Screens (ANC-specific estimator inputs)
     screens: z.array(z.object({
+        id: fieldValidators.stringOptional,
         name: fieldValidators.stringMin1, // Changed to "Internal Shorthand"
         externalName: fieldValidators.stringOptional, // Professional Client Name
         customDisplayName: fieldValidators.stringOptional, // Manual override for PDF Preview
