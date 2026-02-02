@@ -291,15 +291,13 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
             // 3. Price Lookup (Preserve Pricing)
             // Find the matching quote item ONLY for the price
+            // PRIORITY 1: ID Match
+            // PRIORITY 2: Location Name Match
+            // PRIORITY 3: Index Match (Direct structural mapping)
             const matchingQuoteItem = quoteItems.find((q: any) =>
                 (screen.id && q.id === screen.id) ||
                 (q.locationName === screen.name)
-            );
-
-            // Fallback to calculated price if no quote item (e.g. before save)
-            const auditRow = isSharedView
-                ? null
-                : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+            ) || quoteItems[idx]; // Fallback to index if no ID/Name match
 
             const price = matchingQuoteItem
                 ? (Number(matchingQuoteItem.price) || 0)

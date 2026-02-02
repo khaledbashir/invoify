@@ -45,7 +45,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
         <>
             {head}
             <section style={{ fontFamily: "'Inter', 'Work Sans', system-ui, sans-serif", position: 'relative' }}>
-                <div className="block p-4 sm:p-10 bg-white min-h-[1056px] text-[#1a1a1a] relative overflow-hidden">
+                <div className="block p-4 sm:p-10 bg-white dark:bg-white !bg-white text-[#1a1a1a] dark:text-[#1a1a1a] !text-black relative overflow-hidden print:bg-white">
                     <BrandSlashes className="absolute -top-10 -right-10" width={220} height={220} opacity={0.18} count={10} />
                     {/* Draft Watermark Safeguard */}
                     {details.status === 'DRAFT' && (
@@ -66,12 +66,12 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
                                 <p className="text-[9px] font-bold text-[#0A52EF] tracking-wide">www.anc.com/contact</p>
                                 <p className="text-[7px] text-zinc-400 tracking-wider">NY 914.696.2100 TX 940.464.2320</p>
                             </div>
-                            <img 
-                                src={`${process.env.NEXT_PUBLIC_BASE_URL || "https://basheer-natalia.prd42b.easypanel.host"}/ANC_Logo_2023_blue.png`} 
-                                alt="ANC" 
-                                width={48} 
-                                height={24} 
-                                style={{ width: '48px', height: '24px', objectFit: 'contain' }} 
+                            <img
+                                src={`${process.env.NEXT_PUBLIC_BASE_URL || "https://basheer-natalia.prd42b.easypanel.host"}/ANC_Logo_2023_blue.png`}
+                                alt="ANC"
+                                width={48}
+                                height={24}
+                                style={{ width: '48px', height: '24px', objectFit: 'contain' }}
                             />
                         </div>
                     )}
