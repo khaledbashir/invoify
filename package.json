@@ -37,6 +37,8 @@
         "@react-email/tailwind": "^0.0.12",
         "@types/bcrypt": "^6.0.0",
         "@types/node": "20.6.2",
+        "ag-grid-community": "^35.0.1",
+        "ag-grid-react": "^35.0.1",
         "autoprefixer": "10.4.15",
         "bcrypt": "^6.0.0",
         "class-variance-authority": "^0.7.0",

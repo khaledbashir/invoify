@@ -240,6 +240,10 @@ const ProposalDetailsSchema = z.object({
         name: fieldValidators.stringMin1, // Changed to "Internal Shorthand"
         externalName: fieldValidators.stringOptional, // Professional Client Name
         customDisplayName: fieldValidators.stringOptional, // Manual override for PDF Preview
+        sourceRef: z.object({
+            sheet: z.string(),
+            row: z.number().int().positive(),
+        }).optional(),
         productType: fieldValidators.string.optional(),
         widthFt: z.coerce.number().nonnegative().optional(),
         heightFt: z.coerce.number().nonnegative().optional(),

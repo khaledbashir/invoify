@@ -32,6 +32,11 @@ function toNumberLoose(value: string) {
   return Number.isFinite(n) ? n : null;
 }
 
+function isAlternateRowLabel(label: string) {
+  const v = String(label ?? "").trim().toLowerCase();
+  return /^(alt(\b|[^a-z])|alternate(\b|[^a-z]))/.test(v);
+}
+
 function getLedHeaderRowIndex(grid: string[][]) {
   for (let r = 0; r < Math.min(grid.length, 20); r++) {
     const rowText = grid[r].join(" ").toLowerCase();
@@ -224,8 +229,7 @@ export default function ExcelViewer({
 
     for (let r = ledHeaderRowIndex + 1; r < grid.length; r++) {
       const row = grid[r] || [];
-      const rowTextUpper = row.join(" ").toUpperCase();
-      const isAlt = rowTextUpper.includes("ALT");
+      const isAlt = isAlternateRowLabel(row[finalNameColIndex] || row[0] || "");
       const isHidden = !!hiddenRows[r];
       if (isAlt || isHidden) continue;
 
@@ -350,8 +354,9 @@ export default function ExcelViewer({
             </colgroup>
             <tbody>
               {activeSheet.grid.map((row, r) => {
-                const rowTextUpper = row.join(" ").toUpperCase();
-                const isAlt = rowTextUpper.includes("ALT");
+                const isAlt = isLedCostSheetActive
+                  ? isAlternateRowLabel(row[0] || "")
+                  : isAlternateRowLabel(row.join(" "));
                 const isHidden = !!activeSheet.hiddenRows[r];
                 const isGhosted = isAlt || isHidden;
                 const rowErrors = validationSummary?.rowErrors.get(r);

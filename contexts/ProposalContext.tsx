@@ -1655,8 +1655,8 @@ export const ProposalContextProvider = ({
           for (let r = headerRowIndex + 1; r < grid.length; r++) {
             const row = grid[r];
             const nameCell = row[requiredCols.a] || "";
-            const rowText = row.join(" ").toUpperCase();
-            const isAlt = rowText.includes("ALT");
+            const nameCellNorm = String(nameCell ?? "").trim();
+            const isAlt = /^(alt(\b|[^a-z])|alternate(\b|[^a-z]))/i.test(nameCellNorm);
             if (hiddenRows[r] || isAlt) continue;
             const isRowActive = String(nameCell).trim() !== "";
             if (!isRowActive) continue;
@@ -1717,6 +1717,30 @@ export const ProposalContextProvider = ({
   const updateExcelCell = useCallback((sheetName: string, row: number, col: number, value: string) => {
     if (!excelPreview) return;
 
+    const ledSheet = excelPreview.sheets.find((s) => {
+      const n = s.name.toLowerCase();
+      return n.includes("led cost sheet") || (n.includes("led") && n.includes("sheet"));
+    }) || null;
+
+    const isLedEdit = !!ledSheet && ledSheet.name === sheetName;
+    let ledHeaderRowIndex = -1;
+    let ledHeaderRow: string[] | null = null;
+
+    if (isLedEdit) {
+      const grid = ledSheet.grid;
+      for (let r = 0; r < Math.min(grid.length, 15); r++) {
+        const rowText = grid[r].join(" ").toLowerCase();
+        if (rowText.includes("display name") || rowText.includes("display")) {
+          ledHeaderRowIndex = r;
+          ledHeaderRow = grid[r] || [];
+          break;
+        }
+      }
+      if (ledHeaderRowIndex === row && ledHeaderRow) {
+        ledHeaderRow = ledHeaderRow.map((c, ci) => (ci === col ? value : c));
+      }
+    }
+
     // Update the Excel preview grid
     setExcelPreview(prev => {
       if (!prev) return prev;
@@ -1736,52 +1760,52 @@ export const ProposalContextProvider = ({
       return { ...prev, sheets: newSheets };
     });
 
-    // Find the LED Cost Sheet to sync changes to form data
-    const ledSheet = excelPreview.sheets.find(s => {
-      const n = s.name.toLowerCase();
-      return n.includes("led cost sheet") || (n.includes("led") && n.includes("sheet"));
-    });
-
-    if (!ledSheet || ledSheet.name !== sheetName) return;
-
-    // Find header row to determine column meanings
-    const headerRow = ledSheet.grid.find((r, i) => {
-      const text = r.join(" ").toLowerCase();
-      return text.includes("display name") || text.includes("display");
-    });
-    const headerRowIndex = ledSheet.grid.indexOf(headerRow || []);
-    if (headerRowIndex < 0 || row <= headerRowIndex) return;
+    if (!isLedEdit) return;
+    if (ledHeaderRowIndex < 0 || row <= ledHeaderRowIndex) return;
 
     // Map column indices to field names
-    const header = headerRow || [];
+    const header = ledHeaderRow || [];
     const colName = (header[col] || "").toLowerCase().trim();
 
-    // Get current screens
     const screens = getValues("details.screens") || [];
-    const screenIndex = row - headerRowIndex - 1; // Adjust for header
+    const rowOneBased = row + 1;
+    const hasAnySourceRef = screens.some((s: any) => s?.sourceRef?.sheet && s?.sourceRef?.row);
 
-    if (screenIndex < 0 || screenIndex >= screens.length) return;
+    let screenIndex = -1;
+    if (hasAnySourceRef) {
+      screenIndex = screens.findIndex((s: any) => s?.sourceRef?.sheet === sheetName && s?.sourceRef?.row === rowOneBased);
+      if (screenIndex < 0) {
+        showError("Excel Sync Error", "Edited row does not map to an imported screen. Re-import the Excel to resync.");
+        return;
+      }
+    } else {
+      screenIndex = row - ledHeaderRowIndex - 1;
+      if (screenIndex < 0 || screenIndex >= screens.length) return;
+    }
 
     // Map Excel column to form field
     // IMPORTANT: "Display Name" is client-facing; keep `name` stable for audit matching.
     const fieldMap: Record<string, string> = {
       "display name": "externalName",
       "display": "externalName",
-      "height": "height",
-      "h": "height",
-      "width": "width",
-      "w": "width",
+      "height": "heightFt",
+      "h": "heightFt",
+      "width": "widthFt",
+      "w": "widthFt",
       "qty": "quantity",
       "quantity": "quantity",
-      "unit price": "unitPrice",
-      "price": "unitPrice",
+      "mm pitch": "pitchMm",
+      "pitch": "pitchMm",
+      "pixel pitch": "pitchMm",
+      "brightness": "brightness",
+      "nits": "brightness",
     };
 
     const fieldName = fieldMap[colName];
     if (fieldName) {
       const fieldPath = `details.screens.${screenIndex}.${fieldName}` as any;
       // Convert to number for numeric fields
-      if (["height", "width", "quantity", "unitPrice"].includes(fieldName)) {
+      if (["heightFt", "widthFt", "quantity", "pitchMm"].includes(fieldName)) {
         const numValue = parseFloat(value.replace(/[^\d.-]/g, ""));
         if (!isNaN(numValue)) {
           setValue(fieldPath, numValue, { shouldDirty: true, shouldValidate: true });
@@ -1790,7 +1814,7 @@ export const ProposalContextProvider = ({
         setValue(fieldPath, value, { shouldDirty: true, shouldValidate: true });
       }
     }
-  }, [excelPreview, getValues, setValue]);
+  }, [excelPreview, getValues, setValue, showError]);
 
   /**
    * Import an proposal from a JSON file.

@@ -13,6 +13,11 @@ interface ParsedANCProposal {
     excelData: any;
 }
 
+function isAlternateRowLabel(label: string) {
+    const v = (label ?? "").toString().trim().toLowerCase();
+    return /^(alt(\b|[^a-z])|alternate(\b|[^a-z]))/.test(v);
+}
+
 /**
  * Parses the ANC Master Excel spreadsheet to extract pre-calculated proposal data.
  * Focuses on 'LED Sheet', 'Install (In-Bowl)', and 'Install (Concourse)' tabs.
@@ -21,7 +26,8 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
     const workbook = xlsx.read(buffer, { type: 'buffer' });
 
     // 1. Primary Data Source: "LED Sheet" (New format) or "LED Cost Sheet" (Legacy fallback)
-    const ledSheet = workbook.Sheets['LED Sheet'] || workbook.Sheets['LED Cost Sheet'];
+    const ledSheetName = workbook.Sheets['LED Sheet'] ? 'LED Sheet' : 'LED Cost Sheet';
+    const ledSheet = workbook.Sheets[ledSheetName];
     if (!ledSheet) throw new Error('Sheet "LED Sheet" or "LED Cost Sheet" not found');
     const ledData: any[][] = xlsx.utils.sheet_to_json(ledSheet, { header: 1 });
 
@@ -201,7 +207,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
         ) {
             // REQ-111: Alternate Row Filter (Natalia Math)
             // PRD: Rows starting with "ALT" or "Alternate" must be skipped to prevent inflated Base Bid.
-            if (normalizedName.startsWith('alt') || normalizedName.startsWith('alternate')) {
+            if (isAlternateRowLabel(projectName)) {
                 console.log(`[MIRROR MODE] Skipping Alternate Row: "${projectName}"`);
                 altRowsSkipped++;
                 continue;
@@ -240,6 +246,7 @@ export async function parseANCExcel(buffer: Buffer, fileName?: string): Promise<
             const screen: any = {
                 name: projectName,
                 rowIndex: i + 1,
+                sourceRef: { sheet: ledSheetName, row: i + 1 },
                 pitchMm: formatDimension(pitch),
                 heightFt: formatDimension(heightFt),
                 widthFt: formatDimension(widthFt),
@@ -542,7 +549,7 @@ function parseMarginAnalysisRows(data: any[][]) {
             continue;
         }
 
-        const isAlternate = isInAlternates || labelNorm.startsWith("alt") || labelNorm.startsWith("alternate");
+        const isAlternate = isInAlternates || isAlternateRowLabel(label);
 
         rows.push({
             name: label,
