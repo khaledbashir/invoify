@@ -294,8 +294,20 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     key: it.id || `quote-${idx}`,
                     ...(() => {
                         const rawLocation = (it.locationName || "ITEM").toString();
-                        const split = splitDisplayNameAndSpecs(rawLocation);
-                        const header = (split.header || rawLocation).toString();
+
+                        // Try to find matching screen to check for customDisplayName
+                        const matchingScreen = screens.find((s: any) => s.id === it.id);
+                        const customOverride = matchingScreen?.customDisplayName;
+
+                        // If override exists, use it as the header
+                        const effectiveLocation = customOverride || rawLocation;
+
+                        const split = splitDisplayNameAndSpecs(effectiveLocation);
+                        const header = (split.header || effectiveLocation).toString();
+
+                        // If we are using the rawLocation, strip it from description to avoid dupes.
+                        // If we are using customOverride, we might still want to strip the original location if it was in the description?
+                        // For safety, let's just strip the header we settled on.
                         const desc = stripLeadingLocation(header, (it.description || "").toString());
                         const combined = [split.specs, desc].filter(Boolean).join(" ").trim();
                         return {
