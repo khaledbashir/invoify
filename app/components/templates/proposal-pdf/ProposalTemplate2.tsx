@@ -284,42 +284,40 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
         return (
             <div className="mt-6 mb-8">
-                <div className="flex items-end justify-between border-b border-black pb-2">
-                    <div className="text-lg font-bold text-black">Project Total</div>
-                    <div className="text-lg font-bold text-black">Pricing</div>
+                <div className="flex justify-between border-b-2 border-black pb-2 mb-4">
+                    <h2 className="text-2xl font-bold tracking-tight text-black">Project Total</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-black">Pricing</h2>
                 </div>
 
-                <div className="mt-4 space-y-4">
+                <div className="space-y-0">
                     {lineItems.map((it: any, idx: number) => (
                         <div
                             key={it.key}
-                            className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                            className={`${idx % 2 === 1 ? "bg-black/5" : ""} flex justify-between items-start py-6 px-4 -mx-4`}
                         >
-                            <div className="grid grid-cols-[1fr_auto] gap-6 px-6 py-4">
-                                <div>
-                                    <div className="text-[13px] font-bold text-black uppercase tracking-wide">
-                                        {it.locationName}
-                                    </div>
-                                    <div className="mt-1 text-[12px] text-gray-500 leading-relaxed">
-                                        {it.description}
-                                    </div>
-                                </div>
-                                <div className="text-[13px] font-bold text-black whitespace-nowrap self-center">
+                            <div className="max-w-2xl">
+                                <h3 className="font-bold text-[13px] uppercase tracking-widest mb-2 text-black">
+                                    {it.locationName}
+                                </h3>
+                                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                                    {it.description}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <span className="font-bold text-lg text-black whitespace-nowrap">
                                     {formatCurrency(it.price)}
-                                </div>
+                                </span>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="mt-6 flex justify-end">
-                    <div className="w-full max-w-[360px]">
-                        <div className="flex justify-between items-center text-[13px] font-bold text-gray-500">
-                            <span className="uppercase">Subtotal:</span>
-                            <span className="text-black">{formatCurrency(subtotal)}</span>
-                        </div>
-                    </div>
+                <div className="mt-12 flex justify-end items-center space-x-12 border-t border-gray-100 pt-8">
+                    <span className="font-bold text-lg tracking-widest uppercase text-gray-600">Subtotal:</span>
+                    <span className="font-bold text-2xl text-black">{formatCurrency(subtotal)}</span>
                 </div>
+
+                <div className="mt-20 border-b-4 border-black w-24" />
             </div>
         );
     };

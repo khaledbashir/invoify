@@ -70,6 +70,11 @@ export async function generateProposalPdfServiceV2(req: NextRequest) {
 		}
 
 		page = await browser.newPage();
+		await page.setViewport({ width: 1200, height: 1697, deviceScaleFactor: 1 });
+		try {
+			await page.emulateMediaType("screen");
+		} catch {
+		}
 		await page.setContent(htmlTemplate, {
 			waitUntil: ["domcontentloaded", "load"],
 			timeout: 60000,
@@ -79,6 +84,10 @@ export async function generateProposalPdfServiceV2(req: NextRequest) {
 			await page.addStyleTag({ url: TAILWIND_CDN });
 		} catch (e) {
 			console.error("Failed to load Tailwind CDN CSS, continuing without it");
+		}
+		try {
+			await page.evaluate(() => (document as any).fonts?.ready);
+		} catch {
 		}
 
 		const pdf: Uint8Array = await page.pdf({
