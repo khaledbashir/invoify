@@ -1763,9 +1763,10 @@ export const ProposalContextProvider = ({
     if (screenIndex < 0 || screenIndex >= screens.length) return;
 
     // Map Excel column to form field
+    // IMPORTANT: "Display Name" is client-facing; keep `name` stable for audit matching.
     const fieldMap: Record<string, string> = {
-      "display name": "name",
-      "display": "name",
+      "display name": "externalName",
+      "display": "externalName",
       "height": "height",
       "h": "height",
       "width": "width",
@@ -1783,10 +1784,10 @@ export const ProposalContextProvider = ({
       if (["height", "width", "quantity", "unitPrice"].includes(fieldName)) {
         const numValue = parseFloat(value.replace(/[^\d.-]/g, ""));
         if (!isNaN(numValue)) {
-          setValue(fieldPath, numValue);
+          setValue(fieldPath, numValue, { shouldDirty: true, shouldValidate: true });
         }
       } else {
-        setValue(fieldPath, value);
+        setValue(fieldPath, value, { shouldDirty: true, shouldValidate: true });
       }
     }
   }, [excelPreview, getValues, setValue]);

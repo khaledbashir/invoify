@@ -79,13 +79,16 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     };
 
     const getScreenLabel = (screen: any) => {
-        const label = (screen?.externalName || screen?.name || "Display").toString().trim();
+        const label = (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
         const split = splitDisplayNameAndSpecs(label);
         const header = split.header || label;
         return header.length > 0 ? header : "Display";
     };
 
     const getScreenHeader = (screen: any) => {
+        const customName = (screen?.customDisplayName || "").toString().trim();
+        if (customName) return customName;
+
         const externalName = (screen?.externalName || "").toString().trim();
         if (externalName) return externalName;
 
@@ -111,7 +114,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
         <div className="text-center mb-6 mt-8">
-            <h2 className="text-xl font-medium tracking-[0.2em] text-gray-500 uppercase" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>{title}</h2>
+            <h2 className="text-xl font-medium tracking-[0.2em] text-gray-500 uppercase font-sans">{title}</h2>
         </div>
     );
 
@@ -120,10 +123,10 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         <div className="mb-8 break-inside-avoid">
             {/* Header Bar */}
             <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
-                <h3 className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>{getScreenHeader(screen)}</h3>
-                <span className="font-bold text-sm uppercase text-[#0A52EF]" style={{ fontFamily: "'Work Sans', sans-serif" }}>Specifications</span>
+                <h3 className="font-bold text-sm uppercase text-[#0A52EF] font-sans">{getScreenHeader(screen)}</h3>
+                <span className="font-bold text-sm uppercase text-[#0A52EF] font-sans">Specifications</span>
             </div>
-            <table className="w-full text-[11px] border-collapse" style={{ fontFamily: "'Work Sans', sans-serif" }}>
+            <table className="w-full text-[11px] border-collapse font-sans">
                 <tbody>
                     <tr className="bg-white border-b border-gray-200 last:border-b-0">
                         <td className="p-1.5 pl-4 text-gray-700 w-2/3">MM Pitch</td>
@@ -178,7 +181,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const DetailedPricingTable = ({ screen }: { screen: any }) => {
         const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
         const b = auditRow?.breakdown;
-        
+
         const getPrice = (category: string) => {
             if (b) return b[category] || 0;
             return 0;
@@ -230,7 +233,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     // Simple Pricing Section - Shows Name + Total Price only (when toggle is OFF)
     const SimplePricingSection = () => {
         const softCostItems = internalAudit?.softCostItems || [];
-        
+
         const toWholeFeet = (value: any) => {
             const n = Number(value);
             if (!isFinite(n)) return "";
@@ -308,7 +311,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             ? null
                             : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
                         const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
-                        const label = (screen?.externalName || screen?.name || "Display").toString().trim();
+                        const label = (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
                         const split = splitDisplayNameAndSpecs(label);
                         return {
                             key: `screen-${screen?.id || screen?.name || idx}`,
@@ -343,17 +346,17 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                     {lineItems.map((it: any, idx: number) => (
                         <div
                             key={it.key}
-                            className={`${idx % 2 === 1 ? "bg-black/5" : ""} flex justify-between items-start py-6 px-4 -mx-4`}
+                            className={`${idx % 2 === 1 ? "bg-black/5" : ""} flex justify-between items-center py-5 px-4 -mx-4 gap-6`}
                         >
-                            <div className="max-w-2xl">
-                                <h3 className="font-bold text-[13px] uppercase tracking-widest mb-2 text-black font-sans">
+                            <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                <h3 className="font-bold text-[13px] uppercase tracking-widest mb-1 text-black font-sans">
                                     {it.locationName}
                                 </h3>
-                                <p className="text-sm text-gray-500 font-normal leading-relaxed">
+                                <p className="text-[12px] text-[#6B7280] font-normal leading-relaxed pl-1">
                                     {it.description}
                                 </p>
                             </div>
-                            <div className="text-right">
+                            <div className="shrink-0 w-[170px] self-stretch flex items-center justify-end text-right">
                                 <span className="font-bold text-lg text-black whitespace-nowrap">
                                     {formatCurrency(it.price)}
                                 </span>

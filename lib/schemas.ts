@@ -238,6 +238,7 @@ const ProposalDetailsSchema = z.object({
     screens: z.array(z.object({
         name: fieldValidators.stringMin1, // Changed to "Internal Shorthand"
         externalName: fieldValidators.stringOptional, // Professional Client Name
+        customDisplayName: fieldValidators.stringOptional, // Manual override for PDF Preview
         productType: fieldValidators.string.optional(),
         widthFt: z.coerce.number().nonnegative().optional(),
         heightFt: z.coerce.number().nonnegative().optional(),

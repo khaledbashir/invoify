@@ -29,7 +29,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
             />
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link
-                href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap"
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Work+Sans:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap"
                 rel="stylesheet"
             ></link>
             {details.signature?.fontFamily && (
@@ -44,7 +44,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
     return (
         <>
             {head}
-            <section style={{ fontFamily: "'Work Sans', sans-serif", position: 'relative' }}>
+            <section style={{ fontFamily: "'Inter', 'Work Sans', system-ui, sans-serif", position: 'relative' }}>
                 <div className="block p-4 sm:p-10 bg-white min-h-[1056px] text-[#1a1a1a] relative overflow-hidden">
                     <BrandSlashes className="absolute -top-10 -right-10" width={220} height={220} opacity={0.18} count={10} />
                     {/* Draft Watermark Safeguard */}

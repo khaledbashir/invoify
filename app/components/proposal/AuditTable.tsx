@@ -94,6 +94,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
           const calc = calculateRow(screen);
           const screenForm = screens?.[idx] || {};
           const displayName = (
+            screenForm?.customDisplayName ||
             screenForm?.externalName ||
             screenForm?.name ||
             screen?.name ||
@@ -122,7 +123,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                         autoFocus
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            setValue(`details.screens.${idx}.externalName`, draft.trim(), { shouldDirty: true, shouldValidate: true });
+                            setValue(`details.screens.${idx}.customDisplayName`, draft.trim(), { shouldDirty: true, shouldValidate: true });
                             setEditIdx(null);
                           }
                           if (e.key === "Escape") {
@@ -134,7 +135,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                         type="button"
                         className="p-1 rounded hover:bg-zinc-800 text-zinc-300"
                         onClick={() => {
-                          setValue(`details.screens.${idx}.externalName`, draft.trim(), { shouldDirty: true, shouldValidate: true });
+                          setValue(`details.screens.${idx}.customDisplayName`, draft.trim(), { shouldDirty: true, shouldValidate: true });
                           setEditIdx(null);
                         }}
                         title="Save"
@@ -157,7 +158,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                         type="button"
                         className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white shrink-0"
                         onClick={() => {
-                          setDraft((screenForm?.externalName || displayName).toString());
+                          setDraft((screenForm?.customDisplayName || displayName).toString());
                           setEditIdx(idx);
                         }}
                         title="Edit display name"
