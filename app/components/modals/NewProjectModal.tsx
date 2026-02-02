@@ -85,7 +85,7 @@ export default function NewProjectModal({ children }: NewProjectModalProps) {
           {children}
         </div>
 
-        <DialogContent className="max-w-lg bg-zinc-950/80 backdrop-blur-2xl border border-zinc-800">
+        <DialogContent className="max-w-lg bg-background/95 backdrop-blur-2xl border border-border">
           <DialogHeader>
             <DialogTitle>Initialize AI Strategic Hub</DialogTitle>
             <DialogDescription>Create a new ANC workspace + initial proposal</DialogDescription>
@@ -102,12 +102,12 @@ export default function NewProjectModal({ children }: NewProjectModalProps) {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center gap-4 py-8">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3 }} className="w-12 h-12 rounded-full bg-zinc-900/40 flex items-center justify-center border border-zinc-800">
-                <div className="w-6 h-6 rounded-full bg-[#0A52EF]" />
+              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 3 }} className="w-12 h-12 rounded-full bg-muted/40 flex items-center justify-center border border-border">
+                <div className="w-6 h-6 rounded-full bg-brand-blue" />
               </motion.div>
               <div className="text-center">
-                <div className="text-zinc-200 font-medium">{steps[step]}</div>
-                <div className="text-zinc-500 text-sm mt-2">Initializing AI Strategic Hub. This may take a few seconds.</div>
+                <div className="text-foreground font-medium">{steps[step]}</div>
+                <div className="text-muted-foreground text-sm mt-2">Initializing AI Strategic Hub. This may take a few seconds.</div>
               </div>
               {error && (
                 <div className="w-full max-w-md rounded-lg border border-red-500/30 bg-red-950/20 px-4 py-3 text-xs text-red-200 break-words">
