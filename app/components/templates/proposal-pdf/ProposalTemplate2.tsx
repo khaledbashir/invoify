@@ -107,6 +107,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     // ===== TOGGLES FROM DETAILS =====
     const includePricingBreakdown = (details as any)?.includePricingBreakdown ?? true;
+    const showSpecifications = (details as any)?.showSpecifications ?? true;
     const showStatementOfWork = (details as any)?.showExhibitA ?? true; // showExhibitA controls Statement of Work
     const showSignatureBlock = (details as any)?.showSignatureBlock ?? true;
     const showPaymentTerms = (details as any)?.showPaymentTerms ?? true;
@@ -115,7 +116,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const DetailedPricingTable = ({ screen }: { screen: any }) => {
         const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
         const b = auditRow?.breakdown;
-        
+
         const getPrice = (category: string) => {
             if (b) return b[category] || 0;
             return 0;
@@ -179,7 +180,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     // Simple Pricing Section - Shows Name + Total Price only (when toggle is OFF)
     const SimplePricingSection = () => {
         const softCostItems = internalAudit?.softCostItems || [];
-        
+
         return (
             <div className="mb-8">
                 <table className="w-full text-[11px] border-collapse">
@@ -195,7 +196,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
                             const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
                             const displayName = screen.customDisplayName || screen.externalName || screen.name;
-                            
+
                             return (
                                 <tr key={idx} className={`${idx % 2 === 1 ? "bg-muted/20" : ""} border-b border-border last:border-b-0`}>
                                     <td className="p-1.5 pl-4 text-foreground font-medium">{displayName}</td>
@@ -203,7 +204,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                                 </tr>
                             );
                         })}
-                        
+
                         {/* Soft Cost Items (Structure, Install, Labor, etc.) */}
                         {softCostItems.map((item: any, idx: number) => (
                             <tr key={`soft-${idx}`} className={(screens.length + idx) % 2 === 0 ? "bg-white" : "bg-gray-50"}>
@@ -283,119 +284,120 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
             {/* 3. SPECIFICATIONS SECTION - Moved after pricing */}
             {showSpecifications && (
-            <div className="break-before-page px-4">
-                <SectionHeader title="SPECIFICATIONS" />
-                {screens && screens.length > 0 ? (
-                    screens.map((screen: any, idx: number) => (
-                        <SpecTable key={idx} screen={screen} />
-                    ))
-                ) : (
-                    <div className="text-center text-muted-foreground italic py-8">No screens configured.</div>
-                )}
-            </div>
+                <div className="break-before-page px-4">
+                    <SectionHeader title="SPECIFICATIONS" />
+                    {screens && screens.length > 0 ? (
+                        screens.map((screen: any, idx: number) => (
+                            <SpecTable key={idx} screen={screen} />
+                        ))
+                    ) : (
+                        <div className="text-center text-muted-foreground italic py-8">No screens configured.</div>
+                    )}
+                </div>
             )}
 
             {/* PROJECT CONSTRAINTS & ASSUMPTIONS - REMOVED per Natalia's feedback */}
 
             {/* 6. STATEMENT OF WORK - Toggle controlled */}
             {showStatementOfWork && (
-            <div className="break-before-page px-4">
-                <SectionHeader title="STATEMENT OF WORK" />
-                <div className="space-y-6 text-[10px] leading-relaxed text-gray-700">
-                    <section className="break-inside-avoid">
-                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">1. PHYSICAL INSTALLATION</h4>
-                        <div className="px-2 space-y-2">
-                            <p>ANC assumes all base building structure is to be provided by others or is existing and is of sufficient capacity to support the proposed display systems.</p>
-                            <p>ANC assumes reasonable access will be provided to the installation team and any unknown site conditions such as lane closures, site protection, permitting, etc. is not currently in this proposal.</p>
-                        </div>
-                    </section>
+                <div className="break-before-page px-4">
+                    <SectionHeader title="STATEMENT OF WORK" />
+                    <div className="space-y-6 text-[10px] leading-relaxed text-gray-700">
+                        <section className="break-inside-avoid">
+                            <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">1. PHYSICAL INSTALLATION</h4>
+                            <div className="px-2 space-y-2">
+                                <p>ANC assumes all base building structure is to be provided by others or is existing and is of sufficient capacity to support the proposed display systems.</p>
+                                <p>ANC assumes reasonable access will be provided to the installation team and any unknown site conditions such as lane closures, site protection, permitting, etc. is not currently in this proposal.</p>
+                            </div>
+                        </section>
 
-                    <section className="break-inside-avoid">
-                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">2. ELECTRICAL & DATA INSTALLATION</h4>
-                        <div className="px-2 space-y-2">
-                            <p>ANC assumes primary power feed will be provided by others or is existing, within 5' of the display location with sufficient amps; typically 208v 3-phase.</p>
-                            <p>ANC will provide data cabling and labor to pull cable from control location to the display(s).</p>
-                        </div>
-                    </section>
+                        <section className="break-inside-avoid">
+                            <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">2. ELECTRICAL & DATA INSTALLATION</h4>
+                            <div className="px-2 space-y-2">
+                                <p>ANC assumes primary power feed will be provided by others or is existing, within 5' of the display location with sufficient amps; typically 208v 3-phase.</p>
+                                <p>ANC will provide data cabling and labor to pull cable from control location to the display(s).</p>
+                            </div>
+                        </section>
 
-                    <section className="break-inside-avoid">
-                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">3. CONTROL SYSTEM</h4>
-                        <div className="px-2 space-y-2">
-                            <p>Installation and commissioning of the ANC vSOFT™ Control System or specified CMS platform.</p>
-                            <p>Includes configuration of screen layouts and zones per project specifications.</p>
-                        </div>
-                    </section>
+                        <section className="break-inside-avoid">
+                            <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">3. CONTROL SYSTEM</h4>
+                            <div className="px-2 space-y-2">
+                                <p>Installation and commissioning of the ANC vSOFT™ Control System or specified CMS platform.</p>
+                                <p>Includes configuration of screen layouts and zones per project specifications.</p>
+                            </div>
+                        </section>
 
-                    <section className="break-inside-avoid">
-                        <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">4. GENERAL CONDITIONS</h4>
-                        <div className="px-2 space-y-2">
-                            <p>Price includes one (1) round of submittals and engineering shop drawings.</p>
-                            <p>ANC has not included bonding of any kind unless specifically noted.</p>
-                            <p>Shipping included at current market rates; subject to change due to global logistics impacts.</p>
-                        </div>
-                    </section>
+                        <section className="break-inside-avoid">
+                            <h4 className="bg-black text-white font-bold py-1 px-2 mb-2 uppercase">4. GENERAL CONDITIONS</h4>
+                            <div className="px-2 space-y-2">
+                                <p>Price includes one (1) round of submittals and engineering shop drawings.</p>
+                                <p>ANC has not included bonding of any kind unless specifically noted.</p>
+                                <p>Shipping included at current market rates; subject to change due to global logistics impacts.</p>
+                            </div>
+                        </section>
+                    </div>
                 </div>
-            </div>
             )}
 
             {/* 7. SIGNATURES - Toggle controlled */}
             {showSignatureBlock && (
-            <div className="break-before-page px-4">
-                {/* REQ-112: Footer moved BEFORE signatures to ensure signatures are absolute final element */}
-                <div className="mb-12 pb-6 border-b border-gray-100 text-center">
-                    <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
-                    <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
-                    <div className="flex justify-center mt-6 opacity-20">
-                        <BrandSlashes count={3} width={50} height={15} />
+                <div className="break-before-page px-4">
+                    {/* REQ-112: Footer moved BEFORE signatures to ensure signatures are absolute final element */}
+                    <div className="mb-12 pb-6 border-b border-gray-100 text-center">
+                        <p className="text-[9px] text-gray-400 font-bold tracking-[0.2em] uppercase mb-1">ANC SPORTS ENTERPRISES, LLC</p>
+                        <p className="text-[8px] text-gray-400 font-medium">2 Manhattanville Road, Suite 402, Purchase, NY 10577  |  www.anc.com</p>
+                        <div className="flex justify-center mt-6 opacity-20">
+                            <BrandSlashes count={3} width={50} height={15} />
+                        </div>
                     </div>
-                </div>
 
-                {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
-                <div className="mt-12 break-inside-avoid">
-                    <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>
-                        Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
-                        <br /><br />
-                        If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
-                    </p>
-                    <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
+                    {/* REQ-112: Signature Block as Absolute Final Element - No content renders below this point */}
+                    <div className="mt-12 break-inside-avoid">
+                        <p className="text-[10px] text-gray-600 leading-relaxed text-justify mb-10" style={{ fontFamily: "'Helvetica Condensed', sans-serif" }}>
+                            Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.
+                            <br /><br />
+                            If, for any reason, Purchaser terminates this Agreement prior to the completion of the work, ANC will immediately cease all work and Purchaser will pay ANC for any work performed, work in progress, and materials purchased, if any. This document will be considered binding on both parties.
+                        </p>
+                        <h4 className="font-bold text-[11px] uppercase mb-8 border-b-2 border-black pb-1">Agreed To And Accepted:</h4>
 
-                    {/* Single Signature Block per Natalia feedback */}
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-2 gap-8">
-                            <div>
-                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">ANC SPORTS ENTERPRISES, LLC</p>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                        <div className="border-b border-black h-6" />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                        {/* Single Signature Block per Natalia feedback */}
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div>
+                                    <p className="font-bold text-[10px] text-[#0A52EF] mb-2">ANC SPORTS ENTERPRISES, LLC</p>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
                                             <div className="border-b border-black h-6" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-6" />
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                                <div className="border-b border-black h-6" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                                <div className="border-b border-black h-6" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div>
-                                <p className="font-bold text-[10px] text-[#0A52EF] mb-2">{receiver?.name || "PURCHASER"}</p>
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
-                                        <div className="border-b border-black h-6" />
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                <div>
+                                    <p className="font-bold text-[10px] text-[#0A52EF] mb-2">{receiver?.name || "PURCHASER"}</p>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">By:</p>
                                             <div className="border-b border-black h-6" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
-                                            <div className="border-b border-black h-6" />
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Title:</p>
+                                                <div className="border-b border-black h-6" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase mb-1">Date:</p>
+                                                <div className="border-b border-black h-6" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -403,7 +405,6 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                         </div>
                     </div>
                 </div>
-            </div>
             )}
 
         </ProposalLayout>
