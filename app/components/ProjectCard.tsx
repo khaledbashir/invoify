@@ -57,11 +57,11 @@ const ProjectCard = ({ project, onImport, onDelete }: ProjectCardProps) => {
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="group relative bg-[#09090b] border border-zinc-900 overflow-hidden transition-all duration-300 hover:border-zinc-700 p-6 flex flex-col h-full min-h-[220px]"
+            className="group relative bg-card border border-border overflow-hidden transition-all duration-300 hover:border-foreground/20 p-6 flex flex-col h-full min-h-[220px]"
         >
             {/* Minimal Icon Area */}
             <div className="flex items-start justify-between mb-8">
-                <div className="w-10 h-10 bg-zinc-900 border border-zinc-800 rounded flex items-center justify-center">
+                <div className="w-10 h-10 bg-muted border border-border rounded flex items-center justify-center">
                     {project.clientLogo ? (
                         <img src={project.clientLogo} alt={project.clientName} className="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
                     ) : (
@@ -71,7 +71,7 @@ const ProjectCard = ({ project, onImport, onDelete }: ProjectCardProps) => {
 
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: status.color, boxShadow: `0 0 8px ${status.color}80` }} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-foreground/80 transition-colors">
                         {status.label}
                     </span>
                 </div>
@@ -79,10 +79,10 @@ const ProjectCard = ({ project, onImport, onDelete }: ProjectCardProps) => {
 
             {/* Title Section */}
             <div className="space-y-1 py-4 flex-1">
-                <h3 className="text-xl font-normal text-zinc-100 serif-vault group-hover:text-[#0A52EF] transition-colors leading-tight">
+                <h3 className="text-xl font-normal text-card-foreground serif-vault group-hover:text-brand-blue transition-colors leading-tight">
                     {project.clientName}
                 </h3>
-                <p className="text-xs text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                <p className="text-xs text-muted-foreground group-hover:text-card-foreground/70 transition-colors">
                     {project.proposalName || "Standard Project Resolution"}
                 </p>
             </div>
@@ -90,18 +90,18 @@ const ProjectCard = ({ project, onImport, onDelete }: ProjectCardProps) => {
             {/* Footer Metrics */}
             <div className="flex items-end justify-between mt-auto">
                 <div className="space-y-1">
-                    <div className="text-[9px] font-bold text-zinc-700 uppercase tracking-tighter">Budget Allocation</div>
-                    <div className="text-sm font-medium text-zinc-300">$0.00</div>
+                    <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter">Budget Allocation</div>
+                    <div className="text-sm font-medium text-foreground">$0.00</div>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete(project.id); }}
-                        className="p-1 px-2 text-zinc-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-1 px-2 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>
-                    <ArrowUpRight className="w-4 h-4 text-zinc-800 group-hover:text-white transition-all transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-all transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
             </div>
 
