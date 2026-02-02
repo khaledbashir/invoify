@@ -175,7 +175,7 @@ const Step1Ingestion = () => {
                             </div>
 
                             {/* RFP Upload Card */}
-                            <div className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/20 hover:bg-zinc-900/40 hover:border-emerald-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center p-8 border-dashed">
+                            <div className="group relative rounded-2xl border border-border bg-card/20 hover:bg-card/40 hover:border-emerald-500/30 transition-all duration-300 flex flex-col items-center justify-center text-center p-8 border-dashed">
                                 <input
                                     type="file"
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -196,17 +196,17 @@ const Step1Ingestion = () => {
                                 <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
                                     <FileText className="w-8 h-8 text-emerald-500" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-2">Upload RFP PDFs</h3>
-                                <p className="text-zinc-500 text-sm max-w-xs mb-4">
+                                <h3 className="text-xl font-bold text-foreground mb-2">Upload RFP PDFs</h3>
+                                <p className="text-muted-foreground text-sm max-w-xs mb-4">
                                     Add Division 11 specs or display schedules for AI analysis.
                                 </p>
-                                <div className="flex items-center gap-2 text-xs text-zinc-600 font-mono bg-zinc-900/50 px-3 py-1.5 rounded-full">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono bg-muted/50 px-3 py-1.5 rounded-full">
                                     <Shield className="w-3 h-3" />
                                     {rfpDocuments.length > 0 ? `${rfpDocuments.length} files in Vault` : "Vault Empty"}
                                 </div>
 
                                 {rfpUploading && (
-                                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
+                                    <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-20 rounded-2xl">
                                         <div className="flex flex-col items-center gap-3">
                                             <Zap className="w-6 h-6 text-emerald-500 animate-pulse" />
                                             <span className="text-emerald-500 font-medium text-sm">Indexing Documents...</span>
@@ -228,7 +228,7 @@ const Step1Ingestion = () => {
 
                                     {/* RFP Quick Upload in Preview Mode */}
                                     <div className="flex items-center gap-2">
-                                        <label className="cursor-pointer text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1.5">
+                                        <label className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5" />
                                             <span>Add RFP</span>
                                             <input
@@ -250,7 +250,7 @@ const Step1Ingestion = () => {
                                             />
                                         </label>
                                         {rfpDocuments.length > 0 && (
-                                            <span className="text-[10px] text-zinc-600 bg-zinc-900 px-1.5 py-0.5 rounded">
+                                            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                                                 {rfpDocuments.length}
                                             </span>
                                         )}
@@ -258,7 +258,7 @@ const Step1Ingestion = () => {
                                     </div>
                                 </div>
 
-                                <div className="text-[10px] text-zinc-500 font-mono">
+                                <div className="text-[10px] text-muted-foreground font-mono">
                                     {excelPreview.fileName}
                                 </div>
                             </div>

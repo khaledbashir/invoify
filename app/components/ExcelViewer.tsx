@@ -457,7 +457,7 @@ export default function ExcelViewer({
                                 <span className="text-[9px] font-semibold uppercase tracking-widest text-[#0A52EF]">AI</span>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white font-['Work_Sans']">
+                            <TooltipContent side="top" className="bg-popover border-border text-popover-foreground font-['Work_Sans']">
                               {getAiExtractedTooltipText(c)}
                             </TooltipContent>
                           </Tooltip>

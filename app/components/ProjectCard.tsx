@@ -65,7 +65,7 @@ const ProjectCard = ({ project, onImport, onDelete }: ProjectCardProps) => {
                     {project.clientLogo ? (
                         <img src={project.clientLogo} alt={project.clientName} className="w-6 h-6 object-contain grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
                     ) : (
-                        <Layers className="w-5 h-5 text-zinc-600 group-hover:text-white transition-colors" />
+                        <Layers className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                     )}
                 </div>
 
