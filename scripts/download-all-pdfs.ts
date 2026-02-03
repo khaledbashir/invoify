@@ -40,7 +40,7 @@ const OUT_DIR = path.resolve(process.cwd(), "exported-pdfs");
 const TEMPLATES = [
   { id: 2, label: "Classic" },
   { id: 3, label: "Modern" },
-  { id: 4, label: "Bold" },
+  { id: 4, label: "Premium" },
 ] as const;
 
 const MODES = [
