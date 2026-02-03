@@ -1,20 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 // RHF
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 
 // Components
 import { BaseButton, Subheading } from "@/app/components";
 import SingleScreen from "../SingleScreen";
+import { Textarea } from "@/components/ui/textarea";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
 import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Icons
-import { Plus } from "lucide-react";
+import { Plus, FileText, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
 
 // Toast
 import { toast } from "@/components/ui/use-toast";
@@ -22,8 +23,16 @@ import { ToastAction } from "@/components/ui/toast";
 import { ProposalType } from "@/types";
 
 const Screens = () => {
-    const { control, getValues } = useFormContext<ProposalType>();
+    const { control, getValues, setValue } = useFormContext<ProposalType>();
     const { _t } = useTranslationContext();
+    
+    // Track which sections are expanded
+    const [showPaymentTerms, setShowPaymentTerms] = useState(false);
+    const [showNotes, setShowNotes] = useState(false);
+    
+    // Watch current values
+    const paymentTerms = useWatch({ control, name: "details.paymentTerms" }) || "";
+    const additionalNotes = useWatch({ control, name: "details.additionalNotes" }) || "";
 
     const SCREENS_NAME = "details.screens";
     const { fields, append, remove, move } = useFieldArray({
@@ -139,6 +148,69 @@ const Screens = () => {
                 <Plus />
                 {_t("form.steps.screens.addNewScreen")}
             </BaseButton>
+
+            {/* Divider */}
+            <div className="border-t border-border/50 my-4" />
+
+            {/* Payment Terms Section */}
+            <div className="space-y-2">
+                <button
+                    type="button"
+                    onClick={() => setShowPaymentTerms(!showPaymentTerms)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-500 font-bold text-sm transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        <span>Payment Terms</span>
+                        {paymentTerms && <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded">Has content</span>}
+                    </div>
+                    {showPaymentTerms ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                
+                {showPaymentTerms && (
+                    <div className="px-4 py-3 bg-card/50 border border-border rounded-xl space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Textarea
+                            placeholder="e.g., 50% on Deposit, 40% on Mobilization, 10% on Substantial Completion"
+                            value={paymentTerms}
+                            onChange={(e) => setValue("details.paymentTerms", e.target.value, { shouldDirty: true })}
+                            className="min-h-[80px] text-sm bg-background border-border"
+                        />
+                        <p className="text-[10px] text-muted-foreground">
+                            <span className="text-emerald-500 font-semibold">LOI only</span> — Payment milestones appear in the LOI document
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-2">
+                <button
+                    type="button"
+                    onClick={() => setShowNotes(!showNotes)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl text-blue-500 font-bold text-sm transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4" />
+                        <span>Additional Notes</span>
+                        {additionalNotes && <span className="text-[10px] bg-blue-500/20 px-2 py-0.5 rounded">Has content</span>}
+                    </div>
+                    {showNotes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+                
+                {showNotes && (
+                    <div className="px-4 py-3 bg-card/50 border border-border rounded-xl space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Textarea
+                            placeholder="Any additional notes, terms, or conditions..."
+                            value={additionalNotes}
+                            onChange={(e) => setValue("details.additionalNotes", e.target.value, { shouldDirty: true })}
+                            className="min-h-[100px] text-sm bg-background border-border"
+                        />
+                        <p className="text-[10px] text-muted-foreground">
+                            <span className="text-blue-500 font-semibold">LOI only</span> — Notes appear in the Legal Notes section of the LOI
+                        </p>
+                    </div>
+                )}
+            </div>
         </section>
     );
 };
