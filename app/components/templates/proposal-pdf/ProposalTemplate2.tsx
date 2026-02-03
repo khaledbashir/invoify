@@ -61,9 +61,57 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     const templateId = details?.pdfTemplate ?? 2;
     const template = templateId === 4 ? 'bold' : 'classic';
 
+    // Move declaration of showIntroText up so it's available in the Premium logic
+    const showIntroText = (details as any)?.showIntroText ?? true;
+
+    const formatFeet = (value: any) => {
+        const n = Number(value);
+        if (!isFinite(n)) return "";
+        const rounded = Math.round(n * 100) / 100;
+        const asInt = Math.round(rounded);
+        if (Math.abs(rounded - asInt) < 0.00001) return `${asInt}'`;
+        return `${rounded.toFixed(2)}'`;
+    };
+
+    const splitDisplayNameAndSpecs = (value: string) => {
+        const raw = (value || "").toString().trim();
+        if (!raw) return { header: "", specs: "" };
+        const idxParen = raw.indexOf("(");
+        const idxColon = raw.indexOf(":");
+        const idx =
+            idxParen === -1 ? idxColon : idxColon === -1 ? idxParen : Math.min(idxParen, idxColon);
+        if (idx === -1) return { header: raw, specs: "" };
+        const header = raw.slice(0, idx).trim().replace(/[-–—]\s*$/, "").trim();
+        const specs = raw.slice(idx).trim();
+        return { header, specs };
+    };
+
+    const getScreenLabel = (screen: any) => {
+        const label = (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
+        const split = splitDisplayNameAndSpecs(label);
+        const header = split.header || label;
+        return header.length > 0 ? header : "Display";
+    };
+
+    const getScreenHeader = (screen: any) => {
+        // Priority: customDisplayName > externalName > name
+        const customName = (screen?.customDisplayName || "").toString().trim();
+        if (customName) return customName;
+
+        const externalName = (screen?.externalName || "").toString().trim();
+        if (externalName) return externalName;
+
+        // Just use the screen name - don't add dimensions/pitch (those are shown in the spec table)
+        const name = (screen?.name || "Display").toString().trim();
+        return name;
+    };
+
     if (template === 'bold') {
         // ===== ANC PREMIUM TEMPLATE (ID 4) =====
         const docTitle = documentMode === "BUDGET" ? "BUDGET ESTIMATE" : documentMode === "PROPOSAL" ? "SALES QUOTATION" : "LETTER OF INTENT";
+        const isLOI_premium = documentMode === "LOI";
+        const showPricingTables_premium = (details as any)?.showPricingTables ?? true;
+        const showSpecifications_premium = (details as any)?.showSpecifications ?? true;
 
         const PremiumSectionHeader = ({ title }: { title: string }) => (
             <div className="border-b-2 border-black pb-2 mb-6 mt-10">
@@ -177,9 +225,9 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             </div>
                         )}
 
-                        {!isLOI && showPricingTables && <PremiumPricingSection />}
+                        {!isLOI_premium && showPricingTables_premium && <PremiumPricingSection />}
 
-                        {!isLOI && showSpecifications && screens.length > 0 && (
+                        {!isLOI_premium && showSpecifications_premium && screens.length > 0 && (
                             <div className="mt-16 break-before-page">
                                 <PremiumSectionHeader title="Technical Specifications" />
                                 {screens.map((screen: any, idx: number) => (
@@ -188,7 +236,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                             </div>
                         )}
 
-                        {isLOI && (
+                        {isLOI_premium && (
                             <div className="mt-12">
                                 <PremiumSectionHeader title="Statement of Work" />
                                 <ExhibitA_TechnicalSpecs data={data} />
@@ -204,47 +252,18 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         );
     }
 
-    const formatFeet = (value: any) => {
-        const n = Number(value);
-        if (!isFinite(n)) return "";
-        const rounded = Math.round(n * 100) / 100;
-        const asInt = Math.round(rounded);
-        if (Math.abs(rounded - asInt) < 0.00001) return `${asInt}'`;
-        return `${rounded.toFixed(2)}'`;
-    };
-
-    const splitDisplayNameAndSpecs = (value: string) => {
-        const raw = (value || "").toString().trim();
-        if (!raw) return { header: "", specs: "" };
-        const idxParen = raw.indexOf("(");
-        const idxColon = raw.indexOf(":");
-        const idx =
-            idxParen === -1 ? idxColon : idxColon === -1 ? idxParen : Math.min(idxParen, idxColon);
-        if (idx === -1) return { header: raw, specs: "" };
-        const header = raw.slice(0, idx).trim().replace(/[-–—]\s*$/, "").trim();
-        const specs = raw.slice(idx).trim();
-        return { header, specs };
-    };
-
-    const getScreenLabel = (screen: any) => {
-        const label = (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
-        const split = splitDisplayNameAndSpecs(label);
-        const header = split.header || label;
-        return header.length > 0 ? header : "Display";
-    };
-
-    const getScreenHeader = (screen: any) => {
-        // Priority: customDisplayName > externalName > name
-        const customName = (screen?.customDisplayName || "").toString().trim();
-        if (customName) return customName;
-
-        const externalName = (screen?.externalName || "").toString().trim();
-        if (externalName) return externalName;
-
-        // Just use the screen name - don't add dimensions/pitch (those are shown in the spec table)
-        const name = (screen?.name || "Display").toString().trim();
-        return name;
-    };
+    // ===== TOGGLES FROM DETAILS =====
+    const includePricingBreakdown = (details as any)?.includePricingBreakdown ?? true;
+    const showPricingTables = (details as any)?.showPricingTables ?? true;
+    const showBaseBidTable = (details as any)?.showBaseBidTable ?? true;
+    const showSpecifications = (details as any)?.showSpecifications ?? true;
+    const showCompanyFooter = (details as any)?.showCompanyFooter ?? true;
+    const showExhibitA = (details as any)?.showExhibitA ?? false;
+    const showExhibitB = (details as any)?.showExhibitB ?? false;
+    const showSignatureBlock = (details as any)?.showSignatureBlock ?? true;
+    const showPaymentTerms = (details as any)?.showPaymentTerms ?? true;
+    const effectiveShowPaymentTerms = documentMode === "LOI" && showPaymentTerms;
+    const effectiveShowSignatureBlock = documentMode === "LOI" && showSignatureBlock;
 
     // Helper for Section Title
     const SectionHeader = ({ title }: { title: string }) => (
@@ -302,20 +321,6 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             </table>
         </div>
     );
-
-    // ===== TOGGLES FROM DETAILS =====
-    const includePricingBreakdown = (details as any)?.includePricingBreakdown ?? true;
-    const showPricingTables = (details as any)?.showPricingTables ?? true;
-    const showIntroText = (details as any)?.showIntroText ?? true;
-    const showBaseBidTable = (details as any)?.showBaseBidTable ?? true;
-    const showSpecifications = (details as any)?.showSpecifications ?? true;
-    const showCompanyFooter = (details as any)?.showCompanyFooter ?? true;
-    const showExhibitA = (details as any)?.showExhibitA ?? false;
-    const showExhibitB = (details as any)?.showExhibitB ?? false;
-    const showSignatureBlock = (details as any)?.showSignatureBlock ?? true;
-    const showPaymentTerms = (details as any)?.showPaymentTerms ?? true;
-    const effectiveShowPaymentTerms = documentMode === "LOI" && showPaymentTerms;
-    const effectiveShowSignatureBlock = documentMode === "LOI" && showSignatureBlock;
 
     // Detailed Pricing Table - Shows category breakdown (when toggle is ON)
     const DetailedPricingTable = ({ screen }: { screen: any }) => {

@@ -3,6 +3,9 @@ import { queryVault } from "@/lib/anything-llm";
 import { extractJson } from "@/lib/json-utils";
 import { searchVenueAddress } from "@/lib/serper";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
