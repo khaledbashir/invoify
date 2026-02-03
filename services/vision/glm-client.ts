@@ -87,8 +87,8 @@ export class Glm4VisionClient {
             top_p: 0.7
         };
 
-    try {
-        const response = await fetch(endpoint, {
+        try {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -115,10 +115,6 @@ export class Glm4VisionClient {
             console.warn("Vision Extraction parse/validation failed, returning empty labels:", parseError);
             return { labels: [], notes: "" };
         }
-    } catch (error: unknown) {
-        console.error("Vision Extraction Failed:", error);
-        throw error;
-    }
     }
 
     /**
