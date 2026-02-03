@@ -40,6 +40,8 @@ export class RfpExtractionService {
          - "Pixel Pitch" (e.g., 4mm, 6mm, 10mm) + citation
          - "Resolution" (if Dimensions are missing) + citation
          - "Brightness" (cd/m² rating) + citation
+         - "Pixel Density" (pixels/sq.ft) - Mark as internalOnly: true (do not show to client)
+         - "HDR Status" - Mark as internalOnly: true (do not show to client)
       3. IF "Section 11 06 60" is found, set "extractionAccuracy" to "High".
 
       CRITICAL: You must detect specific ANC "Ferrari Level" site rules:
@@ -48,11 +50,18 @@ export class RfpExtractionService {
       3. SPARE PARTS: Is there a "Minimum 5% Spare Parts" requirement? (Mapped to includeSpareParts)
       4. REPLACEMENT: Is this a replacement project? (Mapped to isReplacement)
       5. HDR/BRIGHTNESS: Extract required Brightness rating and HDR support from Section 11 63 10.
+         - IMPORTANT: Mark any "HDR Status" as internalOnly: true (do not show in client PDF)
       6. STRUCTURAL (Thornton Tomasetti): Does the RFP include a structural report from "Thornton Tomasetti" or "TTE"? 
          If so, extract the Tonnage estimates:
          - Search for "reinforcing steel" tonnage (e.g., 17 tons).
          - Search for "new steel columns/beams" tonnage (e.g., 17 tons).
          - Map these to metadata fields structuralTonnage and reinforcingTonnage.
+
+      NOISE REDUCTION RULE (Critical):
+      - "Pixel Density" (e.g., "Physical Pixel Density (pixels/sq.ft)") must be marked as internalOnly: true
+      - "HDR Status" must be marked as internalOnly: true
+      - These fields are extracted for internal reference but MUST NOT appear in the client-facing Specification Table
+      - For any field that should NOT be shown to the client, include "internalOnly": true in the field object
       
       OUTPUT FORMAT: Return ONLY a valid JSON object. No markdown, no conversational text.
       

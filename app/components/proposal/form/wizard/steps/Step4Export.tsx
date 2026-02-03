@@ -24,6 +24,8 @@ import {
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { BaseButton } from "@/app/components";
 import { formatCurrency } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
@@ -532,6 +534,45 @@ const Step4Export = () => {
                                     <br />
                                     <span className="text-[10px]">Budget = estimate only • Proposal = formal quote • LOI = contract with signatures</span>
                                 </p>
+                            </CardContent>
+                        </Card>
+
+                        {/* AI-Generated SOW Toggle - Optional On-Demand Feature */}
+                        <Card className="bg-card/40 border border-border/60 overflow-hidden mb-6">
+                            <CardHeader className="border-b border-border/60 pb-3">
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                                        <MessageSquare className="w-4 h-4 text-brand-blue" />
+                                        AI-Generated SOW
+                                    </CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex flex-col">
+                                        <Label htmlFor="showExhibitA" className="text-sm font-semibold text-foreground mb-1">
+                                            Include AI-Generated Statement of Work
+                                        </Label>
+                                        <p className="text-[11px] text-muted-foreground">
+                                            Auto-generate Design Services and Construction Logistics sections based on RFP risks
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Switch
+                                            id="showExhibitA"
+                                            checked={watch("details.showExhibitA") || false}
+                                            onCheckedChange={(checked) => setValue("details.showExhibitA", checked)}
+                                            className="data-[state=checked]:bg-brand-blue"
+                                        />
+                                    </div>
+                                </div>
+                                {watch("details.showExhibitA") && (
+                                    <div className="mt-3 p-3 rounded-lg bg-brand-blue/5 border border-brand-blue/10">
+                                        <p className="text-[10px] text-brand-blue/80">
+                                            💡 AI will scan for <strong>Union</strong>, <strong>Outdoor/IP65</strong>, and <strong>Liquidated Damages</strong> keywords to generate context-aware SOW clauses
+                                        </p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

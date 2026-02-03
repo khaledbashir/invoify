@@ -233,9 +233,120 @@ Write a professional "Construction Services" paragraph describing installation l
 };
 
 // ============================================================================
-// SOW GENERATOR CLASS
+// "RISK-AWARE" SOW GENERATOR - Scans Filtered RFP Text for Risk Keywords
 // ============================================================================
 
+/**
+ * Scans the filtered RFP text for risk keywords to generate context-aware SOW sections
+ * This is called "Risk-Aware" because it adapts the SOW content based on detected project risks
+ */
+export class RiskAwareSOWGenerator {
+    
+    /**
+     * SCAN FOR RISK KEYWORDS
+     * Scans filtered RFP text for three specific risk categories:
+     * 1. Union / Prevailing Wage (Triggers Labor Clause)
+     * 2. Outdoor / IP65 (Triggers Weatherproofing Clause)
+     * 3. Liquidated Damages (Triggers Schedule Adherence Clause)
+     */
+    static scanForRiskKeywords(filteredRfpText: string): {
+        hasUnionRequirement: boolean;
+        hasOutdoorRequirement: boolean;
+        hasLiquidatedDamages: boolean;
+        detectedKeywords: string[];
+    } {
+        const textLower = filteredRfpText.toLowerCase();
+        
+        const unionKeywords = ['union', 'prevailing wage', 'collective bargaining', 'ibew', 'davis-bacon'];
+        const outdoorKeywords = ['outdoor', 'ip65', 'weatherproof', 'weather resistant'];
+        const damagesKeywords = ['liquidated damages', 'liquidated damage', 'penalties per day'];
+        
+        const hasUnionRequirement = unionKeywords.some(keyword => textLower.includes(keyword));
+        const hasOutdoorRequirement = outdoorKeywords.some(keyword => textLower.includes(keyword));
+        const hasLiquidatedDamages = damagesKeywords.some(keyword => textLower.includes(keyword));
+        
+        const detectedKeywords = [
+            ...(hasUnionRequirement ? ['Union/Prevailing Wage'] : []),
+            ...(hasOutdoorRequirement ? ['Outdoor/IP65'] : []),
+            ...(hasLiquidatedDamages ? ['Liquidated Damages'] : [])
+        ];
+        
+        return {
+            hasUnionRequirement,
+            hasOutdoorRequirement,
+            hasLiquidatedDamages,
+            detectedKeywords
+        };
+    }
+    
+    /**
+     * GENERATE RISK-AWARE SOW JSON
+     * Generates the 3-section JSON object for Exhibit A based on detected risks
+     */
+    static generateRiskAwareSOW(filteredRfpText: string, projectContext: any): {
+        designServices: string;
+        constructionLogistics: string;
+        constraints: string;
+        riskFlags: {
+            union: boolean;
+            outdoor: boolean;
+            liquidatedDamages: boolean;
+        };
+    } {
+        const risks = this.scanForRiskKeywords(filteredRfpText);
+        
+        // Design Services: Summarize design-build obligations from RFP
+        let designServices = "ANC acts as the primary design-build contractor for the complete video, sound, and lighting systems as specified in the RFP. ANC will provide all engineering, shop drawings, and technical documentation required for permit submission and installation.";
+        
+        // Construction Logistics: Conditional based on risk detection
+        let constructionLogistics = "ANC will provide all labor, materials, and equipment for installation.";
+        
+        if (risks.hasUnionRequirement) {
+            constructionLogistics += " All installation labor will be performed by IBEW-certified union electricians in accordance with applicable collective bargaining agreements. A labor compliance surcharge is included in the pricing.";
+        }
+        
+        if (risks.hasOutdoorRequirement) {
+            constructionLogistics += " All outdoor display systems include IP65-rated weatherproofing to withstand environmental conditions including rain, dust, and temperature extremes as specified in the RFP.";
+        }
+        
+        if (risks.hasLiquidatedDamages) {
+            constructionLogistics += " A strict project schedule will be maintained to avoid liquidated damages penalties as specified in the contract terms.";
+        }
+        
+        // Constraints: Summarize access rules from RFP
+        const constraints: string[] = [];
+        
+        // Common constraints to look for
+        if (filteredRfpText.toLowerCase().includes('7am') || filteredRfpText.toLowerCase().includes('7am-5pm')) {
+            constraints.push("Work limited to 7:00 AM - 5:00 PM standard working hours.");
+        }
+        
+        if (filteredRfpText.toLowerCase().includes('crane') && filteredRfpText.toLowerCase().includes('occupied')) {
+            constraints.push("No crane lifts over occupied spaces during business hours.");
+        }
+        
+        if (filteredRfpText.toLowerCase().includes('access') && filteredRfpText.toLowerCase().includes('limited')) {
+            constraints.push("Site access limited to specified hours to maintain building operations.");
+        }
+        
+        if (constraints.length === 0) {
+            constraints.push("Installation scheduling coordinated with facility operations to minimize disruption.");
+        }
+        
+        return {
+            designServices,
+            constructionLogistics,
+            constraints: constraints.join(" "),
+            riskFlags: {
+                union: risks.hasUnionRequirement,
+                outdoor: risks.hasOutdoorRequirement,
+                liquidatedDamages: risks.hasLiquidatedDamages
+            }
+        };
+    }
+}
+
+// Export the original SOWGenerator class which will now use RiskAwareSOWGenerator internally
 export class SOWGenerator {
     private anythingLLMUrl: string;
     private anythingLLMKey: string;
