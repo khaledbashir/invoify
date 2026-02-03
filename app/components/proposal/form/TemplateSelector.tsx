@@ -37,10 +37,10 @@ const templates: Template[] = [
     },
     {
         id: 4,
-        name: "ANC Bold",
-        description: "High-impact, dramatic style",
+        name: "ANC Premium",
+        description: "High-end brand design",
         icon: <Zap className="w-4 h-4" />,
-        color: "#0F172A",
+        color: "#0A52EF",
     },
 ];
 

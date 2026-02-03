@@ -3,6 +3,7 @@ export const PDF_COLORS = {
     FRENCH_BLUE: "#0A52EF", // ANC/Enterprise Blue
     ACCENT_RED: "#C8102E",  // Brand Red
     ACCENT_YELLOW: "#FFCD00", // Brand Yellow
+    BLUE_OPAL: "#002C73",   // ANC Blue Opal Navy
 
     // UI Neutrals
     TABLE_HEADER_BG: "#E5E7EB", // Gray-200 for zebra headers

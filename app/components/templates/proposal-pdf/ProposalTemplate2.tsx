@@ -58,6 +58,152 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
     const ancAddress = sender?.address || "2 Manhattanville Road, Suite 402, Purchase, NY 10577";
 
+    const templateId = details?.pdfTemplate ?? 2;
+    const template = templateId === 4 ? 'bold' : 'classic';
+
+    if (template === 'bold') {
+        // ===== ANC PREMIUM TEMPLATE (ID 4) =====
+        const docTitle = documentMode === "BUDGET" ? "BUDGET ESTIMATE" : documentMode === "PROPOSAL" ? "SALES QUOTATION" : "LETTER OF INTENT";
+
+        const PremiumSectionHeader = ({ title }: { title: string }) => (
+            <div className="border-b-2 border-black pb-2 mb-6 mt-10">
+                <h2 className="text-xl font-bold uppercase tracking-widest text-black font-sans">{title}</h2>
+            </div>
+        );
+
+        const PremiumSpecTable = ({ screen }: { screen: any }) => (
+            <div className="mb-8 break-inside-avoid">
+                <div className="flex justify-between items-center border-b-2 border-[#0A52EF] pb-1 mb-1">
+                    <h3 className="font-bold text-sm uppercase text-[#002C73] font-sans">{getScreenHeader(screen)}</h3>
+                    <span className="font-bold text-sm uppercase text-[#002C73] font-sans">SPECIFICATIONS</span>
+                </div>
+                <table className="w-full text-[11px] border-collapse font-sans">
+                    <tbody>
+                        {[
+                            { label: "MM Pitch", value: `${screen.pitchMm ?? screen.pixelPitch ?? 0} mm` },
+                            { label: "Quantity", value: screen.quantity || 1 },
+                            { label: "Active Display Height (ft.)", value: `${Number(screen.heightFt ?? screen.height ?? 0).toFixed(2)}'` },
+                            { label: "Active Display Width (ft.)", value: `${Number(screen.widthFt ?? screen.width ?? 0).toFixed(2)}'` },
+                            { label: "Pixel Resolution (H)", value: `${screen.pixelsH || Math.round((Number(screen.heightFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p` },
+                            { label: "Pixel Resolution (W)", value: `${screen.pixelsW || Math.round((Number(screen.widthFt ?? 0) * 304.8) / (screen.pitchMm || 10)) || 0} p` },
+                        ].map((row, idx) => (
+                            <tr key={idx} className="bg-white border-b border-gray-100 last:border-b-0">
+                                <td className="p-2 text-[#6B7280] font-light">{row.label}</td>
+                                <td className="p-2 text-right text-[#002C73] font-medium">{row.value}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+
+        const PremiumPricingSection = () => {
+            const softCostItems = internalAudit?.softCostItems || [];
+            const lineItems = [
+                ...(screens || []).map((screen: any, idx: number) => {
+                    const auditRow = isSharedView ? null : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+                    const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
+                    const label = (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
+                    const split = splitDisplayNameAndSpecs(label);
+                    return {
+                        key: `screen-${idx}`,
+                        name: split.header || getScreenLabel(screen),
+                        specs: split.specs,
+                        price: Number(price) || 0,
+                    };
+                }).filter((it) => Math.abs(it.price) >= 0.01),
+                ...softCostItems.map((item: any, idx: number) => ({
+                    key: `soft-${idx}`,
+                    name: (item?.name || "Item").toString(),
+                    specs: (item?.description || "").toString(),
+                    price: Number(item?.sell || 0),
+                })).filter((it: any) => Math.abs(it.price) >= 0.01),
+            ];
+            const subtotal = lineItems.reduce((sum, it) => sum + it.price, 0);
+
+            return (
+                <div className="mt-8">
+                    <div className="flex justify-between border-b-2 border-black pb-2 mb-4">
+                        <h2 className="text-xl font-bold tracking-tight text-[#002C73] font-sans">Project Total</h2>
+                        <h2 className="text-xl font-bold tracking-tight text-[#002C73] font-sans">Pricing</h2>
+                    </div>
+                    <div className="space-y-0">
+                        {lineItems.map((it) => (
+                            <div key={it.key} className="flex justify-between items-center py-6 border-b border-gray-100">
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-sm uppercase text-[#002C73] font-sans">{it.name}</h3>
+                                    {it.specs && <p className="text-xs text-[#6B7280] font-light mt-1">{it.specs}</p>}
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-bold text-xl text-[#002C73]">{formatCurrency(it.price)}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-10 flex justify-end items-center gap-10">
+                        <span className="font-bold text-sm uppercase tracking-widest text-[#6B7280]">Total:</span>
+                        <span className="font-bold text-3xl text-[#002C73]">{formatCurrency(subtotal)}</span>
+                    </div>
+                </div>
+            );
+        };
+
+        return (
+            <ProposalLayout data={data} disableFixedFooter>
+                <div style={{ fontFamily: "'Work Sans', sans-serif" }} className="min-h-[1000px] flex flex-col">
+                    {/* PREMIUM HEADER: Solid French Blue */}
+                    <div className="-mx-10 -mt-10 bg-[#0A52EF] px-10 py-8 flex justify-between items-center mb-10">
+                        <LogoSelectorServer theme="dark" width={180} height={90} className="p-0" />
+                        <h1 className="text-3xl font-bold text-white uppercase tracking-tighter">
+                            {docTitle}
+                        </h1>
+                    </div>
+
+                    <div className="px-2">
+                        <div className="mb-12">
+                            <h2 className="text-4xl font-bold text-[#002C73] uppercase leading-tight mb-2">
+                                {receiver?.name || "Client Name"}
+                            </h2>
+                            <p className="text-sm text-[#6B7280] font-light uppercase tracking-widest">
+                                {details?.proposalName || "Project Quotation"}
+                            </p>
+                        </div>
+
+                        {showIntroText && (
+                            <div className="mb-12 text-sm text-[#6B7280] font-normal leading-relaxed text-justify">
+                                <p>
+                                    ANC is pleased to present the following quotation for {receiver?.name || "the client"} regarding the proposed LED display systems and services described below.
+                                </p>
+                            </div>
+                        )}
+
+                        {!isLOI && showPricingTables && <PremiumPricingSection />}
+
+                        {!isLOI && showSpecifications && screens.length > 0 && (
+                            <div className="mt-16 break-before-page">
+                                <PremiumSectionHeader title="Technical Specifications" />
+                                {screens.map((screen: any, idx: number) => (
+                                    <PremiumSpecTable key={idx} screen={screen} />
+                                ))}
+                            </div>
+                        )}
+
+                        {isLOI && (
+                            <div className="mt-12">
+                                <PremiumSectionHeader title="Statement of Work" />
+                                <ExhibitA_TechnicalSpecs data={data} />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="mt-auto pt-20">
+                        <div className="h-4 bg-[#002C73] -mx-10 -mb-10" />
+                    </div>
+                </div>
+            </ProposalLayout>
+        );
+    }
+
     const formatFeet = (value: any) => {
         const n = Number(value);
         if (!isFinite(n)) return "";
