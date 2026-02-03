@@ -337,13 +337,30 @@ export const ProposalContextProvider = ({
 
   const setHeaderType = useCallback((next: "LOI" | "PROPOSAL" | "BUDGET") => {
     setValue("details.documentMode", next, { shouldValidate: true, shouldDirty: true });
+    
+    // Apply mode-specific defaults for PDF sections
     if (next === "LOI") {
       setValue("details.documentType", "LOI", { shouldValidate: true, shouldDirty: true });
+      setValue("details.showPaymentTerms", true, { shouldDirty: true });
+      setValue("details.showSignatureBlock", true, { shouldDirty: true });
+      setValue("details.showExhibitA", true, { shouldDirty: true });
+      setValue("details.showExhibitB", true, { shouldDirty: true });
+      setValue("details.showSpecifications", false, { shouldDirty: true });
       return;
     }
 
     setValue("details.documentType", "First Round", { shouldValidate: true, shouldDirty: true });
     setValue("details.pricingType", next === "PROPOSAL" ? "Hard Quoted" : "Budget", { shouldValidate: true, shouldDirty: true });
+    setValue("details.showPaymentTerms", false, { shouldDirty: true });
+    setValue("details.showSignatureBlock", false, { shouldDirty: true });
+    setValue("details.showSpecifications", true, { shouldDirty: true });
+    setValue("details.showExhibitB", false, { shouldDirty: true });
+    
+    if (next === "PROPOSAL") {
+      setValue("details.showExhibitA", true, { shouldDirty: true });
+    } else {
+      setValue("details.showExhibitA", false, { shouldDirty: true });
+    }
   }, [setValue]);
 
   // Saved proposals
