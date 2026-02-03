@@ -543,6 +543,8 @@ export const ProposalContextProvider = ({
           showAssumptions: details.showAssumptions ?? false,
           showExhibitA: details.showExhibitA ?? false,
           showExhibitB: details.showExhibitB ?? false,
+          showNotes: (details as any).showNotes ?? true,
+          showScopeOfWork: (details as any).showScopeOfWork ?? false,
         },
       };
 
@@ -1022,6 +1024,8 @@ export const ProposalContextProvider = ({
             showSignatureBlock: isLOI,
             showExhibitA: isLOI || mode === "PROPOSAL",
             showExhibitB: isLOI,
+            showNotes: true,
+            showScopeOfWork: false,
           },
           _audit: audit,
         };
@@ -1301,6 +1305,8 @@ export const ProposalContextProvider = ({
           showSignatureBlock: (formValues as any)?.details?.showSignatureBlock,
           showExhibitA: (formValues as any)?.details?.showExhibitA,
           showExhibitB: (formValues as any)?.details?.showExhibitB,
+          showNotes: (formValues as any)?.details?.showNotes,
+          showScopeOfWork: (formValues as any)?.details?.showScopeOfWork,
         },
         quoteItems: (formValues as any)?.details?.quoteItems,
         paymentTerms: (formValues as any)?.details?.paymentTerms,
