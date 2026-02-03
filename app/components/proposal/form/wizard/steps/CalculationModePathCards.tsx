@@ -67,8 +67,8 @@ const CalculationModePathCards = ({ className }: CalculationModePathCardsProps) 
   return (
     <div className={`space-y-4 ${className || ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-bold text-zinc-100">Calculation Mode</h3>
-        <span className="text-xs text-zinc-500 font-bold">Primary Branch Decision Gate</span>
+        <h3 className="text-lg font-bold text-foreground">Calculation Mode</h3>
+        <span className="text-xs text-muted-foreground font-bold">Primary Branch Decision Gate</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -84,7 +84,7 @@ const CalculationModePathCards = ({ className }: CalculationModePathCardsProps) 
                 relative cursor-pointer rounded-xl border-2 transition-all duration-300
                 ${isSelected
                   ? `${mode.borderColor} ${mode.gradient} bg-gradient-to-br`
-                  : "border-zinc-800/50 bg-zinc-900/50 hover:border-zinc-700"
+                  : "border-border/50 bg-card/50 hover:border-border"
                 }
               `}
             >
@@ -98,14 +98,14 @@ const CalculationModePathCards = ({ className }: CalculationModePathCardsProps) 
               <div className="p-6">
                 {/* Icon & Title */}
                 <div className="flex items-start gap-4 mb-4">
-                  <div className={`p-3 rounded-lg ${isSelected ? `bg-${mode.color}-500/20` : "bg-zinc-800/50"}`}>
+                  <div className={`p-3 rounded-lg ${isSelected ? `bg-${mode.color}-500/20` : "bg-muted/50"}`}>
                     <Icon className={`w-6 h-6 ${mode.iconColor}`} />
                   </div>
                   <div className="flex-1">
-                    <h4 className={`text-base font-bold ${isSelected ? "text-zinc-100" : "text-zinc-400"}`}>
+                    <h4 className={`text-base font-bold ${isSelected ? "text-foreground" : "text-muted-foreground"}`}>
                       {mode.title}
                     </h4>
-                    <p className="text-sm text-zinc-500 mt-0.5">{mode.subtitle}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{mode.subtitle}</p>
                   </div>
                 </div>
 

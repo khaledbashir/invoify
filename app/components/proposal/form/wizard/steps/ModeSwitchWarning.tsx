@@ -31,7 +31,7 @@ const ModeSwitchWarning = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+      <AlertDialogContent className="bg-card border-border text-foreground">
         <AlertDialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-amber-500/20">
@@ -39,12 +39,12 @@ const ModeSwitchWarning = ({
             </div>
             <AlertDialogTitle>Confirm Calculation Mode Switch</AlertDialogTitle>
           </div>
-          <AlertDialogDescription className="text-zinc-400 space-y-2">
+          <AlertDialogDescription className="text-muted-foreground space-y-2">
             {isIntelligenceToMirror ? (
               <>
                 <p>
-                  You are switching from <strong className="text-zinc-200">Intelligence Mode</strong> to{" "}
-                  <strong className="text-zinc-200">Mirror Mode</strong>.
+                  You are switching from <strong className="text-foreground">Intelligence Mode</strong> to{" "}
+                  <strong className="text-foreground">Mirror Mode</strong>.
                 </p>
                 <p className="text-amber-400/90">
                   ⚠️ Warning: All AI-generated optimizations and margin calculations will be disabled.
@@ -58,8 +58,8 @@ const ModeSwitchWarning = ({
             ) : (
               <>
                 <p>
-                  You are switching from <strong className="text-zinc-200">Mirror Mode</strong> to{" "}
-                  <strong className="text-zinc-200">Intelligence Mode</strong>.
+                  You are switching from <strong className="text-foreground">Mirror Mode</strong> to{" "}
+                  <strong className="text-foreground">Intelligence Mode</strong>.
                 </p>
                 <p className="text-emerald-400/90">
                   ✓ The Natalia Math Engine will now activate to calculate margins and optimize
@@ -73,7 +73,7 @@ const ModeSwitchWarning = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border-zinc-700">
+          <AlertDialogCancel className="bg-muted text-foreground hover:bg-accent border-border">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
