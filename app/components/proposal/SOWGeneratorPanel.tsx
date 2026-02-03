@@ -93,6 +93,16 @@ export function SOWGeneratorPanel() {
       setValue("details.bondRateOverride", riskScan.financialTriggers.bondRateOverride, { shouldDirty: true });
     }
     
+    // Apply spare parts percentage to all screens
+    if (riskScan.financialTriggers.sparePartsPercentage !== undefined) {
+      const updatedScreens = screens.map((s: any) => ({
+        ...s,
+        includeSpareParts: true,
+        sparePartsPercentage: riskScan.financialTriggers.sparePartsPercentage
+      }));
+      setValue("details.screens", updatedScreens, { shouldDirty: true });
+    }
+    
     // Generate SOW content
     const projectContext = {
       venue: venue || "Project Site",

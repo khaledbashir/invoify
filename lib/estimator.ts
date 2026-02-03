@@ -185,6 +185,7 @@ export interface ScreenInput {
   isReplacement?: boolean;
   useExistingStructure?: boolean;
   includeSpareParts?: boolean;
+  sparePartsPercentage?: number; // 0.02 for 2%, 0.05 for 5% (default: 0.05 if includeSpareParts is true)
   aiSource?: any;
 }
 
@@ -403,9 +404,11 @@ export function calculatePerScreenAudit(
   const area = roundToCents(height.times(width));
   const totalArea = roundToCents(area.times(qty)); // Total project area
 
-  // Ferrari Logic 1: Spare Parts (RFP Exhibit A, Page 11) - 5% hardware bake-in
+  // Ferrari Logic 1: Spare Parts (RFP Exhibit A, Page 11) - Dynamic percentage based on risk detection
   const hardwareBase = roundToCents(area.times(costPerSqFt));
-  const sparePartsCost = s.includeSpareParts ? roundToCents(hardwareBase.times(0.05)) : new Decimal(0);
+  // Use detected percentage (2% or 5%) or default to 5% if includeSpareParts is true but no percentage specified
+  const sparePercent = s.sparePartsPercentage ? new Decimal(s.sparePartsPercentage) : new Decimal(0.05);
+  const sparePartsCost = s.includeSpareParts ? roundToCents(hardwareBase.times(sparePercent)) : new Decimal(0);
   const hardwareUnit = roundToCents(hardwareBase.plus(sparePartsCost));
   const hardware = roundToCents(hardwareUnit.times(qty));
 

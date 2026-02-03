@@ -33,6 +33,16 @@ export interface AuditExcelOptions {
     // REQ-126: Financial rate overrides (Master Truth compliance)
     bondRateOverride?: number;  // Default 0.015 (1.5%)
     taxRateOverride?: number;   // Default 0.095 (9.5%)
+    // AI-Generated SOW content
+    aiGeneratedSOW?: {
+        designServices?: string;
+        constructionLogistics?: string;
+        constraints?: string;
+        generatedAt?: string;
+        editedByUser?: boolean;
+    };
+    // Detected risks for audit trail
+    detectedRisks?: string[];
 }
 
 // ============================================================================
@@ -120,6 +130,12 @@ export async function generateAuditExcel(
         properties: { tabColor: { argb: 'FFD63384' } } // Pink
     });
     buildPlaceholderSheet(contentSheet, "Content Creation", "Add content creation hours and rates here.");
+
+    // 11. AI-Generated SOW (Statement of Work)
+    const sowSheet = workbook.addWorksheet('AI SOW', {
+        properties: { tabColor: { argb: 'FF0A52EF' } } // ANC Blue
+    });
+    buildSOWSheet(sowSheet, options);
 
     return workbook;
 }
@@ -472,6 +488,123 @@ function buildPlaceholderSheet(sheet: ExcelJS.Worksheet, title: string, instruct
     setupSheetHeader(sheet, title);
     sheet.getCell('A3').value = instruction;
     sheet.getCell('A3').font = { italic: true };
+}
+
+/**
+ * Build AI-Generated SOW Sheet
+ * Includes detected risks and SOW content for audit trail
+ */
+function buildSOWSheet(sheet: ExcelJS.Worksheet, options?: AuditExcelOptions) {
+    // Header
+    sheet.mergeCells('A1:F1');
+    const titleCell = sheet.getCell('A1');
+    titleCell.value = 'AI-GENERATED STATEMENT OF WORK (SOW)';
+    titleCell.font = { size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A52EF' } };
+    titleCell.alignment = { horizontal: 'center' };
+
+    let currentRow = 3;
+
+    // Detected Risks Section
+    sheet.getCell(`A${currentRow}`).value = 'DETECTED RFP RISKS:';
+    sheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
+    currentRow++;
+
+    if (options?.detectedRisks && options.detectedRisks.length > 0) {
+        options.detectedRisks.forEach(risk => {
+            sheet.getCell(`A${currentRow}`).value = `• ${risk}`;
+            currentRow++;
+        });
+    } else {
+        sheet.getCell(`A${currentRow}`).value = 'No specific risks detected';
+        sheet.getCell(`A${currentRow}`).font = { italic: true };
+        currentRow++;
+    }
+    currentRow++;
+
+    // Financial Overrides Section
+    sheet.getCell(`A${currentRow}`).value = 'FINANCIAL OVERRIDES:';
+    sheet.getCell(`A${currentRow}`).font = { bold: true, size: 12 };
+    currentRow++;
+
+    if (options?.bondRateOverride !== undefined) {
+        const bondPercent = (options.bondRateOverride * 100).toFixed(1);
+        sheet.getCell(`A${currentRow}`).value = `• Performance Bond Rate: ${bondPercent}%`;
+        if (options.bondRateOverride >= 1.0) {
+            sheet.getCell(`A${currentRow}`).font = { color: { argb: 'FFDC3545' }, bold: true }; // Red for 100%
+            sheet.getCell(`B${currentRow}`).value = '⚠️ 100% BOND DETECTED';
+            sheet.getCell(`B${currentRow}`).font = { color: { argb: 'FFDC3545' }, bold: true };
+        }
+        currentRow++;
+    }
+    currentRow++;
+
+    // AI SOW Content
+    const sow = options?.aiGeneratedSOW;
+    if (sow) {
+        // Generation metadata
+        sheet.getCell(`A${currentRow}`).value = 'GENERATION METADATA:';
+        sheet.getCell(`A${currentRow}`).font = { bold: true, size: 10 };
+        currentRow++;
+        
+        if (sow.generatedAt) {
+            sheet.getCell(`A${currentRow}`).value = `Generated: ${new Date(sow.generatedAt).toLocaleString()}`;
+            currentRow++;
+        }
+        if (sow.editedByUser) {
+            sheet.getCell(`A${currentRow}`).value = '⚠️ EDITED BY USER (Customized from AI draft)';
+            sheet.getCell(`A${currentRow}`).font = { color: { argb: 'FFFFC107' }, bold: true };
+            currentRow++;
+        }
+        currentRow++;
+
+        // Design Services
+        if (sow.designServices) {
+            sheet.getCell(`A${currentRow}`).value = '1. DESIGN SERVICES:';
+            sheet.getCell(`A${currentRow}`).font = { bold: true, size: 11 };
+            currentRow++;
+            
+            sheet.getCell(`A${currentRow}`).value = sow.designServices;
+            sheet.getCell(`A${currentRow}`).alignment = { wrapText: true };
+            sheet.mergeCells(`A${currentRow}:F${currentRow + 2}`);
+            currentRow += 4;
+        }
+
+        // Construction Logistics
+        if (sow.constructionLogistics) {
+            sheet.getCell(`A${currentRow}`).value = '2. CONSTRUCTION LOGISTICS:';
+            sheet.getCell(`A${currentRow}`).font = { bold: true, size: 11 };
+            currentRow++;
+            
+            sheet.getCell(`A${currentRow}`).value = sow.constructionLogistics;
+            sheet.getCell(`A${currentRow}`).alignment = { wrapText: true };
+            sheet.mergeCells(`A${currentRow}:F${currentRow + 2}`);
+            currentRow += 4;
+        }
+
+        // Constraints
+        if (sow.constraints) {
+            sheet.getCell(`A${currentRow}`).value = '3. PROJECT CONSTRAINTS:';
+            sheet.getCell(`A${currentRow}`).font = { bold: true, size: 11 };
+            currentRow++;
+            
+            sheet.getCell(`A${currentRow}`).value = sow.constraints;
+            sheet.getCell(`A${currentRow}`).alignment = { wrapText: true };
+            sheet.mergeCells(`A${currentRow}:F${currentRow + 2}`);
+            currentRow += 4;
+        }
+    } else {
+        sheet.getCell(`A${currentRow}`).value = 'No AI-generated SOW content available';
+        sheet.getCell(`A${currentRow}`).font = { italic: true };
+    }
+
+    // Column widths
+    sheet.getColumn(1).width = 40;
+    sheet.getColumn(2).width = 30;
+    sheet.getColumn(3).width = 20;
+    sheet.getColumn(4).width = 20;
+    sheet.getColumn(5).width = 20;
+    sheet.getColumn(6).width = 20;
 }
 
 // Helpers
