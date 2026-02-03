@@ -113,17 +113,17 @@ export function CommanderChat() {
   return (
     <div
       className={cn(
-        "group relative flex h-screen flex-col border-r bg-zinc-950 transition-all duration-300 ease-in-out",
+        "group relative flex h-screen flex-col border-r bg-background transition-all duration-300 ease-in-out",
         isCollapsed ? "w-16" : "w-[300px]"
       )}
     >
       {/* Header */}
-      <div className="flex h-14 items-center justify-between px-4 border-b border-zinc-900">
-        {!isCollapsed && <span className="font-semibold text-zinc-100">Commander</span>}
+      <div className="flex h-14 items-center justify-between px-4 border-b border-border">
+        {!isCollapsed && <span className="font-semibold text-foreground">Commander</span>}
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-zinc-400 hover:text-zinc-100"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -137,8 +137,8 @@ export function CommanderChat() {
             <div className="flex flex-col gap-6">
               {messages.map((m, i) => (
                 <div key={i} className={cn("flex gap-3", m.role === "user" ? "flex-row-reverse" : "")}>
-                  <Avatar className="h-8 w-8 border border-zinc-800">
-                    <AvatarFallback className="bg-zinc-900 text-zinc-400">
+                  <Avatar className="h-8 w-8 border border-border">
+                    <AvatarFallback className="bg-muted text-muted-foreground">
                       {m.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
@@ -147,7 +147,7 @@ export function CommanderChat() {
                       "rounded-lg px-3 py-2 text-sm shadow-sm",
                       m.role === "user"
                         ? "bg-[#0A52EF] text-white self-end"
-                        : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                        : "bg-card border border-border text-foreground"
                     )}>
                       {m.content}
                     </div>
@@ -170,7 +170,7 @@ export function CommanderChat() {
                 </div>
               ))}
               {isLoading && (
-                <div className="flex items-center gap-2 text-zinc-500 pl-12">
+                <div className="flex items-center gap-2 text-muted-foreground pl-12">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   <span className="text-xs">Thinking...</span>
                 </div>
@@ -180,8 +180,8 @@ export function CommanderChat() {
         ) : (
           <div className="flex flex-col items-center gap-4 py-4">
             {/* Collapsed State Icons */}
-            <div className="h-8 w-8 rounded-full bg-zinc-900 flex items-center justify-center">
-              <Bot className="h-4 w-4 text-zinc-400" />
+            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+              <Bot className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
         )}
@@ -189,25 +189,25 @@ export function CommanderChat() {
 
       {/* Footer / Input */}
       {!isCollapsed && (
-        <div className="p-4 border-t border-zinc-900 bg-zinc-950">
+        <div className="p-4 border-t border-border bg-background">
           <form onSubmit={handleSendMessage} className="relative">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask or command..."
-              className="bg-zinc-900 border-zinc-800 text-zinc-200 placeholder:text-zinc-600 focus-visible:ring-zinc-700 pr-10"
+              className="bg-background border-input text-foreground placeholder:text-muted-foreground focus-visible:ring-offset-background pr-10"
             />
             <Button
               type="submit"
               size="icon"
               variant="ghost"
-              className="absolute right-1 top-1 h-8 w-8 hover:bg-zinc-800 text-zinc-400"
+              className="absolute right-1 top-1 h-8 w-8 hover:bg-accent text-muted-foreground"
               disabled={isLoading}
             >
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <div className="mt-2 text-[10px] text-zinc-600 text-center">
+          <div className="mt-2 text-[10px] text-muted-foreground text-center">
             Powered by ANC Intelligence
           </div>
         </div>

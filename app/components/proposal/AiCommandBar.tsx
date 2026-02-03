@@ -110,17 +110,17 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-zinc-950">
+        <div className="flex flex-col h-full bg-background">
             {/* Header / Toggle Bar */}
             <button
                 onClick={onToggle}
-                className="flex items-center justify-between px-4 py-3 bg-zinc-900 border-b border-zinc-800 hover:bg-zinc-800/50 transition-colors"
+                className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b border-border hover:bg-accent/50 transition-colors"
             >
                 <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded-lg bg-[#0A52EF]/20">
                         <Bot className="w-4 h-4 text-[#0A52EF]" />
                     </div>
-                    <span className="text-sm font-medium text-zinc-200">
+                    <span className="text-sm font-medium text-foreground">
                         ANC Intelligence Engine
                     </span>
                     <span className="px-2 py-0.5 bg-[#0A52EF]/20 text-[#0A52EF] text-[10px] font-medium rounded-full">
@@ -164,7 +164,7 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
                 <div className="flex items-center gap-2">
                     {/* Completion Progress */}
                     <div className="hidden md:flex items-center gap-2 mr-4">
-                        <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
                             <div
                                 className={cn(
                                     "h-full rounded-full transition-all duration-500",
@@ -174,13 +174,13 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
                                 style={{ width: `${completionRate}%` }}
                             />
                         </div>
-                        <span className="text-xs text-zinc-500">{Math.round(completionRate)}%</span>
+                        <span className="text-xs text-muted-foreground">{Math.round(completionRate)}%</span>
                     </div>
 
                     {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-zinc-400" />
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     ) : (
-                        <ChevronUp className="w-4 h-4 text-zinc-400" />
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
                     )}
                 </div>
             </button>
@@ -190,9 +190,9 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
                 <>
                     {/* Gap Analysis Panel */}
                     {showGaps && gaps.length > 0 && (
-                        <div className="border-b border-zinc-800 bg-zinc-900/50">
+                        <div className="border-b border-border bg-muted/30">
                             <div className="p-3">
-                                <p className="text-xs font-medium text-zinc-400 mb-2">
+                                <p className="text-xs font-medium text-muted-foreground mb-2">
                                     Gap Analysis
                                 </p>
                                 <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -200,14 +200,14 @@ const AiCommandBar = ({ isExpanded, onToggle }: AiCommandBarProps) => {
                                         <button
                                             key={gap.id}
                                             onClick={() => handleGapClick(gap)}
-                                            className="w-full flex items-center gap-2 p-2 text-left rounded-lg hover:bg-zinc-800 transition-colors"
+                                            className="w-full flex items-center gap-2 p-2 text-left rounded-lg hover:bg-accent transition-colors"
                                         >
                                             <div className={cn(
                                                 "w-1.5 h-1.5 rounded-full",
                                                 gap.priority === "high" ? "bg-red-500" :
-                                                    gap.priority === "medium" ? "bg-yellow-500" : "bg-zinc-500"
+                                                    gap.priority === "medium" ? "bg-yellow-500" : "bg-muted-foreground"
                                             )} />
-                                            <span className="text-xs text-zinc-300">{gap.description}</span>
+                                            <span className="text-xs text-foreground">{gap.description}</span>
                                         </button>
                                     ))}
                                 </div>
