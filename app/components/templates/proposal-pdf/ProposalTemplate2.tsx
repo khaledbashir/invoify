@@ -88,29 +88,16 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     };
 
     const getScreenHeader = (screen: any) => {
+        // Priority: customDisplayName > externalName > name
         const customName = (screen?.customDisplayName || "").toString().trim();
         if (customName) return customName;
 
         const externalName = (screen?.externalName || "").toString().trim();
         if (externalName) return externalName;
 
+        // Just use the screen name - don't add dimensions/pitch (those are shown in the spec table)
         const name = (screen?.name || "Display").toString().trim();
-        const serviceType = (screen?.serviceType || "").toString().toLowerCase();
-        const serviceLabel = serviceType.includes("top") ? "RIBBON DISPLAY" : serviceType ? "VIDEO DISPLAY" : "";
-
-        const heightFt = screen?.heightFt ?? screen?.height;
-        const widthFt = screen?.widthFt ?? screen?.width;
-        const pitchMm = screen?.pitchMm ?? screen?.pixelPitch;
-
-        const parts: string[] = [name];
-        if (serviceLabel) parts.push(serviceLabel);
-        if (heightFt != null && widthFt != null && Number(heightFt) > 0 && Number(widthFt) > 0) {
-            parts.push(`${formatFeet(heightFt)} H X ${formatFeet(widthFt)} W`);
-        }
-        if (pitchMm != null && Number(pitchMm) > 0) {
-            parts.push(`${Math.round(Number(pitchMm))}MM`);
-        }
-        return parts.filter(Boolean).join(" - ");
+        return name;
     };
 
     // Helper for Section Title
