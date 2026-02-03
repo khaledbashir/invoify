@@ -97,7 +97,7 @@ export function ExcelDropzone({ onFileParsed, onError }: ExcelDropzoneProps) {
           <div className="flex flex-col items-center gap-3">
             <div className={`
               p-3 rounded-full transition-colors
-              ${isDragging ? 'bg-emerald-500/20' : 'bg-muted'
+              ${isDragging ? 'bg-emerald-500/20' : 'bg-muted'}
             `}>
               {isDragging ? (
                 <Upload className="w-8 h-8 text-emerald-500" />
