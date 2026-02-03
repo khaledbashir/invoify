@@ -4,6 +4,7 @@ import { formatNumberWithCommas } from "@/lib/helpers";
 
 type ExhibitATechnicalSpecsProps = {
     data: ProposalType;
+    showSOW?: boolean;
 };
 
 const formatFeet = (value: any) => {
@@ -20,15 +21,21 @@ const computePixels = (feetValue: any, pitchMm: any) => {
     return Math.round((ft * 304.8) / pitch);
 };
 
-export default function ExhibitA_TechnicalSpecs({ data }: ExhibitATechnicalSpecsProps) {
+export default function ExhibitA_TechnicalSpecs({ data, showSOW = false }: ExhibitATechnicalSpecsProps) {
     const { details } = data;
     const screens = details?.screens || [];
+    const sowText = (details as any)?.scopeOfWorkText;
+    const hasSOWContent = showSOW && sowText && sowText.trim().length > 0;
+    
+    const headerText = hasSOWContent 
+        ? "EXHIBIT A: STATEMENT OF WORK & TECHNICAL SPECIFICATIONS"
+        : "EXHIBIT A: TECHNICAL SPECIFICATIONS";
 
     return (
         <div className="pt-8">
             <div className="text-center mb-8">
                 <h2 className="text-[12px] font-bold text-[#0A52EF] uppercase tracking-[0.2em]">
-                    EXHIBIT A: STATEMENT OF WORK &amp; TECHNICAL SPECIFICATIONS
+                    {headerText}
                 </h2>
             </div>
 

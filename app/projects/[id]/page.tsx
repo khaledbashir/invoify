@@ -95,7 +95,6 @@ function mapDbToFormSchema(dbProject: any) {
             showAssumptions: false,
             showExhibitA: cfg.showExhibitA ?? false,
             showExhibitB: cfg.showExhibitB ?? false,
-            // Universal toggles for Hybrid Template
             showNotes: cfg.showNotes ?? true,
             showScopeOfWork: cfg.showScopeOfWork ?? false,
         },

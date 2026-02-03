@@ -326,12 +326,11 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
     // Scope of Work Section - Universal (available for all document types)
     const ScopeOfWorkSection = () => {
         const sowText = (details as any)?.scopeOfWorkText;
-        if (!sowText) return null;
         return (
             <div className="mt-8 break-inside-avoid">
                 <SectionHeader title="Scope of Work" />
                 <div className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: colors.text }}>
-                    {sowText}
+                    {sowText || "No scope of work specified."}
                 </div>
             </div>
         );
@@ -463,13 +462,6 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                 </div>
             )}
 
-            {/* Signature Block - Universal (available for all document types) */}
-            {showSignatureBlock && (
-                <div className="px-6">
-                    <SignatureBlock />
-                </div>
-            )}
-
             {/* Specifications - Available for all document types when enabled */}
             {showSpecifications && screens.length > 0 && (
                 <div className="px-6 break-before-page">
@@ -483,7 +475,14 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
             {/* Exhibit A - Technical Specs (when enabled) */}
             {showExhibitA && (
                 <div className="break-before-page px-6">
-                    <ExhibitA_TechnicalSpecs data={data} />
+                    <ExhibitA_TechnicalSpecs data={data} showSOW={showScopeOfWork} />
+                </div>
+            )}
+
+            {/* Signature Block - Universal (available for all document types) */}
+            {showSignatureBlock && (
+                <div className="px-6 break-before-page">
+                    <SignatureBlock />
                 </div>
             )}
 
