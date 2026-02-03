@@ -40,46 +40,46 @@ export default function ScreensGridEditor() {
 
   const columnDefs = useMemo<ColDef[]>(
     () => [
-      { field: "externalName", headerName: "Display Name", editable: true, minWidth: 240, flex: 1 },
-      { field: "name", headerName: "Internal", editable: true, minWidth: 180 },
+      { field: "externalName", headerName: "Display Name", editable: true, minWidth: 200 },
+      { field: "customDisplayName", headerName: "PDF Name Override", editable: true, minWidth: 180, headerTooltip: "Custom name shown in PDF (leave blank to use Display Name)" },
+      { field: "name", headerName: "Internal", editable: true, minWidth: 140 },
       {
         field: "heightFt",
         headerName: "H (ft)",
         editable: true,
-        minWidth: 110,
+        minWidth: 90,
         valueParser: (p) => parseOptionalNumber(p.newValue),
       },
       {
         field: "widthFt",
         headerName: "W (ft)",
         editable: true,
-        minWidth: 110,
+        minWidth: 90,
         valueParser: (p) => parseOptionalNumber(p.newValue),
       },
       {
         field: "quantity",
         headerName: "Qty",
         editable: true,
-        minWidth: 90,
+        minWidth: 70,
         valueParser: (p) => parseOptionalNumber(p.newValue),
       },
       {
         field: "pitchMm",
-        headerName: "Pitch (mm)",
+        headerName: "Pitch",
         editable: true,
-        minWidth: 120,
+        minWidth: 80,
         valueParser: (p) => parseOptionalNumber(p.newValue),
       },
-      { field: "brightness", headerName: "Brightness", editable: true, minWidth: 140 },
+      { field: "brightness", headerName: "Brightness", editable: true, minWidth: 100 },
       {
         field: "serviceType",
         headerName: "Service",
         editable: true,
-        minWidth: 130,
+        minWidth: 100,
         cellEditor: "agSelectCellEditor",
         cellEditorParams: { values: ["", "Top", "Front/Rear"] },
       },
-      { field: "customDisplayName", headerName: "PDF Override", editable: true, minWidth: 200 },
     ],
     []
   );
