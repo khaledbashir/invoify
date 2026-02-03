@@ -251,36 +251,51 @@ const ProposalTemplate4 = (data: ProposalTemplate4Props) => {
 
     const BoldSignatureBlock = () => (
         <div className="mt-16 break-inside-avoid">
-            <div className="text-sm leading-relaxed mb-10 p-6" style={{ background: colors.surface, color: colors.textMuted }}>
+            <div 
+                className="text-sm leading-relaxed mb-10 p-6 rounded-lg" 
+                style={{ 
+                    background: colors.surface,
+                    border: `1px solid ${colors.border}`,
+                    color: colors.textMuted 
+                }}
+            >
                 {((details as any)?.signatureBlockText || "").trim() || 
                     `Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and authorize ANC to commence production.`}
             </div>
             
             <div className="grid grid-cols-2 gap-8">
                 {[
-                    { title: "ANC SPORTS ENTERPRISES, LLC" },
-                    { title: (receiver?.name || "PURCHASER").toUpperCase() }
+                    { title: "ANC Sports Enterprises, LLC" },
+                    { title: receiver?.name || "Purchaser" }
                 ].map((party, idx) => (
-                    <div key={idx} className="border-2 p-6" style={{ borderColor: colors.dark }}>
+                    <div 
+                        key={idx} 
+                        className="p-6 rounded-lg"
+                        style={{ 
+                            border: `1px solid ${colors.border}`,
+                            background: colors.white,
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                        }}
+                    >
                         <div 
-                            className="font-black text-sm tracking-widest uppercase mb-6 pb-3 border-b-2"
-                            style={{ color: colors.primary, borderColor: colors.primary }}
+                            className="text-sm font-bold mb-6 pb-3 border-b"
+                            style={{ color: colors.primary, borderColor: colors.border }}
                         >
                             {party.title}
                         </div>
                         <div className="space-y-6">
                             <div>
-                                <span className="text-xs uppercase tracking-wider font-bold" style={{ color: colors.textMuted }}>Signature</span>
-                                <div className="mt-2 h-12 border-b-2" style={{ borderColor: colors.dark }} />
+                                <span className="text-xs font-medium mb-2 block" style={{ color: colors.textMuted }}>Signature</span>
+                                <div className="h-12 border-b" style={{ borderColor: colors.border }} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <span className="text-xs uppercase tracking-wider font-bold" style={{ color: colors.textMuted }}>Name</span>
-                                    <div className="mt-2 h-8 border-b" style={{ borderColor: colors.textMuted }} />
+                                    <span className="text-xs font-medium mb-2 block" style={{ color: colors.textMuted }}>Name</span>
+                                    <div className="h-8 border-b" style={{ borderColor: colors.border }} />
                                 </div>
                                 <div>
-                                    <span className="text-xs uppercase tracking-wider font-bold" style={{ color: colors.textMuted }}>Date</span>
-                                    <div className="mt-2 h-8 border-b" style={{ borderColor: colors.textMuted }} />
+                                    <span className="text-xs font-medium mb-2 block" style={{ color: colors.textMuted }}>Date</span>
+                                    <div className="h-8 border-b" style={{ borderColor: colors.border }} />
                                 </div>
                             </div>
                         </div>
