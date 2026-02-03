@@ -10,6 +10,7 @@ import SaveIndicator from "@/app/components/reusables/SaveIndicator";
 import WizardStepper from "@/app/components/proposal/form/wizard/WizardProgress";
 import { useProposalContext } from "@/contexts/ProposalContext";
 import { ProposalType } from "@/types";
+import { cn } from "@/lib/utils";
 import { analyzeGaps, calculateCompletionRate } from "@/lib/gap-analysis";
 import { toast } from "@/components/ui/use-toast";
 import type { AutoSaveStatus } from "@/lib/useAutoSave";
@@ -35,7 +36,7 @@ export function StudioHeader({
 }: StudioHeaderProps) {
     const wizard = useWizard();
     const { control, getValues } = useFormContext<ProposalType>();
-    const { excelValidationOk, exportAudit, saveDraft } = useProposalContext();
+    const { excelValidationOk, exportAudit, saveDraft, headerType, setHeaderType } = useProposalContext();
     const [savingDraft, setSavingDraft] = useState(false);
     const isNewProject = !projectId || projectId === "new";
 
@@ -133,6 +134,25 @@ export function StudioHeader({
             {/* Right Actions - Global Controls */}
             <div className="flex items-center gap-3 shrink-0 flex-1 justify-end">
                 <ThemeToggle />
+
+                {/* Document Mode Switcher: BUDGET | PROPOSAL | LOI — to the left of Save Draft */}
+                <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
+                    {(["BUDGET", "PROPOSAL", "LOI"] as const).map((mode) => (
+                        <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setHeaderType(mode)}
+                            className={cn(
+                                "px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-md transition-colors",
+                                headerType === mode
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )}
+                        >
+                            {mode}
+                        </button>
+                    ))}
+                </div>
 
                 <SaveIndicator
                     status={saveStatus}

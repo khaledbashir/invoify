@@ -115,10 +115,10 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
     </div>
   );
 
-  // Audit Content (The Hub - Audit Mode)
+  // Audit Content (The Hub - Audit Mode / Margin Analysis)
   const AuditContent = (
-    <div className="h-full flex flex-col p-6 space-y-6">
-      <div className="flex items-center justify-between bg-zinc-900/40 p-5 rounded-xl border border-zinc-800">
+    <div className="h-full min-h-0 flex flex-col p-6 space-y-6">
+      <div className="shrink-0 flex items-center justify-between bg-zinc-900/40 p-5 rounded-xl border border-zinc-800">
         <div>
           <h2 className="text-xl font-semibold text-white">Financial Audit</h2>
           <p className="text-xs text-zinc-500">Real-time margin verification and profitability analysis.</p>
@@ -129,7 +129,7 @@ const WizardWrapper = ({ projectId, initialData }: ProposalPageProps) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto custom-scrollbar">
+      <div className="flex-1 min-h-[320px] overflow-auto custom-scrollbar">
         <AuditTable />
       </div>
     </div>

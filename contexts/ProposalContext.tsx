@@ -335,6 +335,7 @@ export const ProposalContextProvider = ({
   }, [watchedDocumentType, watchedPricingType]);
 
   const setHeaderType = useCallback((next: "LOI" | "PROPOSAL" | "BUDGET") => {
+    setValue("details.documentMode", next, { shouldValidate: true, shouldDirty: true });
     if (next === "LOI") {
       setValue("details.documentType", "LOI", { shouldValidate: true, shouldDirty: true });
       return;

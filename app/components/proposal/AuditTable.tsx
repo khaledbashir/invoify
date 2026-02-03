@@ -21,7 +21,13 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
   const [draft, setDraft] = useState("");
 
   if (!internalAudit || !internalAudit.perScreen) {
-    return <div className="p-8 text-center text-muted-foreground italic">No screen data available for audit.</div>;
+    return (
+      <div className="min-h-[280px] flex items-center justify-center rounded-lg border border-border bg-muted/30 p-8">
+        <p className="text-sm text-foreground/80 text-center max-w-md">
+          No screen data available for audit. Add screens in Setup and run the Math step to populate the margin analysis.
+        </p>
+      </div>
+    );
   }
 
   const { perScreen, totals } = internalAudit;
@@ -72,7 +78,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
   };
 
   return (
-    <div className="min-w-[1000px] text-xs font-mono">
+    <div className="min-w-[1000px] min-h-[200px] text-xs font-mono rounded-lg overflow-hidden border border-border bg-card/50">
       {/* Header Row */}
       <div className="grid grid-cols-12 gap-2 bg-muted p-3 rounded-t-lg border-b border-border text-muted-foreground font-bold">
         <div className="col-span-2">Screen Name</div>

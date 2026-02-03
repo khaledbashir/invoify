@@ -155,14 +155,14 @@ export function StudioLayout({
                                     </div>
                                 </div>
 
-                                {/* Financial Audit Panel */}
+                                {/* Financial Audit Panel (Margin Analysis / Pricing Breakdown) */}
                                 <div
                                     className={cn(
-                                        "absolute inset-0 overflow-y-auto custom-scrollbar transition-opacity duration-300",
+                                        "absolute inset-0 flex flex-col min-h-0 overflow-hidden transition-opacity duration-300",
                                         viewMode === "audit" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
                                     )}
                                 >
-                                    <div className="min-h-full animate-in fade-in slide-in-from-left-4 duration-150 p-6">
+                                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-left-4 duration-150 p-6">
                                         {auditContent || (
                                             <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-muted/20 rounded-2xl border border-border border-dashed">
                                                 <Table className="w-12 h-12 text-muted-foreground mb-4" />

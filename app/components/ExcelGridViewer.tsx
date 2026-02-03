@@ -232,9 +232,12 @@ export default function ExcelGridViewer({
         })}
       </div>
 
-      {/* AG Grid needs an explicit-height container; flex-1 + absolute inset-0 gives it a definite size */}
-      <div className="flex-1 min-h-0 relative">
-        <div className={["absolute inset-0 w-full h-full", themeClass].join(" ")}>
+      {/* AG Grid needs an explicit-height container */}
+      <div className="flex-1 min-h-0 relative" style={{ minHeight: 400 }}>
+        <div 
+          className={themeClass}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' }}
+        >
           <style jsx global>{`
             .ag-theme-quartz,
             .ag-theme-quartz-dark {
@@ -242,6 +245,8 @@ export default function ExcelGridViewer({
               --ag-font-size: 12px;
               --ag-header-height: 34px;
               --ag-row-height: 30px;
+              width: 100% !important;
+              height: 100% !important;
             }
             .ag-theme-quartz .ag-header-cell-label,
             .ag-theme-quartz-dark .ag-header-cell-label {
@@ -249,6 +254,9 @@ export default function ExcelGridViewer({
               letter-spacing: 0.04em;
               text-transform: uppercase;
               font-size: 10px;
+            }
+            .ag-root-wrapper {
+              height: 100% !important;
             }
           `}</style>
           <AgGridReact
