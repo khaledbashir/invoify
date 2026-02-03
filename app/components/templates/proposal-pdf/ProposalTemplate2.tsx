@@ -245,6 +245,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             const widthFt = screen?.widthFt ?? screen?.width;
             const pitchMm = screen?.pitchMm ?? screen?.pixelPitch;
             const qty = screen?.quantity || 1;
+            const brightness = screen?.brightnessNits ?? screen?.brightness ?? screen?.nits;
 
             const parts: string[] = [];
 
@@ -256,6 +257,10 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
 
             if (pitchMm != null && Number(pitchMm) > 0) {
                 parts.push(`${Math.round(Number(pitchMm))}mm`);
+            }
+
+            if (brightness != null && brightness !== "" && Number(brightness) > 0) {
+                parts.push(`${formatNumberWithCommas(Number(brightness))} nits`);
             }
 
             parts.push(`QTY ${qty}`);

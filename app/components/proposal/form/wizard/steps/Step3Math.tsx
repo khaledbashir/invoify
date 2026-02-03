@@ -104,6 +104,7 @@ const Step3Math = () => {
         const widthFt = screen?.widthFt ?? screen?.width;
         const pitchMm = screen?.pitchMm ?? screen?.pixelPitch;
         const qty = screen?.quantity || 1;
+        const brightness = screen?.brightnessNits ?? screen?.brightness ?? screen?.nits;
         const label = (screen?.externalName || screen?.name || "Display").toString().trim() || "Display";
 
         const parts: string[] = [];
@@ -114,6 +115,9 @@ const Step3Math = () => {
         }
         if (pitchMm != null && Number(pitchMm) > 0) {
             parts.push(`${Math.round(Number(pitchMm))}mm`);
+        }
+        if (brightness != null && brightness !== "" && Number(brightness) > 0) {
+            parts.push(`${Number(brightness).toLocaleString()} nits`);
         }
         parts.push(`QTY ${qty}`);
         return parts.filter(Boolean).join(" - ");
