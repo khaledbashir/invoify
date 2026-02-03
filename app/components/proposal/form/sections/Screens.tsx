@@ -109,7 +109,7 @@ const Screens = () => {
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                         <div className="text-xs font-bold text-amber-200 uppercase tracking-widest">OPTION placeholder detected</div>
-                        <div className="mt-1 text-[11px] text-zinc-500">
+                        <div className="mt-1 text-[11px] text-muted-foreground">
                             This is a header/placeholder row from the estimator sheet, not a real screen.
                         </div>
                     </div>

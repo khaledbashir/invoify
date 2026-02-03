@@ -138,11 +138,11 @@ export default function AiWand({ fieldName, searchQuery, targetFields }: AiWandP
                 className="h-8 w-8 text-[#0A52EF] hover:text-[#0A52EF]/70 hover:bg-blue-900/20 active:scale-95 transition-all"
                 title="Auto-fill details via AI Search"
             >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : <Wand2 className="h-4 w-4" />}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Wand2 className="h-4 w-4" />}
             </Button>
 
             <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-                <DialogContent className="max-w-xl bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800">
+                <DialogContent className="max-w-xl bg-card/90 backdrop-blur-2xl border border-border">
                     <DialogHeader>
                         <DialogTitle>Select the correct match</DialogTitle>
                         <DialogDescription>
@@ -151,8 +151,8 @@ export default function AiWand({ fieldName, searchQuery, targetFields }: AiWandP
                     </DialogHeader>
 
                     <div className="space-y-3">
-                        <div className="text-xs text-zinc-500">
-                            Corrected query: <span className="text-zinc-200 font-semibold">{correctedQuery || lastQuery}</span>
+                        <div className="text-xs text-muted-foreground">
+                            Corrected query: <span className="text-foreground font-semibold">{correctedQuery || lastQuery}</span>
                         </div>
 
                         <div className="flex flex-col gap-2">
@@ -175,7 +175,7 @@ export default function AiWand({ fieldName, searchQuery, targetFields }: AiWandP
                                             "w-full text-left rounded-xl border-2 px-4 py-4 transition-all duration-200",
                                             isSelected
                                                 ? "border-primary bg-primary/10 ring-2 ring-primary/20 shadow-[0_0_15px_rgba(10,82,239,0.1)]"
-                                                : "border-zinc-800 bg-zinc-950/30 hover:border-zinc-700 hover:bg-zinc-900/50"
+                                                : "border-border bg-card/30 hover:border-border/80 hover:bg-card/50"
                                         )}
                                     >
                                         <div className="flex items-start justify-between gap-3">
@@ -189,13 +189,13 @@ export default function AiWand({ fieldName, searchQuery, targetFields }: AiWandP
                                                     </div>
                                                     {isSelected && <div className="font-bold text-sm text-white">{c.label}</div>}
                                                 </div>
-                                                {hint ? <div className="text-xs text-zinc-300/70 leading-relaxed break-words">{hint}</div> : null}
-                                                {c.notes ? <div className="text-xs text-zinc-500 mt-2 italic">{c.notes}</div> : null}
+                                                {hint ? <div className="text-xs text-foreground/70 leading-relaxed break-words">{hint}</div> : null}
+                                                {c.notes ? <div className="text-xs text-muted-foreground mt-2 italic">{c.notes}</div> : null}
                                             </div>
                                             <div className="flex flex-col items-end gap-1">
                                                 <div className={cn(
                                                     "shrink-0 text-[11px] font-bold uppercase tracking-widest",
-                                                    isSelected ? "text-primary" : "text-zinc-500"
+                                                    isSelected ? "text-primary" : "text-muted-foreground"
                                                 )}>
                                                     {conf}% Match
                                                 </div>

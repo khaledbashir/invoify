@@ -83,7 +83,7 @@ const TemplateSelector = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center space-y-4">
-                            <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-zinc-700">
+                            <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-border">
                                 <Image
                                     src={template.img}
                                     alt={template.name}

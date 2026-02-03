@@ -37,7 +37,7 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                 <div className="relative">
                     <Zap className="w-5 h-5 text-[#0A52EF]" />
                     {gaps.length > 0 && (
-                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-zinc-900" />
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-background" />
                     )}
                 </div>
             </button>
@@ -75,12 +75,12 @@ export function IntelligenceSidebar({ isVisible, onToggle }: { isVisible: boolea
                                     "text-3xl font-black",
                                     completionRate >= 85 ? "text-emerald-500" : completionRate >= 50 ? "text-amber-500" : "text-zinc-600"
                                 )}>
-                                    {Math.round(completionRate)}<span className="text-lg text-zinc-500">%</span>
+                                    {Math.round(completionRate)}<span className="text-lg text-muted-foreground">%</span>
                                 </div>
                             </div>
                             <div className={cn(
                                 "text-[10px] font-bold px-2 py-1 rounded uppercase",
-                                completionRate >= 85 ? "bg-emerald-500/10 text-emerald-500" : completionRate >= 50 ? "bg-amber-500/10 text-amber-500" : "bg-zinc-800 text-zinc-500"
+                                completionRate >= 85 ? "bg-emerald-500/10 text-emerald-500" : completionRate >= 50 ? "bg-amber-500/10 text-amber-500" : "bg-muted text-muted-foreground"
                             )}>
                                 {completionRate >= 85 ? "Ready" : completionRate >= 50 ? "Needs Work" : "Critical"}
                             </div>

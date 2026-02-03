@@ -28,7 +28,7 @@ export function ModeToggle({ mode, onChange, isCollapsed = false }: ModeTogglePr
                     onClick={() => onChange("form")}
                     className={cn(
                         "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
-                        mode === "form" ? "bg-[#0A52EF] text-white shadow-lg shadow-brand-blue/20" : "text-zinc-500 hover:text-zinc-300"
+                        mode === "form" ? "bg-[#0A52EF] text-white shadow-lg shadow-brand-blue/20" : "text-muted-foreground hover:text-foreground"
                     )}
                     title="Drafting Mode"
                 >
@@ -39,7 +39,7 @@ export function ModeToggle({ mode, onChange, isCollapsed = false }: ModeTogglePr
                     onClick={() => onChange("ai")}
                     className={cn(
                         "w-10 h-10 rounded-lg flex items-center justify-center transition-all",
-                        mode === "ai" ? "bg-[#0A52EF] text-white shadow-lg shadow-brand-blue/20" : "text-zinc-500 hover:text-zinc-300"
+                        mode === "ai" ? "bg-[#0A52EF] text-white shadow-lg shadow-brand-blue/20" : "text-muted-foreground hover:text-foreground"
                     )}
                     title="Intelligence Mode"
                 >
@@ -50,7 +50,7 @@ export function ModeToggle({ mode, onChange, isCollapsed = false }: ModeTogglePr
     }
 
     return (
-        <div className="flex flex-col gap-1 p-1 bg-zinc-900/40 rounded-xl border border-zinc-800/50">
+        <div className="flex flex-col gap-1 p-1 bg-muted/40 rounded-xl border border-border/50">
             <button
                 type="button"
                 onClick={() => onChange("form")}
@@ -58,7 +58,7 @@ export function ModeToggle({ mode, onChange, isCollapsed = false }: ModeTogglePr
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all",
                     mode === "form"
                         ? "bg-[#0A52EF] text-white shadow-md shadow-brand-blue/10"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/20"
                 )}
             >
                 <PenLine className="w-3.5 h-3.5" />
@@ -71,7 +71,7 @@ export function ModeToggle({ mode, onChange, isCollapsed = false }: ModeTogglePr
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all",
                     mode === "ai"
                         ? "bg-[#0A52EF] text-white shadow-md shadow-brand-blue/10"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/20"
                 )}
             >
                 <Bot className="w-3.5 h-3.5" />

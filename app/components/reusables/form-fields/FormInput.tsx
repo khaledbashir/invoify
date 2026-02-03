@@ -91,7 +91,7 @@ const FormInput = ({
                                                 {isVerified ? <ShieldCheck className="w-3.5 h-3.5" /> : <Zap className="w-3.5 h-3.5" />}
                                             </div>
                                         </TooltipTrigger>
-                                        <TooltipContent side="top" className="max-w-xs bg-zinc-800 border-zinc-700 text-white p-3 shadow-2x">
+                                        <TooltipContent side="top" className="max-w-xs bg-card border-border text-foreground p-3 shadow-2xl">
                                             <p className="text-xs leading-relaxed">
                                                 {isVerified ? (
                                                     <>
@@ -146,7 +146,7 @@ const FormInput = ({
                                     value={field.value ?? ""}
                                     placeholder={placeholder}
                                     className={cn(
-                                        "w-full bg-zinc-950/50 border-zinc-800 transition-all duration-300",
+                                        "w-full bg-background/50 border-border transition-all duration-300",
                                         ghostClasses,
                                         props.className
                                     )}

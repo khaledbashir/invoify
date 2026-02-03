@@ -26,6 +26,15 @@ function getLedHeaderRowIndex(grid: string[][]) {
   return 0;
 }
 
+function getMaxColumnCount(grid: string[][]) {
+  let max = 0;
+  for (let r = 0; r < grid.length; r++) {
+    const len = Array.isArray(grid[r]) ? grid[r].length : 0;
+    if (len > max) max = len;
+  }
+  return max;
+}
+
 const HIDDEN_COLUMN_HEADERS = new Set(["type"]);
 const EDITABLE_HEADERS = new Set([
   "display name",
@@ -101,14 +110,14 @@ export default function ExcelGridViewer({
 
   const columnDefs = useMemo<ColDef[]>(() => {
     if (!activeSheet) return [];
-    const cols = activeSheet.grid[0]?.length ?? 0;
+    const cols = getMaxColumnCount(activeSheet.grid);
     const colDefs: ColDef[] = [];
 
     colDefs.push({
       colId: "__row",
       headerName: "",
       pinned: "left",
-      width: 56,
+      width: 60,
       resizable: false,
       suppressMovable: true,
       editable: false,
@@ -124,7 +133,7 @@ export default function ExcelGridViewer({
       colDefs.push({
         colId: `c${c}`,
         headerName: isLedCostSheetActive ? headerCell || `C${c + 1}` : `C${c + 1}`,
-        minWidth: 110,
+        minWidth: 120,
         flex: 1,
         editable: editable && isEditableCol,
         valueGetter: (p) => String(p.data?.row?.[c] ?? ""),
@@ -224,6 +233,22 @@ export default function ExcelGridViewer({
       </div>
 
       <div className={["flex-1 min-h-0", themeClass].join(" ")}>
+        <style jsx global>{`
+          .ag-theme-quartz,
+          .ag-theme-quartz-dark {
+            --ag-font-family: Work Sans, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            --ag-font-size: 12px;
+            --ag-header-height: 34px;
+            --ag-row-height: 30px;
+          }
+          .ag-theme-quartz .ag-header-cell-label,
+          .ag-theme-quartz-dark .ag-header-cell-label {
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-size: 10px;
+          }
+        `}</style>
         <AgGridReact
           rowData={rowData as any[]}
           columnDefs={columnDefs}

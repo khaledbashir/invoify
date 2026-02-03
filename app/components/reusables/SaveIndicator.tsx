@@ -32,7 +32,7 @@ export function SaveIndicator({ status, lastSavedAt, className = "" }: SaveIndic
     return (
         <div className={`flex items-center gap-1.5 text-xs font-medium ${className}`}>
             {displayStatus === "idle" && (
-                <span className="flex items-center gap-1 text-zinc-400">
+                <span className="flex items-center gap-1 text-muted-foreground">
                     <Cloud className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Vault</span>
                 </span>

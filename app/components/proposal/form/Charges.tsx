@@ -42,7 +42,7 @@ const Charges = () => {
                 </span>
             </div>
 
-            <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4 flex justify-between items-center">
+            <div className="border-t border-border pt-4 flex justify-between items-center">
                 <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">
                     Total Amount
                 </span>

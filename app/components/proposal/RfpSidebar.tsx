@@ -172,7 +172,7 @@ const RfpSidebar = () => {
                 </label>
 
                 {/* Vision Upload Button */}
-                <label className="cursor-pointer group ml-4 pl-4 border-l border-zinc-700">
+                <label className="cursor-pointer group ml-4 pl-4 border-l border-border">
                     <input type="file" className="hidden" accept="image/*" onChange={handleVisionUpload} disabled={isVisionAnalyzing} />
                     {isVisionAnalyzing ? (
                         <Loader2 className="w-3.5 h-3.5 text-purple-500 animate-spin" />
@@ -187,23 +187,23 @@ const RfpSidebar = () => {
 
             {/* RFP Vault List */}
             {rfpDocuments && rfpDocuments.length > 0 && (
-                <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-900/30">
-                    <p className="text-[10px] font-bold text-zinc-500 mb-2 uppercase tracking-wider flex items-center gap-1">
+                <div className="px-4 py-2 border-b border-border bg-muted/30">
+                    <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1">
                         <History className="w-3 h-3" /> Vault ({rfpDocuments.length})
                     </p>
                     <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                         {rfpDocuments.map(doc => (
-                            <div key={doc.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-zinc-800 transition-colors group relative">
+                            <div key={doc.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-accent/20 transition-colors group relative">
                                 <a
                                     href={doc.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-2 flex-1 min-w-0"
                                 >
-                                    <FileText className="w-3 h-3 text-zinc-500 group-hover:text-[#0A52EF] shrink-0" />
-                                    <span className="text-xs text-zinc-300 truncate" title={doc.name}>{doc.name}</span>
+                                    <FileText className="w-3 h-3 text-muted-foreground group-hover:text-[#0A52EF] shrink-0" />
+                                    <span className="text-xs text-foreground truncate" title={doc.name}>{doc.name}</span>
                                 </a>
-                                <span className="text-[9px] text-zinc-600 shrink-0 group-hover:hidden">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                <span className="text-[9px] text-muted-foreground shrink-0 group-hover:hidden">{new Date(doc.createdAt).toLocaleDateString()}</span>
                                 <button
                                     onClick={async (e) => {
                                         e.preventDefault();
@@ -211,7 +211,7 @@ const RfpSidebar = () => {
                                             await deleteRfpDocument(doc.id);
                                         }
                                     }}
-                                    className="hidden group-hover:flex items-center justify-center w-5 h-5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-red-400 transition-colors shrink-0"
+                                    className="hidden group-hover:flex items-center justify-center w-5 h-5 rounded hover:bg-accent text-muted-foreground hover:text-red-400 transition-colors shrink-0"
                                     title="Delete from Vault"
                                 >
                                     <Trash2 className="w-3 h-3" />
@@ -234,7 +234,7 @@ const RfpSidebar = () => {
                         </div>
                         <div className="space-y-1">
                             <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">ANC Document Brain</p>
-                            <p className="text-xs text-zinc-500 max-w-[200px] mx-auto">
+                            <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
                                 {rfpDocumentUrl
                                     ? "Ask anything about the uploaded RFP or add screens directly via chat."
                                     : "Upload an RFP document to begin context-aware analysis."}
@@ -266,7 +266,7 @@ const RfpSidebar = () => {
                             "px-3 py-2 rounded-2xl text-xs leading-relaxed",
                             m.role === "user"
                                 ? "bg-[#0A52EF] text-white rounded-tr-none"
-                                : "bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-800 rounded-tl-none"
+                                : "bg-background text-foreground border border-border rounded-tl-none"
                         )}>
                             {m.content}
                         </div>
@@ -275,7 +275,7 @@ const RfpSidebar = () => {
 
                 {aiLoading && (
                     <div className="flex items-start gap-2 max-w-[90%]">
-                        <div className="bg-zinc-100 dark:bg-zinc-900 px-3 py-2 rounded-2xl rounded-tl-none text-xs text-zinc-500 italic animate-pulse">
+                        <div className="bg-card px-3 py-2 rounded-2xl rounded-tl-none text-xs text-muted-foreground italic animate-pulse\">
                             Processing document context...
                         </div>
                     </div>
@@ -283,10 +283,10 @@ const RfpSidebar = () => {
             </div>
 
             {/* Bottom Panel */}
-            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-4 bg-zinc-50 dark:bg-zinc-900/50">
+            <div className="p-4 border-t border-border space-y-4 bg-background">
                 {/* Quick Prompts */}
                 <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-zinc-500 flex items-center gap-1">
+                    <p className="text-[10px] font-bold text-muted-foreground flex items-center gap-1">
                         <Info className="w-3 h-3" /> Quick Gaps
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -295,7 +295,7 @@ const RfpSidebar = () => {
                                 key={i}
                                 onClick={() => handleSendMessage(qp.prompt)}
                                 disabled={aiLoading || !aiWorkspaceSlug}
-                                className="text-[10px] bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-1.5 rounded-lg hover:border-[#0A52EF] hover:text-[#0A52EF] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-zinc-700 dark:text-zinc-300 shadow-sm"
+                                className="text-[10px] bg-background border border-border px-2 py-1.5 rounded-lg hover:border-[#0A52EF] hover:text-[#0A52EF] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-foreground shadow-sm\"
                             >
                                 {qp.label}
                             </button>
@@ -311,12 +311,12 @@ const RfpSidebar = () => {
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                         placeholder="Ask ANC Intelligence..."
-                        className="w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-[#0A52EF] focus:outline-none pr-10 shadow-sm"
+                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-[#0A52EF] focus:outline-none pr-10 shadow-sm text-foreground placeholder:text-muted-foreground"
                     />
                     <button
                         onClick={() => handleSendMessage()}
                         disabled={aiLoading || !input.trim() || !aiWorkspaceSlug}
-                        className="absolute right-2 top-2 p-1.5 text-[#0A52EF] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all disabled:opacity-30"
+                        className="absolute right-2 top-2 p-1.5 text-[#0A52EF] hover:bg-accent rounded-lg transition-all disabled:opacity-30"
                     >
                         <Send className="w-4 h-4" />
                     </button>

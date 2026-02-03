@@ -75,7 +75,7 @@ export function ExcelDropzone({ onFileParsed, onError }: ExcelDropzoneProps) {
         transition-all duration-200
         ${isDragging 
           ? 'border-emerald-500 bg-emerald-500/10' 
-          : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900'
+          : 'border-border bg-muted/50 hover:border-border/80 hover:bg-muted'
         }
         ${isLoading ? 'opacity-50 pointer-events-none' : ''}
       `}
@@ -91,25 +91,25 @@ export function ExcelDropzone({ onFileParsed, onError }: ExcelDropzoneProps) {
         {isLoading ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-            <p className="text-zinc-400 text-sm">Extracting data from Excel...</p>
+            <p className="text-muted-foreground text-sm">Extracting data from Excel...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3">
             <div className={`
               p-3 rounded-full transition-colors
-              ${isDragging ? 'bg-emerald-500/20' : 'bg-zinc-800'}
+              ${isDragging ? 'bg-emerald-500/20' : 'bg-muted'
             `}>
               {isDragging ? (
                 <Upload className="w-8 h-8 text-emerald-500" />
               ) : (
-                <FileSpreadsheet className="w-8 h-8 text-zinc-500" />
+                <FileSpreadsheet className="w-8 h-8 text-muted-foreground" />
               )}
             </div>
             <div>
               <p className="text-white font-medium text-sm">
                 {isDragging ? 'Drop Excel file here' : 'Drag & drop Excel file here'}
               </p>
-              <p className="text-zinc-500 text-xs mt-1">
+              <p className="text-muted-foreground text-xs mt-1">
                 or click to browse (.xlsx, .xls)
               </p>
             </div>
