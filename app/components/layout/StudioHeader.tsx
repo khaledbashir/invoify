@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useWizard } from "react-use-wizard";
-import { Download, Share2, Upload, Loader2, CheckCircle2, FileSpreadsheet, Save, AlertTriangle } from "lucide-react";
+import { Download, Share2, Upload, Loader2, CheckCircle2, FileSpreadsheet, Save, AlertTriangle, ChevronDown, FileText, Receipt, FileSignature } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LogoSelector from "@/app/components/reusables/LogoSelector";
 import SaveIndicator from "@/app/components/reusables/SaveIndicator";
@@ -16,6 +16,11 @@ import { analyzeGaps, calculateCompletionRate } from "@/lib/gap-analysis";
 import { toast } from "@/components/ui/use-toast";
 import type { AutoSaveStatus } from "@/lib/useAutoSave";
 import { ThemeToggle } from "@/app/components/ThemeToggle";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface StudioHeaderProps {
     saveStatus: AutoSaveStatus;
@@ -133,103 +138,149 @@ export function StudioHeader({
             </div>
 
             {/* Right Actions - Global Controls */}
-            <div className="flex items-center gap-3 shrink-0 flex-1 justify-end">
+            <div className="flex items-center gap-2 shrink-0 flex-1 justify-end">
                 <ThemeToggle />
 
                 {/* Template Selector */}
                 <TemplateSelector />
 
-                {/* Document Mode Switcher: BUDGET | PROPOSAL | LOI — prominent and clear */}
-                <div className="flex items-center gap-1 rounded-xl border-2 border-primary/20 bg-background p-1 shadow-lg shadow-primary/5">
-                    {([
-                        { mode: "BUDGET" as const, label: "Budget", desc: "Estimate only", color: "bg-amber-500" },
-                        { mode: "PROPOSAL" as const, label: "Proposal", desc: "Formal quote", color: "bg-blue-500" },
-                        { mode: "LOI" as const, label: "LOI", desc: "Contract", color: "bg-emerald-500" },
-                    ]).map(({ mode, label, desc, color }) => (
+                {/* Document Mode Dropdown: Clean dropdown instead of big buttons */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-3 gap-2 border-border/50 hover:bg-muted/50"
+                        >
+                            {headerType === "BUDGET" && (
+                                <>
+                                    <FileText className="w-3.5 h-3.5 text-amber-500" />
+                                    <span className="text-xs font-medium">Budget</span>
+                                </>
+                            )}
+                            {headerType === "PROPOSAL" && (
+                                <>
+                                    <Receipt className="w-3.5 h-3.5 text-blue-500" />
+                                    <span className="text-xs font-medium">Proposal</span>
+                                </>
+                            )}
+                            {headerType === "LOI" && (
+                                <>
+                                    <FileSignature className="w-3.5 h-3.5 text-emerald-500" />
+                                    <span className="text-xs font-medium">LOI</span>
+                                </>
+                            )}
+                            <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-56 p-2">
                         <button
-                            key={mode}
-                            type="button"
-                            onClick={() => setHeaderType(mode)}
+                            onClick={() => setHeaderType("BUDGET")}
                             className={cn(
-                                "relative px-4 py-2 rounded-lg transition-all duration-200 flex flex-col items-center min-w-[80px]",
-                                headerType === mode
-                                    ? `${color} text-white shadow-md scale-105`
-                                    : "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                                "w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                                headerType === "BUDGET" ? "bg-amber-500/10" : "hover:bg-muted/50"
                             )}
                         >
-                            <span className="text-xs font-bold uppercase tracking-wide">{label}</span>
-                            <span className={cn(
-                                "text-[9px] font-medium",
-                                headerType === mode ? "text-white/80" : "text-muted-foreground/70"
-                            )}>
-                                {desc}
-                            </span>
-                            {headerType === mode && (
-                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px]" style={{ borderTopColor: 'inherit' }} />
+                            <FileText className="w-4 h-4 text-amber-500" />
+                            <div className="flex-1 text-left">
+                                <div className="font-semibold text-sm">Budget</div>
+                                <div className="text-xs text-muted-foreground">Estimate only</div>
+                            </div>
+                            {headerType === "BUDGET" && (
+                                <div className="w-2 h-2 rounded-full bg-amber-500" />
                             )}
                         </button>
-                    ))}
-                </div>
+                        <button
+                            onClick={() => setHeaderType("PROPOSAL")}
+                            className={cn(
+                                "w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                                headerType === "PROPOSAL" ? "bg-blue-500/10" : "hover:bg-muted/50"
+                            )}
+                        >
+                            <Receipt className="w-4 h-4 text-blue-500" />
+                            <div className="flex-1 text-left">
+                                <div className="font-semibold text-sm">Proposal</div>
+                                <div className="text-xs text-muted-foreground">Formal quote</div>
+                            </div>
+                            {headerType === "PROPOSAL" && (
+                                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setHeaderType("LOI")}
+                            className={cn(
+                                "w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                                headerType === "LOI" ? "bg-emerald-500/10" : "hover:bg-muted/50"
+                            )}
+                        >
+                            <FileSignature className="w-4 h-4 text-emerald-500" />
+                            <div className="flex-1 text-left">
+                                <div className="font-semibold text-sm">LOI</div>
+                                <div className="text-xs text-muted-foreground">Contract</div>
+                            </div>
+                            {headerType === "LOI" && (
+                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                            )}
+                        </button>
+                    </PopoverContent>
+                </Popover>
 
                 <SaveIndicator
                     status={saveStatus}
                     lastSavedAt={initialData?.lastSavedAt ? new Date(initialData.lastSavedAt) : undefined}
                 />
 
+                {/* Save Draft - Smaller button */}
                 {isNewProject ? (
-                    <div className="flex items-center gap-2">
-                        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-md text-amber-600 dark:text-amber-500 text-[10px] font-medium uppercase tracking-wide">
-                            <AlertTriangle className="w-3 h-3" />
-                            Draft Mode
-                        </div>
-                        <Button
-                            size="sm"
-                            onClick={handleSaveDraft}
-                            disabled={savingDraft}
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[10px] px-4 h-8 shadow-lg shadow-blue-900/20 rounded-none sm:rounded-sm"
-                        >
-                            {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-                            Save Draft
-                        </Button>
-                    </div>
+                    <Button
+                        size="sm"
+                        onClick={handleSaveDraft}
+                        disabled={savingDraft}
+                        className="h-8 px-3 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-medium"
+                    >
+                        {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+                        <span className="hidden sm:inline">Save</span>
+                    </Button>
                 ) : (
                     <Button
                         size="sm"
                         variant="outline"
-                        className="border-primary/40 text-primary hover:bg-primary/10 font-bold uppercase tracking-widest text-[10px] px-3 h-7 rounded-none sm:rounded-sm"
+                        className="h-8 px-3 text-xs font-medium"
                         onClick={handleSaveDraft}
                         disabled={savingDraft}
                     >
-                        {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Save className="w-3.5 h-3.5 mr-2" />}
-                        Save Draft
+                        {savingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                     </Button>
                 )}
 
-                <div className="h-8 w-px bg-border mx-2 hidden sm:block" />
-
-                <div className="flex items-center gap-1 bg-secondary/50 border border-border p-1 rounded-lg">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-foreground font-bold uppercase tracking-widest text-[10px] px-3 h-7"
-                        onClick={handleShare}
-                    >
-                        <Share2 className="w-3.5 h-3.5 mr-2 text-primary" />
-                        Share
-                    </Button>
-
-                    <div className="h-4 w-px bg-border" />
-
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-muted-foreground hover:text-foreground font-bold uppercase tracking-widest text-[10px] px-3 h-7"
-                        onClick={exportAudit}
-                    >
-                        <FileSpreadsheet className="w-3 h-3 mr-2 text-emerald-500" />
-                        Audit
-                    </Button>
-                </div>
+                {/* Share & Audit - Compact dropdown menu */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                        >
+                            <Share2 className="w-4 h-4" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-48 p-2">
+                        <button
+                            onClick={handleShare}
+                            className="w-full flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors text-left"
+                        >
+                            <Share2 className="w-4 h-4 text-primary" />
+                            <span className="text-sm">Share Link</span>
+                        </button>
+                        <button
+                            onClick={exportAudit}
+                            className="w-full flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors text-left"
+                        >
+                            <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                            <span className="text-sm">Export Audit</span>
+                        </button>
+                    </PopoverContent>
+                </Popover>
             </div>
         </div>
     );
