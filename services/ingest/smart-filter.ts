@@ -87,18 +87,30 @@ function buildPartialPages(totalPages: number, maxPages: number): number[] | und
 
 export async function smartFilterPdf(fileBuffer: Buffer): Promise<FilterResult> {
   try {
-    const { PDFParse } = require("pdf-parse");
-    const parser = new PDFParse({ data: fileBuffer, verbosity: 0 });
-
-    const info = await parser.getInfo();
-    const totalPagesFromDoc = Number(info?.total) || 0;
-    const partialPages = buildPartialPages(totalPagesFromDoc, MAX_PAGES_TO_PARSE);
-    const data = await parser.getText(partialPages ? { partial: partialPages } : undefined);
-    await parser.destroy();
-
-    const pages: PageContent[] = (Array.isArray(data.pages) ? data.pages : []).map((p: { text?: string; num?: number }, index: number) => {
-      const pageNumber = Number.isFinite(Number(p?.num)) ? Number(p?.num) : index + 1;
-      const text = String(p?.text ?? "");
+    // Dynamic import to avoid issues with Next.js serverless environment
+    // pdf-parse exports a function as the default export
+    const pdfParseModule = await import("pdf-parse");
+    const parsePDF = (pdfParseModule as any).default || pdfParseModule;
+    
+    // Parse the PDF - pdf-parse takes (data, options)
+    const data = await parsePDF(fileBuffer);
+    
+    // Extract metadata
+    const totalPagesFromDoc = Number(data?.numpages) || Number(data?.numPages) || 0;
+    const fullText = String(data?.text ?? "");
+    
+    // Estimate pages if not provided
+    const estimatedPages = totalPagesFromDoc || Math.max(1, Math.ceil(fullText.length / 3000));
+    const charsPerPage = Math.ceil(fullText.length / estimatedPages);
+    
+    // Split text into page-like chunks
+    const pages: PageContent[] = [];
+    for (let i = 0; i < estimatedPages; i++) {
+      const start = i * charsPerPage;
+      const end = Math.min(start + charsPerPage, fullText.length);
+      const text = fullText.slice(start, end);
+      const pageNumber = i + 1;
+      
       const lowerText = text.toLowerCase();
       let score = 0;
       let isMustKeep = false;
@@ -134,17 +146,15 @@ export async function smartFilterPdf(fileBuffer: Buffer): Promise<FilterResult> 
           lowerText.includes("drawing") ||
           lowerText.includes("dwg") ||
           /\bav-\d+/i.test(text) ||
-          lowerText.includes("sheet") && (lowerText.includes("of") || /\d+/.test(text)));
+          (lowerText.includes("sheet") && (lowerText.includes("of") || /\d+/.test(text))));
 
       const isDrawingCandidate = looksLikeDrawing;
       if (isDrawingCandidate) score += 15;
 
-      return { pageNumber, text, score, isDrawingCandidate, isMustKeep };
-    });
+      pages.push({ pageNumber, text, score, isDrawingCandidate, isMustKeep });
+    }
 
-    const totalPages = Number.isFinite(totalPagesFromDoc) && totalPagesFromDoc > 0
-      ? totalPagesFromDoc
-      : (Number.isFinite(Number(data.total)) ? Number(data.total) : Math.max(...pages.map((p) => p.pageNumber), 0));
+    const totalPages = totalPagesFromDoc || pages.length;
 
     const drawingCandidates = pages
       .filter((p) => p.isDrawingCandidate)
@@ -175,7 +185,7 @@ export async function smartFilterPdf(fileBuffer: Buffer): Promise<FilterResult> 
     }
 
     return {
-      fullText: String(data.text ?? ""),
+      fullText: fullText,
       filteredText: filteredContent,
       retainedPages: retained.length,
       totalPages,
