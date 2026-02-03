@@ -213,4 +213,4 @@ export class ProductEngine {
 // EXPORTS
 // ============================================================================
 
-export { ProductCatalog, LED_MODULES, ProductEngine };
+export { ProductCatalog, LED_MODULES };
