@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "download-pdfs": "cd invoify && pnpm run download-pdfs"
+  },
   "dependencies": {
     "pdf-parse": "^2.4.5"
   },
