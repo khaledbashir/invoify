@@ -73,7 +73,7 @@ function buildPayloadFromExcel(
   const now = new Date();
   const proposalDate = now.toISOString().slice(0, 10);
   const dueDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  const screens = Array.isArray(formData.details?.screens) ? formData.details.screens : [];
+  const screens = (Array.isArray(formData.details?.screens) ? formData.details?.screens : []) as any[];
   const totals = internalAudit?.totals || (formData.details?.clientSummary as Record<string, unknown>) || {};
   const totalAmount = Number(totals.finalClientTotal ?? totals.sellPrice ?? 0) || 0;
   const isLOI = documentMode === "LOI";
@@ -83,7 +83,7 @@ function buildPayloadFromExcel(
     proposalId: "export-from-excel",
     proposalNumber: "EXCEL-001",
     proposalName: (formData.details?.proposalName as string) || "LED Display Proposal",
-    clientName: (formData.receiver?.name as string) || formData.details?.proposalName || "Client",
+    clientName: (formData.receiver?.name as string) || (formData.details?.proposalName as string) || "Client",
     proposalDate,
     dueDate,
     currency: "USD",
