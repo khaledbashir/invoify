@@ -952,7 +952,7 @@ export const ProposalContextProvider = ({
       const documentTypeLabel =
         docMode === "LOI" ? "Letter of Intent" : docMode === "PROPOSAL" ? "Proposal" : "Budget";
       const templateId = details?.pdfTemplate ?? 2;
-      const templateLabel = templateId === 4 ? "Bold" : templateId === 3 ? "Modern" : "Classic";
+      const templateLabel = templateId === 5 ? "Hybrid" : templateId === 4 ? "Bold" : templateId === 3 ? "Modern" : "Classic";
       const fileName = `${safeName(clientName)} ${documentTypeLabel} ${templateLabel}.pdf`;
       const a = document.createElement("a");
       a.href = url;
@@ -968,6 +968,7 @@ export const ProposalContextProvider = ({
     { id: 2, label: "Classic" },
     { id: 3, label: "Modern" },
     { id: 4, label: "Bold" },
+    { id: 5, label: "Hybrid" },
   ] as const;
   const MODES = [
     { mode: "BUDGET" as const, label: "Budget" },
