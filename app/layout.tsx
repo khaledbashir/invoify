@@ -18,6 +18,8 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 
 // Styles
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import "./globals.css";
 
 // Import English messages directly

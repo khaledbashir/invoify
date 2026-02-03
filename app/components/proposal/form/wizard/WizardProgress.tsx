@@ -86,7 +86,7 @@ const WizardStepper = ({ wizard }: WizardStepperProps) => {
                                         isActive && "bg-[#0A52EF] text-white ring-4 ring-[#0A52EF]/20 scale-110",
                                         isPassed && !isError && "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20",
                                         isError && "bg-red-500/10 text-red-500 border border-red-500/20",
-                                        !isActive && !isPassed && "bg-zinc-900 border border-zinc-800 text-zinc-500 group-hover:border-zinc-700 group-hover:text-zinc-400"
+                                        !isActive && !isPassed && "bg-muted border border-border text-muted-foreground group-hover:border-border/80 group-hover:text-foreground"
                                     )}
                                 >
                                     {isPassed && !isError ? (
@@ -100,7 +100,7 @@ const WizardStepper = ({ wizard }: WizardStepperProps) => {
                                 <span
                                     className={cn(
                                         "text-[9px] uppercase tracking-[0.2em] font-black transition-colors flex flex-col items-center",
-                                        isActive ? "text-[#0A52EF]" : "text-zinc-500",
+                                        isActive ? "text-[#0A52EF]" : "text-muted-foreground",
                                         isPassed && "text-emerald-500"
                                     )}
                                 >
@@ -113,7 +113,7 @@ const WizardStepper = ({ wizard }: WizardStepperProps) => {
                                 <div
                                     className={cn(
                                         "flex-1 h-[1px] mx-4 transition-colors relative -top-3",
-                                        activeStep > idx ? "bg-emerald-500/30" : "bg-zinc-800"
+                                        activeStep > idx ? "bg-emerald-500/30" : "bg-border"
                                     )}
                                 />
                             )}
