@@ -10,13 +10,14 @@ import { BaseButton, Subheading } from "@/app/components";
 import SingleScreen from "../SingleScreen";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Contexts
 import { useTranslationContext } from "@/contexts/TranslationContext";
 import { useProposalContext } from "@/contexts/ProposalContext";
 
 // Icons
-import { Plus, Settings2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Settings2, ChevronDown, ChevronUp, FileText, FileSpreadsheet, FileCheck } from "lucide-react";
 
 // Toast
 import { toast } from "@/components/ui/use-toast";
@@ -160,7 +161,7 @@ If, for any reason, Purchaser terminates this Agreement prior to the completion 
                 {_t("form.steps.screens.addNewScreen")}
             </BaseButton>
 
-            {/* Single Clean Accordion for Document Settings */}
+            {/* Document Settings with Tabs */}
             <div className="mt-4">
                 <button
                     type="button"
@@ -180,83 +181,127 @@ If, for any reason, Purchaser terminates this Agreement prior to the completion 
                 </button>
                 
                 {showDocSettings && (
-                    <div className="mt-2 p-4 bg-card border border-border rounded-lg space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                        {/* Specs Section Title */}
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
-                                Specs Header <span className="text-[10px] opacity-70">(Budget/Proposal)</span>
-                            </Label>
-                            <input
-                                type="text"
-                                placeholder="SPECIFICATIONS"
-                                value={specsSectionTitle}
-                                onChange={(e) => setValue("details.specsSectionTitle", e.target.value, { shouldDirty: true })}
-                                className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md"
-                            />
-                        </div>
+                    <div className="mt-2 p-4 bg-card border border-border rounded-lg animate-in fade-in slide-in-from-top-2 duration-200">
+                        <Tabs defaultValue="budget" className="w-full">
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="budget" className="flex items-center gap-1.5">
+                                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                                    Budget
+                                </TabsTrigger>
+                                <TabsTrigger value="proposal" className="flex items-center gap-1.5">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    Proposal
+                                </TabsTrigger>
+                                <TabsTrigger value="loi" className="flex items-center gap-1.5">
+                                    <FileCheck className="w-3.5 h-3.5" />
+                                    LOI
+                                </TabsTrigger>
+                            </TabsList>
+                            
+                            {/* Budget Tab */}
+                            <TabsContent value="budget" className="space-y-4 mt-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-medium text-muted-foreground">
+                                        Specs Header
+                                    </Label>
+                                    <input
+                                        type="text"
+                                        placeholder="SPECIFICATIONS"
+                                        value={specsSectionTitle}
+                                        onChange={(e) => setValue("details.specsSectionTitle", e.target.value, { shouldDirty: true })}
+                                        className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md"
+                                    />
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Title shown above the specifications table in Budget documents.
+                                    </p>
+                                </div>
+                            </TabsContent>
+                            
+                            {/* Proposal Tab */}
+                            <TabsContent value="proposal" className="space-y-4 mt-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-medium text-muted-foreground">
+                                        Specs Header
+                                    </Label>
+                                    <input
+                                        type="text"
+                                        placeholder="SPECIFICATIONS"
+                                        value={specsSectionTitle}
+                                        onChange={(e) => setValue("details.specsSectionTitle", e.target.value, { shouldDirty: true })}
+                                        className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md"
+                                    />
+                                    <p className="text-[11px] text-muted-foreground">
+                                        Title shown above the specifications table in Proposal documents.
+                                    </p>
+                                </div>
+                            </TabsContent>
+                            
+                            {/* LOI Tab */}
+                            <TabsContent value="loi" className="space-y-4 mt-4">
+                                {/* Payment Terms */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-medium text-muted-foreground">
+                                        Payment Terms
+                                    </Label>
+                                    <Textarea
+                                        placeholder="50% on Deposit, 40% on Mobilization, 10% on Substantial Completion"
+                                        value={paymentTerms}
+                                        onChange={(e) => setValue("details.paymentTerms", e.target.value, { shouldDirty: true })}
+                                        className="min-h-[60px] text-sm bg-background border-border resize-none"
+                                    />
+                                </div>
 
-                        {/* Payment Terms */}
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
-                                Payment Terms <span className="text-[10px] opacity-70">(LOI only)</span>
-                            </Label>
-                            <Textarea
-                                placeholder="50% on Deposit, 40% on Mobilization, 10% on Substantial Completion"
-                                value={paymentTerms}
-                                onChange={(e) => setValue("details.paymentTerms", e.target.value, { shouldDirty: true })}
-                                className="min-h-[60px] text-sm bg-background border-border resize-none"
-                            />
-                        </div>
+                                {/* Additional Notes */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-medium text-muted-foreground">
+                                        Additional Notes
+                                    </Label>
+                                    <Textarea
+                                        placeholder="Any additional notes or terms..."
+                                        value={additionalNotes}
+                                        onChange={(e) => setValue("details.additionalNotes", e.target.value, { shouldDirty: true })}
+                                        className="min-h-[60px] text-sm bg-background border-border resize-none"
+                                    />
+                                </div>
 
-                        {/* Additional Notes */}
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
-                                Additional Notes <span className="text-[10px] opacity-70">(LOI only)</span>
-                            </Label>
-                            <Textarea
-                                placeholder="Any additional notes or terms..."
-                                value={additionalNotes}
-                                onChange={(e) => setValue("details.additionalNotes", e.target.value, { shouldDirty: true })}
-                                className="min-h-[60px] text-sm bg-background border-border resize-none"
-                            />
-                        </div>
+                                {/* Scope of Work */}
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs font-medium text-muted-foreground">
+                                        Scope of Work <span className="text-[10px] opacity-70">(Exhibit B - optional)</span>
+                                    </Label>
+                                    <Textarea
+                                        placeholder="Custom scope of work text... Leave empty to hide Exhibit B."
+                                        value={scopeOfWorkText}
+                                        onChange={(e) => setValue("details.scopeOfWorkText", e.target.value, { shouldDirty: true })}
+                                        className="min-h-[80px] text-sm bg-background border-border resize-none font-mono"
+                                    />
+                                </div>
 
-                        {/* Scope of Work */}
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-medium text-muted-foreground">
-                                Scope of Work <span className="text-[10px] opacity-70">(LOI Exhibit B - optional)</span>
-                            </Label>
-                            <Textarea
-                                placeholder="Custom scope of work text... Leave empty to hide Exhibit B."
-                                value={scopeOfWorkText}
-                                onChange={(e) => setValue("details.scopeOfWorkText", e.target.value, { shouldDirty: true })}
-                                className="min-h-[80px] text-sm bg-background border-border resize-none font-mono"
-                            />
-                        </div>
-
-                        {/* Signature Legal Text */}
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs font-medium text-muted-foreground">
-                                    Signature Legal Text <span className="text-[10px] opacity-70">(LOI only)</span>
-                                </Label>
-                                {!signatureBlockText && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setValue("details.signatureBlockText", defaultSignatureText, { shouldDirty: true })}
-                                        className="text-[10px] text-primary hover:underline"
-                                    >
-                                        Load default
-                                    </button>
-                                )}
-                            </div>
-                            <Textarea
-                                placeholder="Please sign below to indicate Purchaser's agreement..."
-                                value={signatureBlockText}
-                                onChange={(e) => setValue("details.signatureBlockText", e.target.value, { shouldDirty: true })}
-                                className="min-h-[80px] text-sm bg-background border-border resize-none"
-                            />
-                        </div>
+                                {/* Signature Legal Text */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-xs font-medium text-muted-foreground">
+                                            Signature Legal Text
+                                        </Label>
+                                        {!signatureBlockText && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setValue("details.signatureBlockText", defaultSignatureText, { shouldDirty: true })}
+                                                className="text-[10px] text-primary hover:underline"
+                                            >
+                                                Load default
+                                            </button>
+                                        )}
+                                    </div>
+                                    <Textarea
+                                        placeholder="Please sign below to indicate Purchaser's agreement..."
+                                        value={signatureBlockText}
+                                        onChange={(e) => setValue("details.signatureBlockText", e.target.value, { shouldDirty: true })}
+                                        className="min-h-[80px] text-sm bg-background border-border resize-none"
+                                    />
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 )}
             </div>
