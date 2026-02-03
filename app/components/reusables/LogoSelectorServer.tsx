@@ -1,5 +1,4 @@
 import React from "react";
-import { BASE_URL } from "@/lib/variables";
 
 type LogoSelectorServerProps = {
     theme?: "light" | "dark";
@@ -16,11 +15,11 @@ type LogoSelectorServerProps = {
  * - Dark theme (blue/dark background) -> White Logo
  */
 const LogoSelectorServer = ({ theme = "light", width = 160, height = 80, className = "" }: LogoSelectorServerProps) => {
-    // Use absolute URLs for PDF rendering
-    const baseUrl = (BASE_URL || "").trim().replace(/\)+$/, "").replace(/\/+$/, "");
+    // Use relative paths - works in browser preview and server-side PDF generation
+    // Next.js serves /public files at root, so /ANC_Logo_2023_blue.png works
     const logoSrc = theme === "light"
-        ? `${baseUrl}/ANC_Logo_2023_blue.png`
-        : `${baseUrl}/ANC_Logo_2023_white.png`;
+        ? "/ANC_Logo_2023_blue.png"
+        : "/ANC_Logo_2023_white.png";
 
     return (
         <div className={`p-4 inline-flex items-center justify-center ${className}`}>

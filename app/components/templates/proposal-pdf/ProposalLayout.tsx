@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 // Types
 import { ProposalType } from "@/types";
 import { BrandSlashes } from "@/app/components/reusables/BrandGraphics";
-import { BASE_URL } from "@/lib/variables";
 
 type ProposalLayoutProps = {
     data: ProposalType;
@@ -13,7 +12,6 @@ type ProposalLayoutProps = {
 
 export default function ProposalLayout({ data, children, disableFixedFooter = false }: ProposalLayoutProps) {
     const { sender, receiver, details } = data;
-    const baseUrl = (BASE_URL || "").trim().replace(/\/+$/, "");
 
     // Instead of fetching all signature fonts, get the specific one user selected.
     const fontHref = details.signature?.fontFamily
@@ -69,7 +67,7 @@ export default function ProposalLayout({ data, children, disableFixedFooter = fa
                                 <p className="text-[7px] text-gray-600 tracking-wider">NY 914.696.2100 TX 940.464.2320</p>
                             </div>
                             <img
-                                src={`${baseUrl}/ANC_Logo_2023_blue.png`}
+                                src="/ANC_Logo_2023_blue.png"
                                 alt="ANC"
                                 width={48}
                                 height={24}

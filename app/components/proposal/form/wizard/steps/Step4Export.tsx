@@ -593,7 +593,7 @@ const Step4Export = () => {
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">All PDF Variants</h4>
-                                                <p className="text-[11px] text-muted-foreground">Download 9 PDFs: Budget / Proposal / LOI × Classic / Modern / Premium (current data)</p>
+                                                <p className="text-[11px] text-muted-foreground">Download 9 PDFs: Budget / Proposal / LOI × Classic / Modern / Bold (current data)</p>
                                             </div>
                                         </div>
                                         <button
