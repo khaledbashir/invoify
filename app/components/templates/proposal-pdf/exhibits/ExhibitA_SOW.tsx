@@ -1,6 +1,7 @@
 import React from "react";
 import { formatNumberWithCommas } from "@/lib/helpers";
 import { generateSOWContent, SOWOptions } from "@/lib/sowTemplate";
+import { RiskAwareSOWGenerator } from "@/services/sow/sowGenerator";
 import { ProposalType } from "@/types";
 
 interface ExhibitAProps {
@@ -16,10 +17,30 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
     const isMorgantown = loc.includes("morgantown") || loc.includes("wvu") || loc.includes("puskar") ||
         name.includes("morgantown") || name.includes("wvu") || name.includes("puskar");
 
+    // Build RFP text for AI risk scanning
+    const rfpText = `
+        ${details?.venue || ""} ${details?.location || ""} ${details?.proposalName || ""}
+        ${details?.additionalNotes || ""}
+        ${screens.map((s: any) => `${s.name || ""} ${s.environment || ""} ${s.serviceType || ""}`).join(" ")}
+    `.toLowerCase();
+
+    // Scan for AI-detected risks
+    const riskScan = RiskAwareSOWGenerator.scanForRiskKeywords(rfpText);
+
+    // Generate AI-enhanced SOW content
+    const projectContext = {
+        venue: details?.venue || "Project Site",
+        clientName: details?.location || "Client",
+        displayCount: screens.length
+    };
+    
+    const aiGeneratedSOW = RiskAwareSOWGenerator.generateRiskAwareSOW(rfpText, projectContext);
+
+    // Traditional SOW options (fallback/enhancement)
     const sowOptions: SOWOptions = {
         documentType: (details as any).documentType || "BUDGET",
-        isOutdoor: screens.some((s: any) => s.isOutdoor || s.environment === "OUTDOOR"),
-        includeUnionLabor: (details as any).includeUnionLabor || (details as any).isUnionLabor,
+        isOutdoor: screens.some((s: any) => s.isOutdoor || s.environment === "OUTDOOR") || riskScan.hasOutdoorRequirement,
+        includeUnionLabor: (details as any).includeUnionLabor || (details as any).isUnionLabor || riskScan.hasUnionRequirement,
         includeSpareParts: (details as any).includeSpareParts,
         atticStockMentioned: (details as any).atticStockMentioned || (details?.additionalNotes || "").toLowerCase().includes("attic stock"),
         isMorgantown,
@@ -40,6 +61,9 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
     const constraintSections = sowSections.filter(s => s.category === "CONSTRAINTS");
     const otherSections = sowSections.filter(s => !s.category || s.category === "OTHER");
 
+    // AI-generated sections take precedence if available
+    const hasAIGeneratedContent = aiGeneratedSOW.designServices || aiGeneratedSOW.constructionLogistics;
+
     return (
         <div className="pt-8">
             <div className="text-center mb-10">
@@ -47,14 +71,52 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">Statement of Work</h3>
             </div>
 
+            {/* AI-Generated Risk Detection Banner */}
+            {(riskScan.hasUnionRequirement || riskScan.hasOutdoorRequirement || riskScan.hasLiquidatedDamages) && (
+                <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <h4 className="text-[10px] font-bold text-blue-800 uppercase tracking-wider mb-2">
+                        AI-Detected RFP Requirements
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                        {riskScan.hasUnionRequirement && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-medium bg-amber-100 text-amber-800">
+                                ⚡ Union Labor Required
+                            </span>
+                        )}
+                        {riskScan.hasOutdoorRequirement && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                🌤️ Outdoor/IP65 Rated
+                            </span>
+                        )}
+                        {riskScan.hasLiquidatedDamages && (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-[10px] font-medium bg-red-100 text-red-800">
+                                ⏰ Liquidated Damages Apply
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* NOTE: Technical Specifications are rendered in the main SPECIFICATIONS section */}
             {/* This exhibit focuses on Scope of Work details */}
 
-            {/* 1. DESIGN SERVICES */}
-            {designSections.length > 0 && (
+            {/* 1. DESIGN SERVICES - AI-Enhanced */}
+            {(designSections.length > 0 || hasAIGeneratedContent) && (
                 <div className="mb-12">
                     <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">1. Design & Engineering Services</h4>
                     <div className="space-y-6 px-2">
+                        {/* AI-Generated Design Services */}
+                        {aiGeneratedSOW.designServices && (
+                            <div className="break-inside-avoid">
+                                <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                    Design Services
+                                    <span className="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">AI-Generated</span>
+                                </h5>
+                                <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{aiGeneratedSOW.designServices}</p>
+                            </div>
+                        )}
+                        
+                        {/* Traditional Design Sections */}
                         {designSections.map((section, idx) => (
                             <div key={idx} className="break-inside-avoid">
                                 <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>
@@ -65,11 +127,23 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 2. CONSTRUCTION SERVICES */}
-            {constructionSections.length > 0 && (
+            {/* 2. CONSTRUCTION SERVICES - AI-Enhanced */}
+            {(constructionSections.length > 0 || hasAIGeneratedContent) && (
                 <div className="mb-12">
                     <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">2. Construction & Technical Logistics</h4>
                     <div className="space-y-6 px-2">
+                        {/* AI-Generated Construction Logistics */}
+                        {aiGeneratedSOW.constructionLogistics && (
+                            <div className="break-inside-avoid">
+                                <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                    Construction Logistics
+                                    <span className="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">AI-Generated</span>
+                                </h5>
+                                <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{aiGeneratedSOW.constructionLogistics}</p>
+                            </div>
+                        )}
+                        
+                        {/* Traditional Construction Sections */}
                         {constructionSections.map((section, idx) => (
                             <div key={idx} className="break-inside-avoid">
                                 <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>
@@ -80,8 +154,8 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                 </div>
             )}
 
-            {/* 3. PROJECT CONSTRAINTS & COMPLIANCE - HIDDEN per user feedback (Target Screenshot does not show this) */}
-            {(false && (constraintSections.length > 0 || details?.venue)) && (
+            {/* 3. PROJECT CONSTRAINTS - AI-Enhanced */}
+            {(constraintSections.length > 0 || aiGeneratedSOW.constraints) && (
                 <div className="mb-12">
                     <h4 className="text-sm font-bold bg-[#0A52EF] text-white py-1 px-3 mb-6 uppercase tracking-widest">3. Project Constraints & Compliance</h4>
 
@@ -107,6 +181,17 @@ const ExhibitA_SOW = ({ data }: ExhibitAProps) => {
                     )}
 
                     <div className="space-y-6 px-2">
+                        {/* AI-Generated Constraints */}
+                        {aiGeneratedSOW.constraints && (
+                            <div className="break-inside-avoid">
+                                <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider flex items-center gap-2">
+                                    Project Constraints
+                                    <span className="text-[8px] px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">AI-Generated</span>
+                                </h5>
+                                <p className="text-[10px] leading-relaxed text-gray-700 whitespace-pre-wrap text-justify">{aiGeneratedSOW.constraints}</p>
+                            </div>
+                        )}
+
                         {constraintSections.map((section, idx) => (
                             <div key={idx} className="break-inside-avoid">
                                 <h5 className="text-[11px] font-bold text-[#0A52EF] border-b border-gray-100 pb-1 mb-2 uppercase tracking-wider">{section.title}</h5>

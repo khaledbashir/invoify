@@ -32,15 +32,16 @@ export default function ExhibitA_TechnicalSpecs({ data, showSOW = false }: Exhib
         : "EXHIBIT A: TECHNICAL SPECIFICATIONS";
 
     return (
-        <div className="pt-8">
-            <div className="text-center mb-8">
+        <div className="pt-8 break-inside-avoid">
+            <div className="text-center mb-8 break-inside-avoid">
                 <h2 className="text-[12px] font-bold text-[#0A52EF] uppercase tracking-[0.2em]">
                     {headerText}
                 </h2>
             </div>
 
             <div className="border border-gray-300 break-inside-avoid">
-                <div className="grid grid-cols-12 text-[10px] font-bold uppercase tracking-wider text-gray-700 border-b border-gray-300">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 text-[10px] font-bold uppercase tracking-wider text-gray-700 border-b border-gray-300 break-inside-avoid">
                     <div className="col-span-4 px-3 py-2">Display Name</div>
                     <div className="col-span-3 px-3 py-2">Dimensions</div>
                     <div className="col-span-1 px-3 py-2 text-right">Pitch</div>
@@ -49,6 +50,7 @@ export default function ExhibitA_TechnicalSpecs({ data, showSOW = false }: Exhib
                     <div className="col-span-1 px-3 py-2 text-right">Qty</div>
                 </div>
 
+                {/* Table Body */}
                 <div className="text-[10px] text-gray-900">
                     {screens.length > 0 ? (
                         screens.map((screen: any, idx: number) => {
@@ -70,20 +72,33 @@ export default function ExhibitA_TechnicalSpecs({ data, showSOW = false }: Exhib
                                         : rawBrightness.toString();
 
                             return (
-                                <div key={screen?.id || `${name}-${idx}`} className="grid grid-cols-12 border-b border-gray-200 last:border-b-0 break-inside-avoid">
-                                    <div className="col-span-4 px-3 py-2 font-semibold">{name}</div>
-                                    <div className="col-span-3 px-3 py-2 text-gray-800">
+                                <div 
+                                    key={screen?.id || `${name}-${idx}`} 
+                                    className="grid grid-cols-12 border-b border-gray-200 last:border-b-0 break-inside-avoid"
+                                >
+                                    <div className="col-span-4 px-3 py-2 font-semibold break-inside-avoid">{name}</div>
+                                    <div className="col-span-3 px-3 py-2 text-gray-800 break-inside-avoid">
                                         {formatFeet(h)} x {formatFeet(w)}
                                     </div>
-                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums">{pitch ? `${Number(pitch).toFixed(0)}mm` : ""}</div>
-                                    <div className="col-span-2 px-3 py-2 text-right tabular-nums">{resolution}</div>
-                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums">{brightnessText}</div>
-                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums">{isFinite(qty) ? qty : ""}</div>
+                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums break-inside-avoid">
+                                        {pitch ? `${Number(pitch).toFixed(0)}mm` : ""}
+                                    </div>
+                                    <div className="col-span-2 px-3 py-2 text-right tabular-nums break-inside-avoid">
+                                        {resolution}
+                                    </div>
+                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums break-inside-avoid">
+                                        {brightnessText}
+                                    </div>
+                                    <div className="col-span-1 px-3 py-2 text-right tabular-nums break-inside-avoid">
+                                        {isFinite(qty) ? qty : ""}
+                                    </div>
                                 </div>
                             );
                         })
                     ) : (
-                        <div className="px-3 py-6 text-center text-gray-400 italic">No screens configured.</div>
+                        <div className="px-3 py-6 text-center text-gray-400 italic break-inside-avoid">
+                            No screens configured.
+                        </div>
                     )}
                 </div>
             </div>

@@ -118,7 +118,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
     // Hybrid Section Header - Clean Modern style
     const SectionHeader = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-        <div className="mb-6 mt-10">
+        <div className="mb-6 mt-8 break-inside-avoid">
             <div className="flex items-center gap-3 mb-2">
                 <div className="w-1 h-5 rounded-full" style={{ background: `linear-gradient(180deg, ${colors.primary} 0%, ${colors.accent} 100%)` }} />
                 <h2 className="text-base font-bold tracking-wide uppercase" style={{ color: colors.text }}>{title}</h2>
@@ -131,7 +131,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
     const SpecTable = ({ screen }: { screen: any }) => (
         <div className="mb-6 rounded-lg overflow-hidden border break-inside-avoid" style={{ borderColor: colors.border, background: colors.white }}>
             {/* Blue Header */}
-            <div className="px-4 py-2.5 border-b" style={{ borderColor: colors.primary, background: colors.primary }}>
+            <div className="px-4 py-2.5 border-b break-inside-avoid" style={{ borderColor: colors.primary, background: colors.primary }}>
                 <h3 className="font-bold text-xs uppercase tracking-wide text-white">
                     {getScreenHeader(screen)}
                 </h3>
@@ -237,12 +237,12 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
         const subtotal = lineItems.reduce((sum, it) => sum + (Number(it.price) || 0), 0);
 
         return (
-            <div className="mt-6">
+            <div className="mt-6 break-inside-avoid">
                 {/* Modern table container */}
                 <div className="rounded-lg border overflow-hidden" style={{ borderColor: colors.border }}>
                     {/* Header */}
                     <div 
-                        className="grid grid-cols-12 px-4 py-2.5 text-xs font-bold uppercase tracking-wider" 
+                        className="grid grid-cols-12 px-4 py-2.5 text-xs font-bold uppercase tracking-wider break-inside-avoid" 
                         style={{ background: colors.primary, color: colors.white }}
                     >
                         <div className="col-span-8">Description</div>
@@ -253,7 +253,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                     {lineItems.map((item, idx) => (
                         <div 
                             key={item.key} 
-                            className="grid grid-cols-12 px-4 py-3 border-t" 
+                            className="grid grid-cols-12 px-4 py-3 border-t break-inside-avoid" 
                             style={{ 
                                 borderColor: colors.borderLight,
                                 background: idx % 2 === 1 ? colors.surface : colors.white
@@ -279,7 +279,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                     
                     {/* Total */}
                     <div 
-                        className="grid grid-cols-12 px-4 py-3 border-t-2" 
+                        className="grid grid-cols-12 px-4 py-3 border-t-2 break-inside-avoid" 
                         style={{ borderColor: colors.primary, background: colors.primaryLight }}
                     >
                         <div className="col-span-8 font-bold text-xs uppercase tracking-wide" style={{ color: colors.primaryDark }}>
@@ -300,10 +300,10 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
         const lines = raw.split(/\r?\n|,/g).map((l) => l.trim()).filter(Boolean);
         if (lines.length === 0) return null;
         return (
-            <div className="mt-8">
+            <div className="mt-8 break-inside-avoid">
                 <SectionHeader title="Payment Terms" />
-                <div className="rounded-lg p-4 text-sm leading-relaxed" style={{ background: colors.surface, color: colors.textMuted }}>
-                    {lines.map((line, idx) => <div key={idx} className="py-0.5">{line}</div>)}
+                <div className="rounded-lg p-4 text-sm leading-relaxed break-inside-avoid" style={{ background: colors.surface, color: colors.textMuted }}>
+                    {lines.map((line, idx) => <div key={idx} className="py-0.5 break-inside-avoid">{line}</div>)}
                 </div>
             </div>
         );
@@ -314,9 +314,9 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
         const raw = (details?.additionalNotes || "").toString().trim();
         if (!raw) return null;
         return (
-            <div className="mt-8">
+            <div className="mt-8 break-inside-avoid">
                 <SectionHeader title="Notes" />
-                <div className="rounded-lg p-4 text-sm leading-relaxed whitespace-pre-wrap" style={{ background: colors.surface, color: colors.text }}>
+                <div className="rounded-lg p-4 text-sm leading-relaxed whitespace-pre-wrap break-inside-avoid" style={{ background: colors.surface, color: colors.text }}>
                     {raw}
                 </div>
             </div>
@@ -329,7 +329,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
         return (
             <div className="mt-8 break-inside-avoid">
                 <SectionHeader title="Scope of Work" />
-                <div className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: colors.text }}>
+                <div className="text-sm leading-relaxed whitespace-pre-wrap break-inside-avoid" style={{ color: colors.text }}>
                     {sowText || "No scope of work specified."}
                 </div>
             </div>
@@ -339,33 +339,33 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
     // Signature Block - Universal (available for all document types)
     const SignatureBlock = () => (
         <div className="mt-12 break-inside-avoid">
-            <div className="text-xs leading-relaxed text-justify mb-8" style={{ color: colors.textMuted }}>
+            <div className="text-xs leading-relaxed text-justify mb-8 break-inside-avoid" style={{ color: colors.textMuted }}>
                 {((details as any)?.signatureBlockText || "").trim() || 
                     `Please sign below to indicate Purchaser's agreement to purchase the Display System as described herein and to authorize ANC to commence production.`}
             </div>
-            <h4 className="font-bold text-xs uppercase mb-6 border-b-2 pb-1" style={{ borderColor: colors.text, color: colors.text }}>
+            <h4 className="font-bold text-xs uppercase mb-6 border-b-2 pb-1 break-inside-avoid" style={{ borderColor: colors.text, color: colors.text }}>
                 Agreed To And Accepted:
             </h4>
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 gap-8 break-inside-avoid">
                 {[
                     { title: "ANC Sports Enterprises, LLC", subtitle: "Seller" },
                     { title: receiver?.name || "Purchaser", subtitle: "Purchaser" }
                 ].map((party, idx) => (
-                    <div key={idx} className="space-y-4">
-                        <div>
+                    <div key={idx} className="space-y-4 break-inside-avoid">
+                        <div className="break-inside-avoid">
                             <div className="font-bold text-xs" style={{ color: colors.primary }}>{party.title}</div>
                             <div className="text-xs" style={{ color: colors.textMuted }}>{party.subtitle}</div>
                         </div>
-                        <div>
+                        <div className="break-inside-avoid">
                             <div className="text-xs uppercase tracking-wide mb-1" style={{ color: colors.textMuted }}>Signature</div>
                             <div className="h-8 border-b-2" style={{ borderColor: colors.border }} />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
+                        <div className="grid grid-cols-2 gap-4 break-inside-avoid">
+                            <div className="break-inside-avoid">
                                 <div className="text-xs uppercase tracking-wide mb-1" style={{ color: colors.textMuted }}>Name</div>
                                 <div className="h-6 border-b" style={{ borderColor: colors.border }} />
                             </div>
-                            <div>
+                            <div className="break-inside-avoid">
                                 <div className="text-xs uppercase tracking-wide mb-1" style={{ color: colors.textMuted }}>Date</div>
                                 <div className="h-6 border-b" style={{ borderColor: colors.border }} />
                             </div>
@@ -378,18 +378,18 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
     // Bold-style Footer with dark blue slash
     const HybridFooter = () => (
-        <div className="mt-16 pt-6 border-t" style={{ borderColor: colors.border }}>
-            <div className="flex justify-between items-end">
-                <div>
+        <div className="mt-16 pt-6 border-t break-inside-avoid" style={{ borderColor: colors.border }}>
+            <div className="flex justify-between items-end break-inside-avoid">
+                <div className="break-inside-avoid">
                     <div className="font-bold text-xs tracking-wide uppercase" style={{ color: colors.text }}>ANC Sports Enterprises, LLC</div>
                     <div className="text-xs mt-1" style={{ color: colors.textMuted }}>2 Manhattanville Road, Suite 402 · Purchase, NY 10577 · anc.com</div>
                 </div>
                 {/* Dark blue slash accent from Bold template */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 break-inside-avoid">
                     {[...Array(5)].map((_, i) => (
                         <div 
                             key={i} 
-                            className="w-4 h-1 rounded-full opacity-30" 
+                            className="w-4 h-1 rounded-full opacity-30 break-inside-avoid" 
                             style={{ background: colors.primaryDark, transform: `skewX(-20deg)` }} 
                         />
                     ))}
@@ -401,10 +401,10 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
     return (
         <ProposalLayout data={data} disableFixedFooter>
             {/* Hybrid Header - Clean Modern style with left-aligned logo */}
-            <div className="flex justify-between items-start px-6 pt-6 pb-4 mb-6 border-b" style={{ borderColor: colors.border }}>
+            <div className="flex justify-between items-start px-6 pt-6 pb-4 mb-6 border-b break-inside-avoid" style={{ borderColor: colors.border }}>
                 {/* Logo left-aligned, flush with content margin */}
                 <LogoSelectorServer theme="light" width={140} height={70} className="p-0" />
-                <div className="text-right">
+                <div className="text-right break-inside-avoid">
                     <div className="text-xs uppercase tracking-widest font-bold" style={{ color: colors.primary }}>{docLabel}</div>
                     <h1 className="text-xl font-bold mt-1" style={{ color: colors.text }}>{receiver?.name || "Client Name"}</h1>
                     {details?.proposalName && <div className="text-xs mt-1" style={{ color: colors.textMuted }}>{details.proposalName}</div>}
@@ -413,7 +413,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
             {/* Intro - 10pt font */}
             {showIntroText && (
-                <div className="px-6 mb-6">
+                <div className="px-6 mb-6 break-inside-avoid">
                     <div className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>
                         {documentMode === "LOI" ? (
                             <p className="text-justify">
@@ -435,7 +435,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
             {/* Pricing - Available for all document types when enabled */}
             {showPricingTables && (
-                <div className="px-6">
+                <div className="px-6 break-inside-avoid">
                     <SectionHeader title="Project Pricing" subtitle={`${screens.length} display system${screens.length !== 1 ? 's' : ''}`} />
                     <PricingSection />
                 </div>
@@ -443,28 +443,28 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
             {/* Payment Terms - Universal */}
             {showPaymentTerms && (
-                <div className="px-6">
+                <div className="px-6 break-inside-avoid">
                     <PaymentTermsSection />
                 </div>
             )}
 
             {/* Notes - Universal (available for all document types) */}
             {showNotes && (
-                <div className="px-6">
+                <div className="px-6 break-inside-avoid">
                     <NotesSection />
                 </div>
             )}
 
             {/* Scope of Work - Universal (available for all document types) */}
             {showScopeOfWork && (
-                <div className="px-6">
+                <div className="px-6 break-inside-avoid">
                     <ScopeOfWorkSection />
                 </div>
             )}
 
             {/* Specifications - Available for all document types when enabled */}
             {showSpecifications && screens.length > 0 && (
-                <div className="px-6 break-before-page">
+                <div className="px-6">
                     <SectionHeader title={specsSectionTitle} subtitle="Technical details for each display" />
                     {screens.map((screen: any, idx: number) => (
                         <SpecTable key={idx} screen={screen} />
@@ -474,14 +474,14 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
             {/* Exhibit A - Technical Specs (when enabled) */}
             {showExhibitA && (
-                <div className="break-before-page px-6">
+                <div className="px-6">
                     <ExhibitA_TechnicalSpecs data={data} showSOW={showScopeOfWork} />
                 </div>
             )}
 
             {/* Signature Block - Universal (available for all document types) */}
             {showSignatureBlock && (
-                <div className="px-6 break-before-page">
+                <div className="px-6">
                     <SignatureBlock />
                 </div>
             )}

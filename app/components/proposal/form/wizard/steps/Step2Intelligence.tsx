@@ -9,6 +9,7 @@ import { Screens } from "@/app/components";
 import { Badge } from "@/components/ui/badge";
 import { useProposalContext } from "@/contexts/ProposalContext";
 import { resolveDocumentMode } from "@/lib/documentMode";
+import { SOWGeneratorPanel } from "@/app/components/proposal/SOWGeneratorPanel";
 
 const Step2Intelligence = () => {
     const { aiWorkspaceSlug } = useProposalContext();
@@ -85,6 +86,9 @@ const Step2Intelligence = () => {
                     {mode === "LOI" && "Legal contract"}
                 </span>
             </div>
+
+            {/* AI-Generated SOW Panel */}
+            <SOWGeneratorPanel />
 
             {/* Main Screens Card - Takes up most space */}
             <Card className="bg-card/50 border-border flex-1 flex flex-col overflow-hidden">

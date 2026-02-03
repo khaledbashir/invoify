@@ -58,6 +58,12 @@ import LogoSelector from "./reusables/LogoSelector";
 import { ExcelDropzone } from "./reusables/ExcelDropzone";
 
 /* =========================
+   * AI-Generated SOW
+   ========================= */
+import { SOWGeneratorPanel } from "./proposal/SOWGeneratorPanel";
+import { RiskBadge, RiskBadgeGroup, RiskCard } from "./proposal/RiskBadge";
+
+/* =========================
    * Modals & Alerts
    ========================= */
 import SendPdfToEmailModal from "./modals/email/SendPdfToEmailModal";
@@ -148,4 +154,8 @@ export {
    FormSelect,
    LogoSelector,
    ExcelDropzone,
+   SOWGeneratorPanel,
+   RiskBadge,
+   RiskBadgeGroup,
+   RiskCard,
 };
