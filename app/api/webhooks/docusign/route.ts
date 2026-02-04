@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createDocuSignService, DocuSignService } from "@/lib/signatures/docusign";
 import crypto from "crypto";
 
 /**
@@ -117,6 +118,12 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ ok: true, message: "Proposal not found" });
             }
 
+            // Generate document hash for audit trail
+            const documentHash = crypto
+                .createHash("sha256")
+                .update(JSON.stringify(proposal))
+                .digest("hex");
+
             // Lock the proposal (make it immutable)
             await prisma.proposal.update({
                 where: { id: proposal.id },
@@ -124,15 +131,86 @@ export async function POST(req: NextRequest) {
                     status: "SIGNED",
                     isLocked: true,
                     lockedAt: new Date(),
-                    documentHash: crypto
-                        .createHash("sha256")
-                        .update(JSON.stringify(proposal))
-                        .digest("hex"),
+                    documentHash,
                 },
             });
 
-            // TODO: Create SignatureAuditTrail records from webhook recipient data
-            // This requires the SignatureAuditTrail model to be added to Prisma schema
+            // Create SignatureAuditTrail records from DocuSign envelope data
+            try {
+                const docusignService = createDocuSignService();
+                
+                if (docusignService) {
+                    // Fetch complete envelope details from DocuSign API
+                    const envelope = await docusignService.getEnvelopeStatus(envelopeId);
+                    
+                    // Create audit trail records for each signer
+                    const signedRecipients = envelope.recipients.filter(r => r.status === "signed");
+                    
+                    for (const recipient of signedRecipients) {
+                        // Determine signer role based on recipient data or proposal context
+                        // Default to "PURCHASER" for client signers, "ANC_REPRESENTATIVE" for internal
+                        const signerRole = recipient.email?.toLowerCase().includes("@anc") 
+                            ? "ANC_REPRESENTATIVE" 
+                            : "PURCHASER";
+                        
+                        await prisma.signatureAuditTrail.create({
+                            data: {
+                                proposalId: proposal.id,
+                                signerEmail: recipient.email,
+                                signerName: recipient.name,
+                                signerTitle: null, // DocuSign doesn't provide title in webhook
+                                signerRole,
+                                ipAddress: recipient.ipAddress || "unknown",
+                                userAgent: null, // DocuSign webhook doesn't include user agent
+                                authMethod: "EMAIL_LINK", // DocuSign uses email-based authentication
+                                documentHash,
+                                pdfHash: null, // Can be populated later if needed
+                                auditExcelHash: null, // Can be populated later if needed
+                                signedAt: recipient.signedDateTime 
+                                    ? new Date(recipient.signedDateTime) 
+                                    : new Date(envelope.statusDateTime),
+                            },
+                        });
+                    }
+                    
+                    console.log(`DocuSign webhook: Created ${signedRecipients.length} audit trail record(s) for proposal ${proposalId}`);
+                } else {
+                    // Fallback: Create audit record from webhook payload if DocuSign service unavailable
+                    const recipients = payload.data.recipients || [];
+                    const signedRecipients = recipients.filter((r: any) => r.status === "signed");
+                    
+                    for (const recipient of signedRecipients) {
+                        const signerRole = recipient.email?.toLowerCase().includes("@anc") 
+                            ? "ANC_REPRESENTATIVE" 
+                            : "PURCHASER";
+                        
+                        await prisma.signatureAuditTrail.create({
+                            data: {
+                                proposalId: proposal.id,
+                                signerEmail: recipient.email,
+                                signerName: recipient.name,
+                                signerTitle: null,
+                                signerRole,
+                                ipAddress: "unknown", // Not available in webhook payload
+                                userAgent: null,
+                                authMethod: "EMAIL_LINK",
+                                documentHash,
+                                pdfHash: null,
+                                auditExcelHash: null,
+                                signedAt: recipient.signedDateTime 
+                                    ? new Date(recipient.signedDateTime) 
+                                    : new Date(payload.data.statusDateTime),
+                            },
+                        });
+                    }
+                    
+                    console.log(`DocuSign webhook: Created ${signedRecipients.length} audit trail record(s) from webhook payload (DocuSign service unavailable)`);
+                }
+            } catch (auditError: any) {
+                // Log error but don't fail the webhook - proposal is already locked
+                console.error("DocuSign webhook: Failed to create audit trail records:", auditError);
+                // Continue execution - proposal locking succeeded
+            }
 
             console.log(`DocuSign webhook: Proposal ${proposalId} locked after signature completion`);
 
