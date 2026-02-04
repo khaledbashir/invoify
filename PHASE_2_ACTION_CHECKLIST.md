@@ -1,7 +1,7 @@
 # Phase 2 Intelligence Mode — Action Checklist
 
 **Date:** 2026-02-04  
-**Status:** 1 of 5 Items Complete (TTE Extractor Done)  
+**Status:** 2 of 5 Items Complete (TTE Extractor + Labor Multipliers Done)  
 **Last Updated:** 2026-02-04 13:45 UTC  
 
 ---
@@ -83,16 +83,41 @@ Confidence: 0.95
 
 ---
 
-### A.4 Regional Labor Multipliers
+### ✅ A.4 Regional Labor Multipliers — COMPLETED 2026-02-04
 
 | Task | Effort | Owner | Status |
 |------|--------|-------|--------|
-| Add `laborMultiplier` field to estimator | 0.5 day | Kimi | ⏳ Ready |
-| Default 1.0, manual input in Drafting Table | — | — | ⏳ Ready |
-| Apply to labor line items | 0.5 day | Kimi | ⏳ Ready |
+| Add `regionalLaborMultiplier` to estimator options | 0.5 day | Kimi | ✅ DONE |
+| Default 1.0 (100%), configurable per project | — | — | ✅ DONE |
+| Apply multiplier to install + labor costs | 0.5 day | Kimi | ✅ DONE |
+| Combine with curved screen multiplier (1.15x) | — | — | ✅ DONE |
+| Add to breakdown output for transparency | — | — | ✅ DONE |
+| Test: Manhattan 1.5x, Rural Texas 0.9x | — | — | ✅ DONE |
+
+**What Was Built:**
+- **File:** `lib/estimator.ts` — Added `regionalLaborMultiplier` option
+- **Constant:** `DEFAULT_REGIONAL_LABOR_MULTIPLIER = 1.0`
+- **Logic:** Multiplier stacks with curved screen multiplier
+  - Example: Curved (1.15) × Manhattan (1.5) = 1.725 total
+- **Output:** `breakdown.regionalLaborMultiplier` shows applied rate
+
+**Test Results:**
+```
+Screen: 20' × 10', 10mm pitch
+- Default (1.0x):   Labor $9,600,  Install $5,000
+- Manhattan (1.5x): Labor $14,400, Install $7,500 (+50%)
+- Rural TX (0.9x):  Labor $8,640,  Install $4,500 (-10%)
+- Curved + Manhattan (1.725x): Labor $16,560, Install $8,625
+```
+
+**Usage:**
+```typescript
+calculatePerScreenAudit(screen, { regionalLaborMultiplier: 1.5 }) // Manhattan
+calculatePerScreenAudit(screen, { regionalLaborMultiplier: 0.9 })  // Rural
+```
 
 **Blockers:** None  
-**Note:** Basic implementation. Full zip-code lookup = future phase.  
+**Next:** Add UI field in Drafting Table for Jeremy to input multiplier (1.0 default, editable)  
 
 ---
 
@@ -287,6 +312,7 @@ If Ahmad wants to ship fast without waiting for answers:
 | Date | Item | What Was Built | Files |
 |------|------|----------------|-------|
 | 2026-02-04 | TTE Tonnage Extractor | Pattern-based extraction from Thornton Tomasetti reports. Detects "X tons of reinforcing/new steel", sums multiple values, calculates $3,000/ton cost. Tested on WVU sample: 34 tons → $102,000. | `services/ingest/tonnage-extractor.ts`, `app/api/rfp/upload/route.ts` |
+| 2026-02-04 | Regional Labor Multipliers | Added `regionalLaborMultiplier` option to estimator. Stacks with curved screen multiplier. Tested: Manhattan 1.5x (+50%), Rural Texas 0.9x (-10%). Outputs applied multiplier in breakdown. | `lib/estimator.ts` |
 
 ---
 

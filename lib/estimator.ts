@@ -96,6 +96,7 @@ export const SUBMITTALS_PCT = 0.01;
 export const PERMITS_FIXED = 500;
 export const CMS_PCT = 0.02;
 export const DEMOLITION_FIXED = 5000;
+export const DEFAULT_REGIONAL_LABOR_MULTIPLIER = 1.0; // Base multiplier (1.0 = 100%)
 
 // Supported Pixel Pitches (REQ: 1.56, 1.83, 0.94, 4, 6, 10, 13, 15, 16)
 export const SUPPORTED_PITCHES = [0.94, 1.56, 1.83, 4, 6, 10, 13, 15, 16];
@@ -258,6 +259,7 @@ export type ScreenAudit = {
     boTaxCost: number; // REQ-48
     salesTaxCost: number; // REQ-125: Sales tax amount
     salesTaxRate: number; // REQ-125: Sales tax rate used
+    regionalLaborMultiplier?: number; // Applied regional labor cost multiplier
   };
 };
 
@@ -330,6 +332,7 @@ export function calculatePerScreenAudit(
     reinforcingTonnage?: number; // REQ-46
     projectAddress?: string; // REQ-81
     venue?: string; // REQ-81
+    regionalLaborMultiplier?: number; // Regional labor cost multiplier (e.g., 1.5 for Manhattan, 0.9 for rural)
   }
 ): ScreenAudit {
   // Load catalog for VLOOKUP
@@ -346,6 +349,7 @@ export function calculatePerScreenAudit(
 
   const installFlatVal = options?.installFlatFee ?? INSTALL_FLAT;
   const laborPctVal = options?.laborPct ?? LABOR_PCT;
+  const regionalLaborMultiplier = options?.regionalLaborMultiplier ?? DEFAULT_REGIONAL_LABOR_MULTIPLIER;
   const powerPctVal = options?.powerPct ?? POWER_PCT;
   const shippingVal = options?.shippingPerSqFt ?? SHIPPING_PER_SQFT;
   const pmVal = options?.pmPerSqFt ?? PM_PER_SQFT;
@@ -415,12 +419,16 @@ export function calculatePerScreenAudit(
   // Curved Screen Multipliers
   const isCurved = formFactor.toLowerCase() === "curved";
   const structureMultiplier = isCurved ? 1.25 : 1.0;
-  const laborMultiplier = isCurved ? 1.15 : 1.0;
+  const curvedLaborMultiplier = isCurved ? 1.15 : 1.0;
+  
+  // Combine curved multiplier with regional labor multiplier
+  // e.g., curved (1.15) × Manhattan (1.5) = 1.725
+  const totalLaborMultiplier = curvedLaborMultiplier * regionalLaborMultiplier;
 
   const baseStructure = hardware.times(STRUCTURE_PCT);
   const structure = roundToCents(baseStructure.times(structureMultiplier));
-  const install = roundToCents(new Decimal(INSTALL_FLAT).times(laborMultiplier));
-  const labor = roundToCents(hardware.times(LABOR_PCT).times(laborMultiplier));
+  const install = roundToCents(new Decimal(INSTALL_FLAT).times(totalLaborMultiplier));
+  const labor = roundToCents(hardware.times(LABOR_PCT).times(totalLaborMultiplier));
   const power = roundToCents(hardware.times(POWER_PCT));
   const shipping = roundToCents(totalArea.times(SHIPPING_PER_SQFT));
   const pm = roundToCents(totalArea.times(PM_PER_SQFT));
@@ -511,6 +519,7 @@ export function calculatePerScreenAudit(
       boTaxCost: boTaxCost.toNumber(),
       salesTaxCost: salesTaxCost.toNumber(),
       salesTaxRate: salesTaxRate.toNumber(),
+      regionalLaborMultiplier: totalLaborMultiplier, // Include applied multiplier for transparency
     },
   };
 }
