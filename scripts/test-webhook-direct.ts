@@ -50,8 +50,9 @@ async function testWebhookDirect(proposalId: string) {
     // Check if proposal exists first
     console.log("📥 Checking if proposal exists...");
     let proposalBefore = null;
+    let checkResponse: Response | null = null;
     try {
-        const checkResponse = await fetch(`${API_URL}/api/projects/${proposalId}`);
+        checkResponse = await fetch(`${API_URL}/api/projects/${proposalId}`);
         
         if (checkResponse.ok) {
             const contentType = checkResponse.headers.get("content-type");
@@ -139,7 +140,7 @@ async function testWebhookDirect(proposalId: string) {
         }
 
         // If proposal existed, check if it was updated
-        if (checkResponse.ok) {
+        if (checkResponse?.ok) {
             console.log("\n⏳ Waiting for processing...");
             await new Promise(resolve => setTimeout(resolve, 2000));
 
