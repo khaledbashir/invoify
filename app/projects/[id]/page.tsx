@@ -54,7 +54,7 @@ function mapDbToFormSchema(dbProject: any) {
             documentType: documentType as any,
             pricingType: pricingType as any,
             documentMode: documentMode as any,
-            pdfTemplate: 2,
+            pdfTemplate: 5, // Default to Standard (Hybrid) template
             subTotal: 0,
             totalAmount: 0,
             overheadRate: Number(dbProject.overheadRate) || 0.10,

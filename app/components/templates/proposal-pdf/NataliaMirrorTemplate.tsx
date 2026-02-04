@@ -44,9 +44,9 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
   // FR-4.2: Custom proposal notes
   const customProposalNotes: string = (details as any)?.customProposalNotes || "";
 
-  // Document mode
+  // Document mode - FIX: Read documentMode, not documentType (legacy field)
   const documentMode: DocumentMode =
-    (details?.documentType as DocumentMode) || "BUDGET";
+    ((details as any)?.documentMode as DocumentMode) || "BUDGET";
 
   // Client info
   const clientName = receiver?.name || "Client Name";

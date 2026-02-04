@@ -498,7 +498,7 @@ export const ProposalContextProvider = ({
           paymentInformation: details.paymentInformation || FORM_DEFAULT_VALUES.details.paymentInformation,
           additionalNotes: details.additionalNotes || "",
           paymentTerms: details.paymentTerms || "Net 30", // Default if missing
-          pdfTemplate: details.pdfTemplate || 2,
+          pdfTemplate: details.pdfTemplate || 5, // Default to Standard (Hybrid) template
           venue: details.venue || "Generic",
           subTotal: details.subTotal || 0,
           totalAmount: details.totalAmount || 0,
