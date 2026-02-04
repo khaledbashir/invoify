@@ -1,7 +1,7 @@
 # Phase 2 Intelligence Mode — Action Checklist
 
 **Date:** 2026-02-04  
-**Status:** 2 of 5 Items Complete (TTE Extractor + Labor Multipliers Done)  
+**Status:** 3 of 5 Items Complete (TTE + Labor + Streaming Done)  
 **Last Updated:** 2026-02-04 13:45 UTC  
 
 ---
@@ -343,6 +343,7 @@ If Ahmad wants to ship fast without waiting for answers:
 |------|------|----------------|-------|
 | 2026-02-04 | TTE Tonnage Extractor | Pattern-based extraction from Thornton Tomasetti reports. Detects "X tons of reinforcing/new steel", sums multiple values, calculates $3,000/ton cost. Tested on WVU sample: 34 tons → $102,000. | `services/ingest/tonnage-extractor.ts`, `app/api/rfp/upload/route.ts` |
 | 2026-02-04 | Regional Labor Multipliers | Added `regionalLaborMultiplier` option to estimator. Stacks with curved screen multiplier. Tested: Manhattan 1.5x (+50%), Rural Texas 0.9x (-10%). Outputs applied multiplier in breakdown. | `lib/estimator.ts` |
+| 2026-02-04 | Smart Filter Streaming Parser | Tournament-style parser for 2,500+ page PDFs. Processes 300-page chunks, keeps top 50 from each, final round keeps best 150. Auto-detects when to use streaming (>300 pages). | `services/ingest/smart-filter-streaming.ts`, `app/api/rfp/upload/route.ts` |
 
 ---
 
