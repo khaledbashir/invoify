@@ -11,6 +11,15 @@
  *   npx tsx scripts/simulate-docusign-webhook.ts [proposal-id]
  */
 
+// Load environment variables
+import dotenv from "dotenv";
+import { resolve } from "path";
+
+// Load .env.local if it exists
+dotenv.config({ path: resolve(process.cwd(), ".env.local") });
+// Also load .env as fallback
+dotenv.config();
+
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
