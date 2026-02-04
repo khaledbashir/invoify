@@ -3,6 +3,7 @@ import { uploadDocument, addToWorkspace, queryVault } from "@/lib/anything-llm";
 import { prisma } from "@/lib/prisma";
 import { ANYTHING_LLM_BASE_URL, ANYTHING_LLM_KEY } from "@/lib/variables";
 import { smartFilterPdf } from "@/services/ingest/smart-filter";
+import { smartFilterStreaming, shouldUseStreaming } from "@/services/ingest/smart-filter-streaming";
 import { screenshotPdfPage } from "@/services/ingest/pdf-screenshot";
 import { DrawingService } from "@/services/vision/drawing-service";
 import { analyzeTTEContent, TonnageResult } from "@/services/ingest/tonnage-extractor";
@@ -119,7 +120,25 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(arrayBuffer);
 
       try {
-        const filterResult = await smartFilterPdf(buffer);
+        // Determine if we need streaming (2,500+ pages) or standard filtering
+        const pdfParseModule = await import("pdf-parse");
+        const parsePDF = (pdfParseModule as any).default || pdfParseModule;
+        const metadata = await parsePDF(buffer);
+        const totalPages = Number(metadata?.numpages) || Number(metadata?.numPages) || 0;
+        
+        let filterResult;
+        if (shouldUseStreaming(totalPages)) {
+          console.log(`[RFP Upload] Using STREAMING filter for ${totalPages} pages`);
+          filterResult = await smartFilterStreaming(buffer, totalPages, {
+            chunkSize: 300,
+            topPerChunk: 50,
+            finalMaxPages: 150
+          });
+        } else {
+          console.log(`[RFP Upload] Using STANDARD filter for ${totalPages} pages`);
+          filterResult = await smartFilterPdf(buffer);
+        }
+        
         fullTextForTTE = filterResult.fullText || ""; // Save for TTE extraction
         console.log(`[RFP Upload] Filtered ${filterResult.totalPages} pages down to ${filterResult.retainedPages} signal pages.`);
 
