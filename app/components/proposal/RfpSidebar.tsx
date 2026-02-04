@@ -37,8 +37,9 @@ const citationLabel = (path: string): string => {
 type SidebarTab = "chat" | "gap-fill";
 
 const RfpSidebar = () => {
-    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, reExtractRfp, rfpDocumentUrl, rfpDocuments, deleteRfpDocument, aiCitations, aiFields, verifiedFields, proposalId } = useProposalContext();
+    const { aiWorkspaceSlug, aiMessages, aiLoading, executeAiCommand, uploadRfpDocument, reExtractRfp, rfpDocumentUrl, rfpDocuments, deleteRfpDocument, aiCitations, aiFields, verifiedFields } = useProposalContext();
     const { watch } = useFormContext();
+    const proposalId = watch("details.proposalId");
     const [input, setInput] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [isVisionAnalyzing, setIsVisionAnalyzing] = useState(false);

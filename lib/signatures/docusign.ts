@@ -59,10 +59,30 @@ export class DocuSignService {
      * DocuSign uses JWT (JSON Web Token) for server-to-server authentication
      */
     private async generateJWT(): Promise<string> {
-        // TODO: Implement JWT generation using private key
-        // This requires the 'jsonwebtoken' package
-        // For now, return placeholder
-        throw new Error("JWT generation not yet implemented. Install 'jsonwebtoken' package.");
+        try {
+            // Dynamic import to avoid requiring jsonwebtoken at build time
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
+            const jwt = require("jsonwebtoken");
+            
+            const now = Math.floor(Date.now() / 1000);
+            const payload = {
+                iss: this.config.integratorKey, // Integrator Key (Client ID)
+                sub: this.config.userId, // User ID (email)
+                iat: now,
+                exp: now + 3600, // 1 hour expiration
+                aud: this.config.baseUrl.includes("demo") ? "account-d.docusign.com" : "account.docusign.com",
+            };
+
+            // Private key should be in PEM format
+            const privateKey = this.config.privateKey.replace(/\\n/g, "\n");
+            
+            return jwt.sign(payload, privateKey, { algorithm: "RS256" });
+        } catch (error: any) {
+            if (error.code === "MODULE_NOT_FOUND" || error.message?.includes("Cannot find module")) {
+                throw new Error("jsonwebtoken package not installed. Run: npm install jsonwebtoken @types/jsonwebtoken");
+            }
+            throw new Error(`JWT generation failed: ${error.message}`);
+        }
     }
 
     /**
@@ -133,9 +153,41 @@ export class DocuSignService {
                             signHereTabs: [
                                 {
                                     documentId: "1",
-                                    pageNumber: "1", // TODO: Detect signature block page dynamically
+                                    pageNumber: "last", // Signature block is typically on last page
+                                    xPosition: "100", // Approximate X position (right side for Purchaser)
+                                    yPosition: "650", // Approximate Y position (adjusted for A4 page)
+                                    anchorString: "Purchaser", // Anchor to "Purchaser" text in signature block
+                                    anchorXOffset: "0",
+                                    anchorYOffset: "30", // Position below "Purchaser" label
+                                    anchorUnits: "pixels",
+                                },
+                            ],
+                            textTabs: [
+                                // Name field
+                                {
+                                    documentId: "1",
+                                    pageNumber: "last",
                                     xPosition: "100",
-                                    yPosition: "700",
+                                    yPosition: "680",
+                                    anchorString: "Name",
+                                    anchorXOffset: "0",
+                                    anchorYOffset: "15",
+                                    anchorUnits: "pixels",
+                                    tabLabel: "SignerName",
+                                    value: signer.name,
+                                },
+                                // Date field
+                                {
+                                    documentId: "1",
+                                    pageNumber: "last",
+                                    xPosition: "200",
+                                    yPosition: "680",
+                                    anchorString: "Date",
+                                    anchorXOffset: "0",
+                                    anchorYOffset: "15",
+                                    anchorUnits: "pixels",
+                                    tabLabel: "SignerDate",
+                                    value: new Date().toLocaleDateString(),
                                 },
                             ],
                         },
@@ -149,7 +201,16 @@ export class DocuSignService {
                     })),
             },
             status: "sent",
-        };
+            customFields: {
+                textCustomFields: [
+                    {
+                        name: "proposalId",
+                        value: proposalId,
+                        show: "false",
+                    },
+                ],
+            },
+        } as any;
 
         // Send envelope via DocuSign API
         const response = await fetch(

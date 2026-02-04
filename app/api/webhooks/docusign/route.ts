@@ -83,8 +83,19 @@ export async function POST(req: NextRequest) {
 
         // Handle envelope.completed event
         if (payload.event === "envelope-completed") {
-            const { envelopeId, customFields } = payload.data as any;
-            const proposalId = customFields?.proposalId;
+            const { envelopeId } = payload.data as any;
+            
+            // Extract proposalId from envelope custom fields
+            // DocuSign sends custom fields in a different format
+            const envelopeCustomFields = (payload.data as any).customFields;
+            let proposalId: string | undefined;
+            
+            if (envelopeCustomFields?.textCustomFields) {
+                const proposalIdField = envelopeCustomFields.textCustomFields.find(
+                    (f: any) => f.name === "proposalId"
+                );
+                proposalId = proposalIdField?.value;
+            }
 
             if (!proposalId) {
                 console.warn("DocuSign webhook: No proposalId in custom fields", envelopeId);

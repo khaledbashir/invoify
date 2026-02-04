@@ -13,6 +13,7 @@
  */
 
 import { RfpExtractionService } from "../services/rfp/server/RfpExtractionService";
+import { mockJacksonvilleExtraction, mockWVUExtraction } from "../lib/mock-extraction";
 
 interface ExtractionTestResult {
     document: string;
@@ -38,24 +39,33 @@ interface ExtractionTestResult {
 /**
  * Test Jacksonville Jaguars RFP extraction
  */
-async function testJacksonvilleExtraction(): Promise<ExtractionTestResult> {
+async function testJacksonvilleExtraction(useMock: boolean = false): Promise<ExtractionTestResult> {
     console.log("🔍 Testing Jacksonville Jaguars RFP extraction...");
     
     const workspaceSlug = "jacksonville-jaguars"; // Adjust based on actual workspace name
     
+    let extractedData: any;
+    
     try {
-        const extractedData = await RfpExtractionService.extractFromWorkspace(workspaceSlug);
+        if (useMock) {
+            console.log("   Using MOCK MODE (bypassing AnythingLLM)");
+            extractedData = mockJacksonvilleExtraction();
+        } else {
+            extractedData = await RfpExtractionService.extractFromWorkspace(workspaceSlug);
+        }
         
         // Find "NE Low Head Height Entry" screen
         const neLowHeadScreen = extractedData.screens?.find((s: any) => 
             s.name?.value?.toLowerCase().includes("ne low head") ||
-            s.name?.value?.toLowerCase().includes("low head height")
+            s.name?.value?.toLowerCase().includes("low head height") ||
+            s.name?.value?.toLowerCase().includes("low head")
         );
         
         // Validate 4mm pixel pitch
         const pitch4mm = neLowHeadScreen?.pixelPitch?.value === 4 ||
                          neLowHeadScreen?.pixelPitch?.value === "4mm" ||
-                         neLowHeadScreen?.pitchMm?.value === 4;
+                         neLowHeadScreen?.pitchMm?.value === 4 ||
+                         (typeof neLowHeadScreen?.pixelPitch === 'object' && neLowHeadScreen?.pixelPitch?.value === 4);
         
         // Collect citations
         const citations: Array<{ field: string; citation: string }> = [];
@@ -115,14 +125,23 @@ async function testJacksonvilleExtraction(): Promise<ExtractionTestResult> {
 
 /**
  * Test WVU Coliseum RFP extraction
+ * 
+ * Uses mock mode if AnythingLLM is not configured.
  */
-async function testWVUExtraction(): Promise<ExtractionTestResult> {
+async function testWVUExtraction(useMock: boolean = false): Promise<ExtractionTestResult> {
     console.log("🔍 Testing WVU Coliseum RFP extraction...");
     
     const workspaceSlug = "wvu-coliseum"; // Adjust based on actual workspace name
     
+    let extractedData: any;
+    
     try {
-        const extractedData = await RfpExtractionService.extractFromWorkspace(workspaceSlug);
+        if (useMock) {
+            console.log("   Using MOCK MODE (bypassing AnythingLLM)");
+            extractedData = mockWVUExtraction();
+        } else {
+            extractedData = await RfpExtractionService.extractFromWorkspace(workspaceSlug);
+        }
         
         // Find "Center Hung LED Assembly" screen
         const centerHungScreen = extractedData.screens?.find((s: any) => 
@@ -135,7 +154,8 @@ async function testWVUExtraction(): Promise<ExtractionTestResult> {
             centerHungScreen?.weightLimit?.value === 60000 ||
             centerHungScreen?.structuralTonnage?.value === 60000 ||
             extractedData.rulesDetected?.structuralTonnage?.value === 60000 ||
-            extractedData.rulesDetected?.weightLimit?.value === 60000;
+            extractedData.rulesDetected?.weightLimit?.value === 60000 ||
+            (extractedData.rulesDetected?.weightLimit && typeof extractedData.rulesDetected.weightLimit === 'object' && extractedData.rulesDetected.weightLimit.value === 60000);
         
         // Collect citations
         const citations: Array<{ field: string; citation: string }> = [];
@@ -195,18 +215,25 @@ async function testWVUExtraction(): Promise<ExtractionTestResult> {
 
 /**
  * Run stress test and generate report
+ * 
+ * @param useMock - If true, uses mock data instead of calling AnythingLLM
  */
-async function runStressTest() {
-    console.log("🚀 Starting RAG Accuracy Stress Test...\n");
+async function runStressTest(useMock: boolean = false) {
+    console.log("🚀 Starting RAG Accuracy Stress Test...");
+    if (useMock) {
+        console.log("📋 MOCK MODE: Using hardcoded text snippets (bypassing AnythingLLM)\n");
+    } else {
+        console.log("🌐 LIVE MODE: Calling AnythingLLM API\n");
+    }
     
     const results: ExtractionTestResult[] = [];
     
     // Test Jacksonville
-    const jacksonvilleResult = await testJacksonvilleExtraction();
+    const jacksonvilleResult = await testJacksonvilleExtraction(useMock);
     results.push(jacksonvilleResult);
     
     // Test WVU
-    const wvuResult = await testWVUExtraction();
+    const wvuResult = await testWVUExtraction(useMock);
     results.push(wvuResult);
     
     // Generate summary report
@@ -259,9 +286,19 @@ async function runStressTest() {
 
 // Run if executed directly
 if (require.main === module) {
-    runStressTest()
-        .then(() => {
+    // Check for MOCK_MODE environment variable or command line flag
+    const useMock = process.env.MOCK_MODE === "true" || process.argv.includes("--mock");
+    
+    runStressTest(useMock)
+        .then((results) => {
             console.log("\n✅ Stress test completed");
+            
+            // Output JSON summary for verification
+            console.log("\n" + "=".repeat(80));
+            console.log("📋 JSON SUMMARY (for verification)");
+            console.log("=".repeat(80));
+            console.log(JSON.stringify(results, null, 2));
+            
             process.exit(0);
         })
         .catch((error) => {

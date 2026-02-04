@@ -25,7 +25,6 @@ export function GapFillSidebar() {
         aiFields,
         verifiedFields,
         setFieldVerified,
-        proposalId,
     } = useProposalContext();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -34,7 +33,7 @@ export function GapFillSidebar() {
 
     // Get proposal data
     const proposalData = watch();
-    const proposalIdValue = watch("details.proposalId") || proposalId;
+    const proposalIdValue = watch("details.proposalId");
 
     // Generate gap fill questions
     const questions = useMemo(() => {
