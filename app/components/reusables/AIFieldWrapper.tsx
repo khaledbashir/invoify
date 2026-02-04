@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check } from "lucide-react";
 
 interface AIFieldWrapperProps {
     children: React.ReactNode;
     isAIFilled: boolean;
     fieldName?: string;
+    proposalId?: string;
+    verifiedFields?: Record<string, any>;
     onVerify?: (fieldName: string) => void;
     className?: string;
 }
@@ -18,8 +20,16 @@ interface AIFieldWrapperProps {
  * Shows a 2px French Blue (#0A52EF) outer glow to indicate AI origin.
  * Provides a "Checkmark" icon that removes the glow when clicked.
  * 
+ * REQ-126: Persists verification state to database for audit trail.
+ * 
  * Usage:
- * <AIFieldWrapper isAIFilled={aiFields.includes('pitch')} fieldName="pitch" onVerify={handleVerify}>
+ * <AIFieldWrapper 
+ *   isAIFilled={aiFields.includes('pitch')} 
+ *   fieldName="screens[0].pitchMm" 
+ *   proposalId={proposalId}
+ *   verifiedFields={verifiedFields}
+ *   onVerify={handleVerify}
+ * >
  *   <Input ... />
  * </AIFieldWrapper>
  */
@@ -27,14 +37,54 @@ export function AIFieldWrapper({
     children,
     isAIFilled,
     fieldName,
+    proposalId,
+    verifiedFields = {},
     onVerify,
     className = "",
 }: AIFieldWrapperProps) {
-    const [isVerified, setIsVerified] = useState(false);
+    // Check if field is already verified (from database)
+    const isVerifiedFromDB = fieldName ? !!verifiedFields[fieldName] : false;
+    const [isVerified, setIsVerified] = useState(isVerifiedFromDB);
 
-    const handleVerify = () => {
+    // Update local state when verifiedFields prop changes
+    useEffect(() => {
+        if (fieldName && verifiedFields[fieldName]) {
+            setIsVerified(true);
+        }
+    }, [fieldName, verifiedFields]);
+
+    const handleVerify = async () => {
+        if (!fieldName) return;
+
         setIsVerified(true);
-        if (fieldName && onVerify) {
+
+        // Persist to database if proposalId provided
+        if (proposalId) {
+            try {
+                const response = await fetch(`/api/proposals/${proposalId}/verify-field`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fieldPath: fieldName,
+                        verifiedBy: "current-user", // TODO: Get from auth context
+                    }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    console.error("Failed to verify field:", error);
+                    setIsVerified(false); // Revert on error
+                    return;
+                }
+            } catch (error) {
+                console.error("Error verifying field:", error);
+                setIsVerified(false); // Revert on error
+                return;
+            }
+        }
+
+        // Call parent callback
+        if (onVerify) {
             onVerify(fieldName);
         }
     };

@@ -2377,12 +2377,29 @@ export const ProposalContextProvider = ({
             const c = (x: any) => (x != null && typeof x === "object" && "citation" in x && typeof (x as any).citation === "string") ? (x as any).citation : undefined;
             const aiPopulated: string[] = [];
             const citations: Record<string, string> = {};
+            
+            // REQ-126: Track AI-filled fields for Blue Glow persistence
             const rName = v(ext.receiver?.name); if (rName) { setValue("receiver.name", rName); aiPopulated.push("receiver.name"); const cit = c(ext.receiver?.name); if (cit) citations["receiver.name"] = cit; }
             const pName = v(ext.details?.proposalName); if (pName) { setValue("details.proposalName", pName); aiPopulated.push("details.proposalName"); const cit = c(ext.details?.proposalName); if (cit) citations["details.proposalName"] = cit; }
             const venue = v(ext.details?.venue) ?? v(ext.venue); if (venue) { setValue("details.venue", venue); aiPopulated.push("details.venue"); const cit = c(ext.details?.venue) ?? c(ext.venue); if (cit) citations["details.venue"] = cit; }
             const structT = v(ext.rulesDetected?.structuralTonnage); if (structT != null) { setValue("details.metadata.structuralTonnage", Number(structT)); aiPopulated.push("details.metadata.structuralTonnage"); const cit = c(ext.rulesDetected?.structuralTonnage); if (cit) citations["details.metadata.structuralTonnage"] = cit; }
             const reinfT = v(ext.rulesDetected?.reinforcingTonnage); if (reinfT != null) { setValue("details.metadata.reinforcingTonnage", Number(reinfT)); aiPopulated.push("details.metadata.reinforcingTonnage"); const cit = c(ext.rulesDetected?.reinforcingTonnage); if (cit) citations["details.metadata.reinforcingTonnage"] = cit; }
             if (ext.rulesDetected) setRulesDetected(ext.rulesDetected);
+            
+            // REQ-126: Persist AI-filled fields to database for Blue Glow tracking
+            if (proposalId && aiPopulated.length > 0) {
+              try {
+                await fetch(`/api/projects/${proposalId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    aiFilledFields: aiPopulated,
+                  }),
+                });
+              } catch (error) {
+                console.error("Failed to persist AI-filled fields:", error);
+              }
+            }
             if (ext.details?.screens && Array.isArray(ext.details.screens)) {
               const normalized = ext.details.screens.map((s: any, idx: number) => {
                 const prefix = `details.screens[${idx}]`;
@@ -2406,6 +2423,22 @@ export const ProposalContextProvider = ({
               if (rName) setValue("receiver.name", rName); if (pName) setValue("details.proposalName", pName);
               setAiFields(aiPopulated);
               setAiCitations(prev => ({ ...prev, ...citations }));
+              
+              // REQ-126: Persist AI-filled fields to database for Blue Glow tracking
+              if (proposalId && aiPopulated.length > 0) {
+                try {
+                  await fetch(`/api/projects/${proposalId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      aiFilledFields: aiPopulated,
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to persist AI-filled fields:", error);
+                }
+              }
+              
               try {
                 const { clientSummary, internalAudit } = calculateProposalAudit(normalized, {
                   taxRate: getValues("details.taxRateOverride"), bondPct: getValues("details.bondRateOverride"),
@@ -2416,6 +2449,21 @@ export const ProposalContextProvider = ({
               } catch (e) { /* ignore */ }
             } else {
               setAiCitations(prev => ({ ...prev, ...citations }));
+              
+              // REQ-126: Persist AI-filled fields even if no screens extracted
+              if (proposalId && aiPopulated.length > 0) {
+                try {
+                  await fetch(`/api/projects/${proposalId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      aiFilledFields: aiPopulated,
+                    }),
+                  });
+                } catch (error) {
+                  console.error("Failed to persist AI-filled fields:", error);
+                }
+              }
             }
             aiExtractionSuccess();
             return data.extractedData;

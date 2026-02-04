@@ -139,11 +139,15 @@ export function validateEditAttempt(
 /**
  * REQ-122: Validate transition to APPROVED state
  * Requires all Blue Glow (AI-filled) fields to be human-verified
+ * 
+ * @param currentStatus - Current proposal status
+ * @param aiFilledFields - Array of field paths that were AI-extracted
+ * @param verifiedFields - Object mapping field paths to verification records, OR array of verified field paths
  */
 export function validateApprovalTransition(
   currentStatus: string,
   aiFilledFields: string[],
-  verifiedFields: string[]
+  verifiedFields: string[] | Record<string, any>
 ): {
   valid: boolean;
   error?: string;
@@ -157,15 +161,27 @@ export function validateApprovalTransition(
     };
   }
 
-  // REQ-122: All Blue Glow fields must be verified before approval
-  const unverifiedFields = aiFilledFields.filter(f => !verifiedFields.includes(f));
+  // Handle both array and object formats for verifiedFields
+  let verifiedFieldPaths: string[] = [];
+  if (Array.isArray(verifiedFields)) {
+    verifiedFieldPaths = verifiedFields;
+  } else if (typeof verifiedFields === 'object' && verifiedFields !== null) {
+    // Extract field paths from verification records object
+    verifiedFieldPaths = Object.keys(verifiedFields);
+  }
 
-  if (unverifiedFields.length > 0) {
-    return {
-      valid: false,
-      error: `Cannot approve: ${unverifiedFields.length} AI-extracted fields have not been human-verified.`,
-      unverifiedFields
-    };
+  // REQ-122: All Blue Glow fields must be verified before approval
+  // Only check if there are AI-filled fields (Mirror Mode may have none)
+  if (aiFilledFields.length > 0) {
+    const unverifiedFields = aiFilledFields.filter(f => !verifiedFieldPaths.includes(f));
+
+    if (unverifiedFields.length > 0) {
+      return {
+        valid: false,
+        error: `Cannot approve: ${unverifiedFields.length} AI-extracted field(s) have not been human-verified.`,
+        unverifiedFields
+      };
+    }
   }
 
   return { valid: true };

@@ -902,8 +902,22 @@ const Step4Export = () => {
                                                     ? "bg-muted text-muted-foreground cursor-not-allowed"
                                                     : "bg-brand-blue text-foreground hover:bg-brand-blue/90 shadow-[0_0_20px_rgba(10,82,239,0.3)] hover:shadow-[0_0_30px_rgba(10,82,239,0.5)]"
                                             )}
+                                            title={
+                                                isGatekeeperLocked && unverifiedAiFields.length > 0
+                                                    ? `Verify ${unverifiedAiFields.length} more field${unverifiedAiFields.length !== 1 ? 's' : ''} to export`
+                                                    : undefined
+                                            }
                                         >
-                                            {exporting ? "Generating..." : "Download Bundle"}
+                                            {exporting ? "Generating..." : (
+                                                <>
+                                                    Download Bundle
+                                                    {isGatekeeperLocked && unverifiedAiFields.length > 0 && (
+                                                        <span className="ml-1 text-[10px] opacity-75">
+                                                            ({unverifiedAiFields.length} to verify)
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )}
                                             {!exporting && <Download className="w-3.5 h-3.5" />}
                                         </button>
                                     </div>

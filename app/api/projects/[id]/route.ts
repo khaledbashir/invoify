@@ -111,8 +111,15 @@ export async function PATCH(
             });
 
             const currentAiFields = (fullProposal?.aiFilledFields as string[]) || aiFilledFields || [];
-            const currentVerifiedFields = (fullProposal?.verifiedFields as any[]) || verifiedFields || [];
-            const verifiedFieldNames = currentVerifiedFields.map((v: any) => v.field || v);
+            const currentVerifiedFields = (fullProposal?.verifiedFields as any) || verifiedFields || {};
+            
+            // Handle both array and object formats
+            let verifiedFieldNames: string[] = [];
+            if (Array.isArray(currentVerifiedFields)) {
+                verifiedFieldNames = currentVerifiedFields.map((v: any) => v.field || v);
+            } else if (typeof currentVerifiedFields === 'object' && currentVerifiedFields !== null) {
+                verifiedFieldNames = Object.keys(currentVerifiedFields);
+            }
 
             const validation = validateApprovalTransition(
                 existingProject.status,
