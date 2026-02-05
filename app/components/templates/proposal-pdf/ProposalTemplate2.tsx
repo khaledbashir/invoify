@@ -613,7 +613,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         const venueName = details?.venue || "";
         // Normalize venue name check
         const normalizedVenue = Object.keys(VENUE_CONSTRAINTS).find(k => k.toLowerCase() === venueName.toLowerCase());
-        const constraints = normalizedVenue ? VENUE_CONSTRAINTS[normalizedVenue as any] : null;
+        const constraints = normalizedVenue ? VENUE_CONSTRAINTS[normalizedVenue as keyof typeof VENUE_CONSTRAINTS] : null;
 
         if (!constraints) return null;
 
