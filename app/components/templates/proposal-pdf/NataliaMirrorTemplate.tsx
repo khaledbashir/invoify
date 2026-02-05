@@ -65,9 +65,21 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
   const screens = (details as any)?.screens || [];
   const showSpecifications = (details as any)?.showSpecifications ?? true;
 
+  // Issue #2 Fix: Build mapping from screen group → custom display name
+  // screen.group matches pricing table names (both come from Margin Analysis headers)
+  const screenNameMap: Record<string, string> = {};
+  screens.forEach((screen: any) => {
+    const group = screen?.group;
+    const customName = screen?.customDisplayName || screen?.externalName;
+    if (group && customName && customName !== screen?.name) {
+      screenNameMap[group] = customName;
+    }
+  });
+
   // Helper to get display name for a table (with override support)
   const getTableDisplayName = (table: PricingTable): string => {
-    return tableHeaderOverrides[table.id] || table.name;
+    // Priority: explicit header override > screen name edit > Excel original
+    return tableHeaderOverrides[table.id] || screenNameMap[table.name] || table.name;
   };
 
   return (

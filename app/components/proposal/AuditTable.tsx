@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Check, Pencil, X } from "lucide-react";
 
 const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) => {
-  const { control, setValue } = useFormContext();
+  const { control, setValue, getValues } = useFormContext();
   const internalAudit = useWatch({
     name: "details.internalAudit",
     control,
@@ -134,9 +134,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                             setValue(`details.screens.${idx}.customDisplayName`, newName, { shouldDirty: true, shouldValidate: true });
 
                             // 2. INSTANT SYNC: Update corresponding QuoteItem to ensure PDF matches perfectly
-                            const allValues = useFormContext().getValues();
-                            // We need to access getValues via the hook context directly or add it to destructuring above
-                            // Use the closure's access to screen from the map or re-fetch
+                            const allValues = getValues();
                             const currentScreen = screen; // screen is from perScreen map, likely has ID
                             const quoteItems = allValues.details?.quoteItems || [];
 
@@ -185,7 +183,7 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
                           setValue(`details.screens.${idx}.customDisplayName`, newName, { shouldDirty: true, shouldValidate: true });
 
                           // 2. INSTANT SYNC
-                          const allValues = useFormContext().getValues();
+                          const allValues = getValues();
                           const currentScreen = screen;
                           const quoteItems = allValues.details?.quoteItems || [];
 
