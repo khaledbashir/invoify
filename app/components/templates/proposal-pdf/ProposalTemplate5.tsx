@@ -163,10 +163,60 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
         </div>
     );
 
+    // Calculate project total (shared between LOI summary and pricing section)
+    const calculateProjectTotal = () => {
+        const softCostItems = internalAudit?.softCostItems || [];
+        const quoteItems = (((details as any)?.quoteItems || []) as any[]).filter(Boolean);
+
+        const lineItems = quoteItems.length > 0
+            ? quoteItems.map((it: any) => ({ price: Number(it.price || 0) || 0 }))
+            : [
+                ...(screens || []).map((screen: any) => {
+                    const auditRow = isSharedView
+                        ? null
+                        : internalAudit?.perScreen?.find((s: any) => s.id === screen.id || s.name === screen.name);
+                    const price = auditRow?.breakdown?.sellPrice || auditRow?.breakdown?.finalClientTotal || 0;
+                    return { price: Number(price) || 0 };
+                }).filter((it) => Math.abs(it.price) >= 0.01),
+                ...softCostItems.map((item: any) => ({
+                    price: Number(item?.sell || 0),
+                })).filter((it: any) => Math.abs(it.price) >= 0.01),
+            ];
+
+        return lineItems.reduce((sum, it) => sum + (Number(it.price) || 0), 0);
+    };
+
+    // LOI Master Table Summary - Shows BEFORE detailed pricing tables per Natalia requirement
+    const LOISummaryTable = () => {
+        const total = calculateProjectTotal();
+
+        return (
+            <div className="px-6 mt-6 break-inside-avoid">
+                <SectionHeader title="Project Summary" subtitle="Letter of Intent - Grand Total" />
+                <div className="rounded-lg border overflow-hidden" style={{ borderColor: colors.border }}>
+                    <div
+                        className="grid grid-cols-12 px-4 py-4 break-inside-avoid"
+                        style={{ borderColor: colors.primary, background: colors.primaryLight }}
+                    >
+                        <div className="col-span-8 font-bold text-sm uppercase tracking-wide" style={{ color: colors.primaryDark }}>
+                            Project Grand Total
+                        </div>
+                        <div className="col-span-4 text-right font-bold text-lg" style={{ color: colors.primaryDark }}>
+                            {formatCurrency(total)}
+                        </div>
+                    </div>
+                </div>
+                <p className="text-xs mt-2" style={{ color: colors.textMuted }}>
+                    Detailed breakdown follows below. This total represents the complete project investment.
+                </p>
+            </div>
+        );
+    };
+
     // Hybrid Pricing Section - Classic text hierarchy (UPPERCASE BOLD name, smaller specs)
     const PricingSection = () => {
         const softCostItems = internalAudit?.softCostItems || [];
-        
+
         // Get quote items if available
         const quoteItems = (((details as any)?.quoteItems || []) as any[]).filter(Boolean);
         
@@ -276,19 +326,21 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                             </div>
                         </div>
                     ))}
-                    
-                    {/* Total */}
-                    <div 
-                        className="grid grid-cols-12 px-4 py-3 border-t-2 break-inside-avoid" 
-                        style={{ borderColor: colors.primary, background: colors.primaryLight }}
-                    >
-                        <div className="col-span-8 font-bold text-xs uppercase tracking-wide" style={{ color: colors.primaryDark }}>
-                            Project Total
+
+                    {/* Total - Hidden for LOI (shown at top instead) */}
+                    {!isLOI && (
+                        <div
+                            className="grid grid-cols-12 px-4 py-3 border-t-2 break-inside-avoid"
+                            style={{ borderColor: colors.primary, background: colors.primaryLight }}
+                        >
+                            <div className="col-span-8 font-bold text-xs uppercase tracking-wide" style={{ color: colors.primaryDark }}>
+                                Project Total
+                            </div>
+                            <div className="col-span-4 text-right font-bold text-xs" style={{ color: colors.primaryDark }}>
+                                {formatCurrency(subtotal)}
+                            </div>
                         </div>
-                        <div className="col-span-4 text-right font-bold text-xs" style={{ color: colors.primaryDark }}>
-                            {formatCurrency(subtotal)}
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
         );
@@ -433,10 +485,14 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                 </div>
             )}
 
+            {/* LOI Master Table - Project Grand Total BEFORE detailed breakdown */}
+            {/* Per Natalia Feb 4 meeting: "put that one table ahead of everything else" */}
+            {isLOI && showPricingTables && <LOISummaryTable />}
+
             {/* Pricing - Available for all document types when enabled */}
             {showPricingTables && (
                 <div className="px-6 break-inside-avoid">
-                    <SectionHeader title="Project Pricing" />
+                    <SectionHeader title={isLOI ? "Detailed Breakdown" : "Project Pricing"} />
                     <PricingSection />
                 </div>
             )}
