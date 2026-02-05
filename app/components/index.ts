@@ -64,6 +64,11 @@ import { SOWGeneratorPanel } from "./proposal/SOWGeneratorPanel";
 import { RiskBadge, RiskBadgeGroup, RiskCard } from "./proposal/RiskBadge";
 
 /* =========================
+   * Text Editor
+   ========================= */
+import { TextEditorPanel } from "./proposal/TextEditorPanel";
+
+/* =========================
    * Modals & Alerts
    ========================= */
 import SendPdfToEmailModal from "./modals/email/SendPdfToEmailModal";
@@ -158,4 +163,5 @@ export {
    RiskBadge,
    RiskBadgeGroup,
    RiskCard,
+   TextEditorPanel,
 };

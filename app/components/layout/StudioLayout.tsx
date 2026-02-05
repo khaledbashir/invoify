@@ -34,7 +34,7 @@ export function StudioLayout({
     pdfContent,
 }: StudioLayoutProps) {
     const [viewMode, setViewMode] = useState<ViewMode>("form");
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
     const [isHealthSidebarVisible, setIsHealthSidebarVisible] = useState(false);
 
     const navItems = [

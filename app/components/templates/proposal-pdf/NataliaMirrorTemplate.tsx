@@ -47,6 +47,9 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
   // FR-4.2: Custom proposal notes
   const customProposalNotes: string = (details as any)?.customProposalNotes || "";
 
+  // FR-4.3: Custom introduction text
+  const introductionText: string = (details as any)?.introductionText || "";
+
   // Document mode - FIX: Read documentMode, not documentType (legacy field)
   const documentMode: DocumentMode =
     ((details as any)?.documentMode as DocumentMode) || "BUDGET";
@@ -103,6 +106,7 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
           currency={currency}
           purchaserAddress={purchaserAddress}
           projectName={projectName}
+          customIntroText={introductionText}
         />
 
         {/* FR-2.3 FIX: LOI shows Project Grand Total BEFORE pricing tables */}
@@ -215,31 +219,40 @@ function IntroSection({
   currency,
   purchaserAddress,
   projectName,
+  customIntroText,
 }: {
   documentMode: DocumentMode;
   clientName: string;
   currency: "CAD" | "USD";
   purchaserAddress?: string;
   projectName?: string;
+  customIntroText?: string;
 }) {
-  const currencyNote =
-    currency === "CAD"
-      ? " All pricing and financial figures quoted in this proposal are in Canadian Dollars (CAD)."
+  // FR-4.3: Use custom intro text if provided, otherwise generate default
+  let intro: string;
+
+  if (customIntroText?.trim()) {
+    intro = customIntroText.trim();
+  } else {
+    const currencyNote =
+      currency === "CAD"
+        ? " All pricing and financial figures quoted in this proposal are in Canadian Dollars (CAD)."
+        : "";
+
+    // Bug #2 Fix: Full legal paragraph for LOI mode with addresses
+    const ancAddress = "2 Manhattanville Road, Suite 402, Purchase, NY 10577";
+    const purchaserLocationClause = purchaserAddress
+      ? ` located at ${purchaserAddress}`
       : "";
+    const projectClause = projectName ? ` for the ${projectName}` : "";
 
-  // Bug #2 Fix: Full legal paragraph for LOI mode with addresses
-  const ancAddress = "2 Manhattanville Road, Suite 402, Purchase, NY 10577";
-  const purchaserLocationClause = purchaserAddress
-    ? ` located at ${purchaserAddress}`
-    : "";
-  const projectClause = projectName ? ` for the ${projectName}` : "";
-
-  const intro =
-    documentMode === "BUDGET"
-      ? `ANC is pleased to present the following LED Display budget for ${clientName} per the specifications and pricing below.${currencyNote}`
-      : documentMode === "PROPOSAL"
-      ? `ANC is pleased to present the following LED Display proposal for ${clientName} per the specifications and pricing below.${currencyNote}`
-      : `This Letter of Intent will set forth the terms by which ${clientName} ("Purchaser")${purchaserLocationClause} and ANC Sports Enterprises, LLC ("ANC") located at ${ancAddress} (collectively, the "Parties") agree that ANC will provide the following LED Display and services (the "Display System") described below${projectClause}.${currencyNote}`;
+    intro =
+      documentMode === "BUDGET"
+        ? `ANC is pleased to present the following LED Display budget for ${clientName} per the specifications and pricing below.${currencyNote}`
+        : documentMode === "PROPOSAL"
+        ? `ANC is pleased to present the following LED Display proposal for ${clientName} per the specifications and pricing below.${currencyNote}`
+        : `This Letter of Intent will set forth the terms by which ${clientName} ("Purchaser")${purchaserLocationClause} and ANC Sports Enterprises, LLC ("ANC") located at ${ancAddress} (collectively, the "Parties") agree that ANC will provide the following LED Display and services (the "Display System") described below${projectClause}.${currencyNote}`;
+  }
 
   return (
     <div className="px-12 py-6">

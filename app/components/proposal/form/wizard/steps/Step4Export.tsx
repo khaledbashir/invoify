@@ -7,13 +7,11 @@ import {
     Eye,
     CheckCircle2,
     Clock,
-    ArrowLeft,
     FileSpreadsheet,
     Shield,
     AlertTriangle,
     Zap,
     Download,
-    Lock,
     Play,
     Pause,
     RefreshCw,
@@ -21,17 +19,15 @@ import {
     MessageSquare,
     Check,
     FileText,
-    PenTool,
-    DollarSign,
-    Settings,
-    FileCheck
+    FileCheck,
+    ChevronRight
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { BaseButton } from "@/app/components";
+import { BaseButton, TextEditorPanel } from "@/app/components";
 import { formatCurrency } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +39,7 @@ const Step4Export = () => {
     const {
         generatePdf,
         downloadPdf,
-        downloadAllPdfVariants,
+        downloadBundlePdfs,
         previewPdfInTab,
         exportAudit,
         pdfUrl,
@@ -59,7 +55,6 @@ const Step4Export = () => {
     } = useProposalContext();
     const { watch, getValues, setValue } = useFormContext<ProposalType>();
     const [exporting, setExporting] = useState(false);
-    const [downloadingAllPdfs, setDownloadingAllPdfs] = useState(false);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationResponse, setVerificationResponse] = useState<any | null>(null);
     const [verificationError, setVerificationError] = useState<string | null>(null);
@@ -68,6 +63,7 @@ const Step4Export = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [changeRequestsLoading, setChangeRequestsLoading] = useState(false);
     const [changeRequests, setChangeRequests] = useState<any[]>([]);
+    const [isVerificationExpanded, setIsVerificationExpanded] = useState(false);
 
     // Get proposal data
     const screens = watch("details.screens") || [];
@@ -162,8 +158,8 @@ const Step4Export = () => {
         if (isBlocked) return;
         setExporting(true);
         try {
-            // Trigger both exports as requested
-            await downloadPdf();
+            // Download 4 files: Excel + Budget/Proposal/LOI PDFs
+            await downloadBundlePdfs();
             await exportAudit();
         } finally {
             setTimeout(() => setExporting(false), 2000);
@@ -860,6 +856,9 @@ const Step4Export = () => {
                             </CardContent>
                         </Card>
 
+                        {/* Text Editor Panel */}
+                        <TextEditorPanel />
+
                         {/* Simplified Export */}
                         <Card className="bg-card/40 border border-border/60 overflow-hidden">
                             <CardHeader className="border-b border-border/60 pb-3">
@@ -883,6 +882,20 @@ const Step4Export = () => {
                                         </div>
                                     </div>
                                 )}
+                                {pdfBatchProgress && (
+                                    <div className="px-4 py-3 border-b border-border/60 bg-muted/20">
+                                        <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+                                            <span>{`Generating ${pdfBatchProgress.current}/${pdfBatchProgress.total}: ${pdfBatchProgress.label}`}</span>
+                                            <span>{`${Math.round((pdfBatchProgress.current / pdfBatchProgress.total) * 100)}%`}</span>
+                                        </div>
+                                        <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+                                            <div
+                                                className="h-full bg-brand-blue transition-[width] duration-300"
+                                                style={{ width: `${(pdfBatchProgress.current / pdfBatchProgress.total) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="grid grid-cols-1 divide-y divide-zinc-800/60">
                                     {/* Primary Bundle Option */}
                                     <div className="p-4 flex items-center justify-between hover:bg-card/40 transition-colors group">
@@ -892,7 +905,7 @@ const Step4Export = () => {
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-bold text-foreground group-hover:text-brand-blue transition-colors">Global Export Bundle</h4>
-                                                <p className="text-[11px] text-muted-foreground">Download Client PDF + Internal Audit Excel (Recommended)</p>
+                                                <p className="text-[11px] text-muted-foreground">Download 4 files: Budget/Proposal/LOI PDFs + Internal Audit Excel</p>
                                             </div>
                                         </div>
                                         <button
@@ -923,56 +936,6 @@ const Step4Export = () => {
                                             {!exporting && <Download className="w-3.5 h-3.5" />}
                                         </button>
                                     </div>
-
-                                    {/* All PDF Variants - Intelligence Mode only */}
-                                    {!mirrorMode && (<>
-                                    <div className="p-4 flex items-center justify-between hover:bg-card/40 transition-colors group">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                                                <Columns className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">All PDF Variants</h4>
-                                                <p className="text-[11px] text-muted-foreground">Download 9 PDFs: Budget / Proposal / LOI × Classic / Modern / Bold (current data)</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={async () => {
-                                                if (mirrorMode ? !isMirrorReadyToExport : (!allScreensValid || isGatekeeperLocked)) return;
-                                                setDownloadingAllPdfs(true);
-                                                try {
-                                                    await downloadAllPdfVariants();
-                                                } finally {
-                                                    setDownloadingAllPdfs(false);
-                                                }
-                                            }}
-                                            disabled={mirrorMode ? !isMirrorReadyToExport : (!allScreensValid || isGatekeeperLocked)}
-                                            className={cn(
-                                                "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2",
-                                                (mirrorMode ? !isMirrorReadyToExport : (!allScreensValid || isGatekeeperLocked))
-                                                    ? "bg-muted text-muted-foreground cursor-not-allowed"
-                                                    : "bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_20px_rgba(5,150,105,0.25)] hover:shadow-[0_0_30px_rgba(5,150,105,0.4)]"
-                                            )}
-                                        >
-                                            {downloadingAllPdfs ? "Generating 9…" : "Download All PDFs"}
-                                            {!downloadingAllPdfs && <Download className="w-3.5 h-3.5" />}
-                                        </button>
-                                    </div>
-                                    {downloadingAllPdfs && pdfBatchProgress && (
-                                        <div className="px-4 pb-4 -mt-2">
-                                            <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
-                                                <span>{`Generating ${pdfBatchProgress.current}/${pdfBatchProgress.total}: ${pdfBatchProgress.label}`}</span>
-                                                <span>{`${Math.round((pdfBatchProgress.current / pdfBatchProgress.total) * 100)}%`}</span>
-                                            </div>
-                                            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
-                                                <div
-                                                    className="h-full bg-emerald-600 transition-[width] duration-300"
-                                                    style={{ width: `${(pdfBatchProgress.current / pdfBatchProgress.total) * 100}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                    </>)}
 
                                     {/* Individual Options */}
                                     <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
@@ -1083,18 +1046,22 @@ const Step4Export = () => {
                 </div>
 
                 <Card className="bg-card/40 border border-border/60 overflow-hidden">
-                    <CardHeader className="border-b border-border/60">
+                    <CardHeader className="border-b border-border/60 cursor-pointer" onClick={() => setIsVerificationExpanded(!isVerificationExpanded)}>
                         <div className="flex items-start justify-between gap-4">
                             <div className="min-w-0">
                                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                                     <Columns className="w-4 h-4 text-brand-blue" />
                                     Verification Studio
+                                    <ChevronRight className={cn(
+                                        "w-4 h-4 text-muted-foreground transition-transform",
+                                        isVerificationExpanded && "rotate-90"
+                                    )} />
                                 </CardTitle>
                                 <CardDescription className="text-xs text-muted-foreground">
                                     Review Excel vs PDF and watch verification scan screen-by-screen.
                                 </CardDescription>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
+                            {isVerificationExpanded && <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                                 <button
                                     type="button"
                                     onClick={previewPdfInTab}
@@ -1173,9 +1140,10 @@ const Step4Export = () => {
                                     )}
                                 </Tooltip>
                                 )}
-                            </div>
+                            </div>}
                         </div>
                     </CardHeader>
+                    {isVerificationExpanded && (
                     <CardContent className="p-4">
                         <Tabs defaultValue="studio">
                             <TabsList className="bg-muted/40">
@@ -1345,6 +1313,7 @@ const Step4Export = () => {
                             </TabsContent>
                         </Tabs>
                     </CardContent>
+                    )}
                 </Card>
 
             </div>

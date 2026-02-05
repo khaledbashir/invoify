@@ -81,6 +81,10 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
     const showCompanyFooter = (details as any)?.showCompanyFooter ?? true;
     const showExhibitA = (details as any)?.showExhibitA ?? false;
 
+    // FR-4.3: Custom editable text fields
+    const customIntroText = (details as any)?.introductionText || "";
+    const customPaymentTerms = (details as any)?.paymentTerms || "";
+
     // ===== HELPERS =====
     const getScreenHeader = (screen: any) => {
         return (screen?.customDisplayName || screen?.externalName || screen?.name || "Display").toString().trim();
@@ -348,14 +352,16 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
 
     // Payment Terms Section
     const PaymentTermsSection = () => {
-        const raw = (details?.paymentTerms || "").toString();
-        const lines = raw.split(/\r?\n|,/g).map((l) => l.trim()).filter(Boolean);
+        // FR-4.3: Use custom payment terms if provided, otherwise use default
+        const defaultTerms = "50% on Deposit\n40% on Mobilization\n10% on Substantial Completion";
+        const raw = (customPaymentTerms?.trim() || defaultTerms).toString();
+        const lines = raw.split(/\r?\n|,/g).map((l: string) => l.trim()).filter(Boolean);
         if (lines.length === 0) return null;
         return (
             <div className="mt-8 break-inside-avoid">
                 <SectionHeader title="Payment Terms" />
                 <div className="rounded-lg p-4 text-sm leading-relaxed break-inside-avoid" style={{ background: colors.surface, color: colors.textMuted }}>
-                    {lines.map((line, idx) => <div key={idx} className="py-0.5 break-inside-avoid">{line}</div>)}
+                    {lines.map((line: string, idx: number) => <div key={idx} className="py-0.5 break-inside-avoid">{line}</div>)}
                 </div>
             </div>
         );
@@ -467,7 +473,9 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
             {showIntroText && (
                 <div className="px-6 mb-6 break-inside-avoid">
                     <div className="text-sm leading-relaxed" style={{ color: colors.textMuted }}>
-                        {documentMode === "LOI" ? (
+                        {customIntroText?.trim() ? (
+                            <p className="text-justify whitespace-pre-wrap">{customIntroText.trim()}</p>
+                        ) : documentMode === "LOI" ? (
                             <p className="text-justify">
                                 This Sales Quotation establishes the terms by which <strong style={{ color: colors.text }}>{purchaserName}</strong>
                                 {purchaserAddress && <span> located at {purchaserAddress}</span>} and <strong style={{ color: colors.text }}>ANC Sports Enterprises, LLC</strong> located at {ancAddress} (collectively, the "Parties") agree that ANC will provide the LED Display System described below.

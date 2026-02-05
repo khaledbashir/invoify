@@ -1,0 +1,123 @@
+"use client";
+
+import React, { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { FileText, ChevronRight, DollarSign, MessageSquare } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+/**
+ * TextEditorPanel - Centralized component for all editable narrative text blocks
+ * 
+ * Per Natalia requirement: "Every narrative text block must be editable"
+ * 
+ * Fields:
+ * - Introduction Text: Custom header blurb with currency disclaimers
+ * - Payment Terms: Editable payment schedule (default: 50/40/10)
+ * - Additional Notes: Ad-hoc project-specific notes
+ */
+export function TextEditorPanel() {
+    const { register, watch } = useFormContext();
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // Watch values for character counts
+    const introText = watch("details.introductionText") || "";
+    const paymentTerms = watch("details.paymentTerms") || "";
+    const additionalNotes = watch("details.additionalNotes") || "";
+
+    const hasContent = introText.length > 0 || paymentTerms.length > 0 || additionalNotes.length > 0;
+
+    return (
+        <Card className="bg-card/40 border border-border/60">
+            <CardHeader className="border-b border-border/60 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-brand-blue" />
+                            Text Editor
+                            {hasContent && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-brand-blue/30 text-brand-blue">
+                                    Custom Text
+                                </Badge>
+                            )}
+                        </CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground">
+                            Edit introduction, payment terms, and additional notes
+                        </CardDescription>
+                    </div>
+                    <ChevronRight className={cn(
+                        "w-5 h-5 text-muted-foreground transition-transform shrink-0",
+                        isExpanded && "rotate-90"
+                    )} />
+                </div>
+            </CardHeader>
+
+            {isExpanded && (
+                <CardContent className="p-6 space-y-6">
+                    {/* Introduction Text */}
+                    <div className="space-y-2">
+                        <Label htmlFor="introductionText" className="text-xs font-semibold text-foreground flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-brand-blue" />
+                            Introduction Text
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                                ({introText.length} characters)
+                            </span>
+                        </Label>
+                        <Textarea
+                            id="introductionText"
+                            {...register("details.introductionText")}
+                            placeholder="ANC is pleased to present the following LED Display proposal... (Leave blank for default)"
+                            className="min-h-[100px] text-xs resize-y"
+                        />
+                        <p className="text-[10px] text-muted-foreground">
+                            Customize the opening paragraph. Add currency disclaimers like "All pricing in CAD" if needed.
+                        </p>
+                    </div>
+
+                    {/* Payment Terms */}
+                    <div className="space-y-2">
+                        <Label htmlFor="paymentTerms" className="text-xs font-semibold text-foreground flex items-center gap-2">
+                            <DollarSign className="w-3.5 h-3.5 text-emerald-500" />
+                            Payment Terms
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                                ({paymentTerms.length} characters)
+                            </span>
+                        </Label>
+                        <Textarea
+                            id="paymentTerms"
+                            {...register("details.paymentTerms")}
+                            placeholder="50% on Deposit, 40% on Mobilization, 10% on Substantial Completion"
+                            className="min-h-[80px] text-xs resize-y"
+                        />
+                        <p className="text-[10px] text-muted-foreground">
+                            Edit payment schedule. Default: 50/40/10 split. Toggle visibility in PDF Section Toggles.
+                        </p>
+                    </div>
+
+                    {/* Additional Notes */}
+                    <div className="space-y-2">
+                        <Label htmlFor="additionalNotes" className="text-xs font-semibold text-foreground flex items-center gap-2">
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
+                            Additional Notes
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                                ({additionalNotes.length} characters)
+                            </span>
+                        </Label>
+                        <Textarea
+                            id="additionalNotes"
+                            {...register("details.additionalNotes")}
+                            placeholder="Project-specific notes, constraints, or disclaimers... (Optional - only shows if text is entered)"
+                            className="min-h-[100px] text-xs resize-y"
+                        />
+                        <p className="text-[10px] text-muted-foreground">
+                            Optional field. Only renders in PDF if you type text. Use for project-specific constraints.
+                        </p>
+                    </div>
+                </CardContent>
+            )}
+        </Card>
+    );
+}

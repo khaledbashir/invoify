@@ -83,6 +83,7 @@ const defaultProposalContext = {
   removeFinalPdf: () => { },
   downloadPdf: async () => { },
   downloadAllPdfVariants: async () => Promise.resolve(),
+  downloadBundlePdfs: async () => Promise.resolve(),
   printPdf: () => { },
   printLivePreview: () => { },
   previewPdfInTab: () => { },
@@ -1067,6 +1068,92 @@ export const ProposalContextProvider = ({
           showError("Download All PDFs", `Failed to generate ${modeLabel} ${templateLabel}. Try again or use single PDF download.`);
           return;
         }
+      }
+    }
+    setPdfBatchProgress(null);
+    pdfGenerationSuccess();
+  }, [getValues, pdfGenerationSuccess, showError]);
+
+  /**
+   * Downloads 3 PDFs (Budget, Proposal, LOI) with the current template for the Export Bundle.
+   */
+  const downloadBundlePdfs = useCallback(async () => {
+    const data = getValues();
+    const currentTemplateId = data.details?.pdfTemplate || 5; // Default to Hybrid
+    const screens = (data?.details?.screens || []).map((s: any) => ({
+      name: s.name,
+      productType: s.productType ?? "",
+      heightFt: s.heightFt ?? s.height ?? 0,
+      widthFt: s.widthFt ?? s.width ?? 0,
+      quantity: s.quantity ?? 1,
+      pitchMm: s.pitchMm ?? s.pixelPitch ?? undefined,
+      costPerSqFt: s.costPerSqFt,
+      desiredMargin: s.desiredMargin,
+    }));
+    const projectAddress = `${getValues("receiver.address") ?? ""} ${getValues("receiver.city") ?? ""} ${getValues("receiver.zipCode") ?? ""} ${getValues("details.location") ?? ""}`.trim();
+    const audit = calculateProposalAudit(screens, {
+      taxRate: getValues("details.taxRateOverride"),
+      bondPct: getValues("details.bondRateOverride"),
+      structuralTonnage: getValues("details.metadata.structuralTonnage"),
+      reinforcingTonnage: getValues("details.metadata.reinforcingTonnage"),
+      projectAddress,
+      venue: getValues("details.venue"),
+    });
+    const clientName = (data.details?.clientName || data.details?.proposalName || "proposal").toString();
+    const safeName = (s: string) =>
+      s.replace(/[/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim().slice(0, 80) || "proposal";
+
+    const total = MODES.length;
+    setPdfBatchProgress({ current: 0, total, label: "Starting…" });
+
+    let current = 0;
+    for (const { mode, label: modeLabel } of MODES) {
+      current += 1;
+      setPdfBatchProgress({ current, total, label: modeLabel });
+      const isLOI = mode === "LOI";
+      const payload = {
+        ...data,
+        details: {
+          ...data.details,
+          pdfTemplate: currentTemplateId,
+          documentMode: mode,
+          documentType: isLOI ? "LOI" : "First Round",
+          pricingType: mode === "PROPOSAL" ? "Hard Quoted" : "Budget",
+          showPaymentTerms: isLOI,
+          showSignatureBlock: isLOI,
+          showExhibitA: isLOI || mode === "PROPOSAL",
+          showExhibitB: isLOI,
+          showNotes: true,
+          showScopeOfWork: false,
+        },
+        _audit: audit,
+      };
+      try {
+        const res = await fetch(GENERATE_PDF_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const blob = await res.blob();
+        if (blob.size === 0) continue;
+        const url = window.URL.createObjectURL(blob);
+        const fileName = `${safeName(clientName)} ${modeLabel}.pdf`;
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        // Small delay to prevent browser from blocking multiple automatic downloads
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      } catch (e) {
+        console.error(`PDF ${modeLabel} failed:`, e);
+        setPdfBatchProgress(null);
+        showError("Download Bundle", `Failed to generate ${modeLabel} PDF. Try again or use single PDF download.`);
+        return;
       }
     }
     setPdfBatchProgress(null);
@@ -2207,7 +2294,7 @@ export const ProposalContextProvider = ({
       // Don't rely on auto-save debounce (2000ms delay) - user might navigate away
       try {
         const saveResult = await saveDraft();
-        if (!saveResult.saved) {
+        if (!saveResult.created && saveResult.error) {
           console.error("[EXCEL IMPORT] Failed to auto-save after import:", saveResult.error);
         } else {
           console.log("[EXCEL IMPORT] Excel data saved to database successfully");
@@ -2246,6 +2333,7 @@ export const ProposalContextProvider = ({
         removeFinalPdf,
         downloadPdf,
         downloadAllPdfVariants,
+        downloadBundlePdfs,
         printPdf,
         printLivePreview,
         previewPdfInTab,
