@@ -52,6 +52,12 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
   const clientName = receiver?.name || "Client Name";
   const projectName = details?.proposalName || "Project";
 
+  // Address info for LOI legal paragraph
+  const clientAddress = receiver?.address || (details as any)?.clientAddress || "";
+  const clientCity = receiver?.city || (details as any)?.clientCity || "";
+  const clientZip = receiver?.zip || (details as any)?.clientZip || "";
+  const purchaserAddress = [clientAddress, clientCity, clientZip].filter(Boolean).join(", ");
+
   // Document total
   const documentTotal = tables.reduce((sum, t) => sum + t.grandTotal, 0);
 
@@ -80,6 +86,8 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
           documentMode={documentMode}
           clientName={clientName}
           currency={currency}
+          purchaserAddress={purchaserAddress}
+          projectName={projectName}
         />
 
         {/* FR-2.3 FIX: LOI shows Project Grand Total BEFORE pricing tables */}
@@ -122,7 +130,7 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
         {/* LOI-specific sections */}
         {documentMode === "LOI" && (
           <>
-            <PaymentTermsSection />
+            <PaymentTermsSection paymentTerms={(details as any)?.paymentTerms} />
             {/* FR-4.2: Custom Notes - LOI shows in Additional Notes section */}
             {customProposalNotes && (
               <CustomNotesSection notes={customProposalNotes} isLOI={true} />
@@ -185,22 +193,33 @@ function IntroSection({
   documentMode,
   clientName,
   currency,
+  purchaserAddress,
+  projectName,
 }: {
   documentMode: DocumentMode;
   clientName: string;
   currency: "CAD" | "USD";
+  purchaserAddress?: string;
+  projectName?: string;
 }) {
   const currencyNote =
     currency === "CAD"
       ? " All pricing and financial figures quoted in this proposal are in Canadian Dollars (CAD)."
       : "";
 
+  // Bug #2 Fix: Full legal paragraph for LOI mode with addresses
+  const ancAddress = "2 Manhattanville Road, Suite 402, Purchase, NY 10577";
+  const purchaserLocationClause = purchaserAddress
+    ? ` located at ${purchaserAddress}`
+    : "";
+  const projectClause = projectName ? ` for the ${projectName}` : "";
+
   const intro =
     documentMode === "BUDGET"
       ? `ANC is pleased to present the following LED Display budget for ${clientName} per the specifications and pricing below.${currencyNote}`
       : documentMode === "PROPOSAL"
       ? `ANC is pleased to present the following LED Display proposal for ${clientName} per the specifications and pricing below.${currencyNote}`
-      : `This Letter of Intent will set forth the terms by which ${clientName} ("Purchaser") and ANC Sports Enterprises, LLC ("ANC") agree that ANC will provide the LED Display System described below.${currencyNote}`;
+      : `This Letter of Intent will set forth the terms by which ${clientName} ("Purchaser")${purchaserLocationClause} and ANC Sports Enterprises, LLC ("ANC") located at ${ancAddress} (collectively, the "Parties") agree that ANC will provide the following LED Display and services (the "Display System") described below${projectClause}.${currencyNote}`;
 
   return (
     <div className="px-12 py-6">
@@ -379,17 +398,30 @@ function DocumentTotalSection({
 // LOI SECTIONS
 // ============================================================================
 
-function PaymentTermsSection() {
+function PaymentTermsSection({ paymentTerms }: { paymentTerms?: string }) {
+  // Bug #3 Fix: Use payment terms from field, fallback to default
+  const defaultTerms = "• 50% Deposit Upon Signing\n• 40% on Mobilization\n• 10% on Substantial Completion";
+  const terms = paymentTerms?.trim() || defaultTerms;
+
+  // Check if terms are bullet-style or freeform
+  const isBulletStyle = terms.includes("•") || terms.includes("-");
+
   return (
     <div className="px-12 py-6 break-inside-avoid">
       <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide border-b border-gray-300 pb-2 mb-4">
         PAYMENT TERMS
       </h3>
-      <ul className="text-[11px] text-gray-600 space-y-1">
-        <li>• 50% Deposit Upon Signing</li>
-        <li>• 40% on Mobilization</li>
-        <li>• 10% on Substantial Completion</li>
-      </ul>
+      {isBulletStyle ? (
+        <ul className="text-[11px] text-gray-600 space-y-1">
+          {terms.split("\n").filter(line => line.trim()).map((line, idx) => (
+            <li key={idx}>{line.startsWith("•") || line.startsWith("-") ? line : `• ${line}`}</li>
+          ))}
+        </ul>
+      ) : (
+        <div className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap">
+          {terms}
+        </div>
+      )}
     </div>
   );
 }

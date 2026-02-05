@@ -92,6 +92,8 @@ model Proposal {
   quoteItems           Json?
   paymentTerms         String?
   additionalNotes      String?
+  signatureBlockText   String?             // Bug #4: Persisted signature block text for LOI
+  customProposalNotes  String?             // Bug #5: Persisted custom proposal notes
   status               ProposalStatus      @default(DRAFT)
   calculationMode      CalculationMode     @default(INTELLIGENCE)
   internalAudit        String?

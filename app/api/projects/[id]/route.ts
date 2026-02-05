@@ -95,6 +95,8 @@ export async function PATCH(
             quoteItems,
             paymentTerms,
             additionalNotes,
+            signatureBlockText, // Bug #4: Signature block text persistence
+            customProposalNotes, // Bug #5: Custom proposal notes persistence
             createSnapshot, // NEW: Flag to create a version snapshot
             totalSellingPrice, // NEW: For version history
             averageMargin, // NEW: For version history
@@ -178,6 +180,8 @@ export async function PATCH(
         if (quoteItems !== undefined) updateData.quoteItems = quoteItems;
         if (paymentTerms !== undefined) updateData.paymentTerms = paymentTerms;
         if (additionalNotes !== undefined) updateData.additionalNotes = additionalNotes;
+        if (signatureBlockText !== undefined) updateData.signatureBlockText = signatureBlockText;
+        if (customProposalNotes !== undefined) updateData.customProposalNotes = customProposalNotes;
 
         const project = await prisma.$transaction(async (tx) => {
             // Handle snapshot creation if requested

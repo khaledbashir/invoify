@@ -5,6 +5,7 @@ import { getProposalTemplate } from "@/lib/helpers";
 import { ENV, TAILWIND_CDN } from "@/lib/variables";
 import { ProposalType } from "@/types";
 import { sanitizeForClient } from "@/lib/security/sanitizeForClient";
+import NataliaMirrorTemplate from "@/app/components/templates/proposal-pdf/NataliaMirrorTemplate";
 
 function safeErrorMessage(err: unknown) {
 	const msg = err instanceof Error ? err.message : String(err);
@@ -37,13 +38,25 @@ export async function generateProposalPdfServiceV2(req: NextRequest) {
 
 	try {
 		const ReactDOMServer = (await import("react-dom/server")).default;
-		let templateId = body.details?.pdfTemplate ?? 2;
-		if (templateId === 1) templateId = 2;
-		
-		const ProposalTemplate = await getProposalTemplate(templateId);
+
+		// Bug #1 Fix: Check for mirror mode and use NataliaMirrorTemplate when applicable
+		const pricingDocument = (body.details as any)?.pricingDocument;
+		const useMirrorMode = pricingDocument?.tables?.length > 0 || (body.details as any)?.mirrorMode === true;
+
+		let ProposalTemplate: any;
+		if (useMirrorMode && pricingDocument) {
+			// Use mirror template for pricing document data
+			ProposalTemplate = NataliaMirrorTemplate;
+			console.log("[PDF Generation] Using NataliaMirrorTemplate for mirror mode");
+		} else {
+			// Fallback to standard templates by ID
+			let templateId = body.details?.pdfTemplate ?? 2;
+			if (templateId === 1) templateId = 2;
+			ProposalTemplate = await getProposalTemplate(templateId);
+		}
 
 		if (!ProposalTemplate) {
-			throw new Error("Failed to load ProposalTemplate2");
+			throw new Error("Failed to load ProposalTemplate");
 		}
 
 		// PHASE 3: Strip Blue Glow metadata from client-facing PDF
