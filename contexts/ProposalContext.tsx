@@ -345,7 +345,7 @@ export const ProposalContextProvider = ({
 
   const setHeaderType = useCallback((next: "LOI" | "PROPOSAL" | "BUDGET") => {
     setValue("details.documentMode", next, { shouldValidate: true, shouldDirty: true });
-    
+
     // Apply mode-specific defaults for PDF sections
     if (next === "LOI") {
       setValue("details.documentType", "LOI", { shouldValidate: true, shouldDirty: true });
@@ -363,7 +363,7 @@ export const ProposalContextProvider = ({
     setValue("details.showSignatureBlock", false, { shouldDirty: true });
     setValue("details.showSpecifications", true, { shouldDirty: true });
     setValue("details.showExhibitB", false, { shouldDirty: true });
-    
+
     if (next === "PROPOSAL") {
       setValue("details.showExhibitA", true, { shouldDirty: true });
     } else {
@@ -882,7 +882,7 @@ export const ProposalContextProvider = ({
       console.error("PDF generation catch error:", err);
       const errorMsg = err instanceof Error ? err.message : "Unable to generate PDF";
       setPdfGenerationProgress(null);
-      
+
       // Check if it's a server/Chromium error and offer print fallback
       if (errorMsg.includes("libnspr4") || errorMsg.includes("chromium") || errorMsg.includes("browser process")) {
         showError(
@@ -1092,7 +1092,7 @@ export const ProposalContextProvider = ({
       previewFrame.contentWindow.print();
       return;
     }
-    
+
     // Fallback: find the preview container and print it
     const previewContainer = document.querySelector('[data-preview-container]') as HTMLElement;
     if (previewContainer) {
@@ -2183,8 +2183,9 @@ export const ProposalContextProvider = ({
       }
 
       // 4. NEW: Store PricingDocument for Natalia Mirror Mode
-      if ((data as any).pricingDocument) {
-        setValue("details.pricingDocument" as any, (data as any).pricingDocument, { shouldValidate: true, shouldDirty: true });
+      const pricingDocument = (data as any).pricingDocument || (data.formData?.details as any)?.pricingDocument;
+      if (pricingDocument) {
+        setValue("details.pricingDocument" as any, pricingDocument, { shouldValidate: true, shouldDirty: true });
         // Auto-enable mirror mode when pricingDocument is available
         setValue("details.pricingMode" as any, "MIRROR", { shouldValidate: true, shouldDirty: true });
         console.log("[CONTEXT] PricingDocument stored for Mirror Mode");
@@ -2295,14 +2296,14 @@ export const ProposalContextProvider = ({
                 const excel = data.excelData;
                 const aiPopulated: string[] = [];
                 const citations: Record<string, string> = {};
-                
+
                 // Set receiver info
                 if (excel.receiver?.name) {
                   setValue("receiver.name", excel.receiver.name);
                   aiPopulated.push("receiver.name");
                   citations["receiver.name"] = "[Source: Natalia Excel Import]";
                 }
-                
+
                 // Set proposal details
                 if (excel.details?.proposalName) {
                   setValue("details.proposalName", excel.details.proposalName);
@@ -2314,16 +2315,16 @@ export const ProposalContextProvider = ({
                   aiPopulated.push("details.venue");
                   citations["details.venue"] = "[Source: Natalia Excel Import]";
                 }
-                
+
                 // Set calculation mode to MIRROR for Excel imports (exact pricing)
                 setValue("details.calculationMode", "MIRROR");
                 setCalculationModeState("MIRROR");
-                
+
                 // Process screens from Excel
                 if (excel.screens && Array.isArray(excel.screens) && excel.screens.length > 0) {
                   const normalized = excel.screens.map((s: any, idx: number) => {
                     const prefix = `details.screens[${idx}]`;
-                    
+
                     // Track all populated fields
                     if (s.name) { aiPopulated.push(`${prefix}.name`); citations[`${prefix}.name`] = "[Source: Natalia Excel Import]"; }
                     if (s.widthFt != null) { aiPopulated.push(`${prefix}.widthFt`); citations[`${prefix}.widthFt`] = "[Source: Natalia Excel Import]"; }
@@ -2343,7 +2344,7 @@ export const ProposalContextProvider = ({
                     if (s.includeSpareParts != null) { aiPopulated.push(`${prefix}.includeSpareParts`); citations[`${prefix}.includeSpareParts`] = "[Source: Natalia Excel Import]"; }
                     if (s.isCurved != null) { aiPopulated.push(`${prefix}.isCurved`); citations[`${prefix}.isCurved`] = "[Source: Natalia Excel Import]"; }
                     if (s.isDoubleSided != null) { aiPopulated.push(`${prefix}.isDoubleSided`); citations[`${prefix}.isDoubleSided`] = "[Source: Natalia Excel Import]"; }
-                    
+
                     return {
                       name: s.name || `Screen ${idx + 1}`,
                       externalName: s.externalName || s.name || `Screen ${idx + 1}`,
@@ -2365,11 +2366,11 @@ export const ProposalContextProvider = ({
                       isDoubleSided: !!s.isDoubleSided,
                     };
                   });
-                  
+
                   setValue("details.screens", normalized);
                   setAiFields(aiPopulated);
                   setAiCitations(prev => ({ ...prev, ...citations }));
-                  
+
                   // Calculate audit with Excel data
                   try {
                     const { clientSummary, internalAudit } = calculateProposalAudit(normalized, {
@@ -2380,14 +2381,14 @@ export const ProposalContextProvider = ({
                     });
                     setValue("details.internalAudit", internalAudit);
                     setValue("details.clientSummary", clientSummary);
-                  } catch (e) { 
+                  } catch (e) {
                     console.error("Audit calculation failed:", e);
                   }
                 }
-                
+
                 // Set Excel source data for reference
                 setExcelSourceData(excel);
-                
+
                 // Show success toast
                 aiExtractionSuccess();
                 return data;
@@ -2491,7 +2492,7 @@ export const ProposalContextProvider = ({
             const c = (x: any) => (x != null && typeof x === "object" && "citation" in x && typeof (x as any).citation === "string") ? (x as any).citation : undefined;
             const aiPopulated: string[] = [];
             const citations: Record<string, string> = {};
-            
+
             // REQ-126: Track AI-filled fields for Blue Glow persistence
             const rName = v(ext.receiver?.name); if (rName) { setValue("receiver.name", rName); aiPopulated.push("receiver.name"); const cit = c(ext.receiver?.name); if (cit) citations["receiver.name"] = cit; }
             const pName = v(ext.details?.proposalName); if (pName) { setValue("details.proposalName", pName); aiPopulated.push("details.proposalName"); const cit = c(ext.details?.proposalName); if (cit) citations["details.proposalName"] = cit; }
@@ -2499,7 +2500,7 @@ export const ProposalContextProvider = ({
             const structT = v(ext.rulesDetected?.structuralTonnage); if (structT != null) { setValue("details.metadata.structuralTonnage", Number(structT)); aiPopulated.push("details.metadata.structuralTonnage"); const cit = c(ext.rulesDetected?.structuralTonnage); if (cit) citations["details.metadata.structuralTonnage"] = cit; }
             const reinfT = v(ext.rulesDetected?.reinforcingTonnage); if (reinfT != null) { setValue("details.metadata.reinforcingTonnage", Number(reinfT)); aiPopulated.push("details.metadata.reinforcingTonnage"); const cit = c(ext.rulesDetected?.reinforcingTonnage); if (cit) citations["details.metadata.reinforcingTonnage"] = cit; }
             if (ext.rulesDetected) setRulesDetected(ext.rulesDetected);
-            
+
             // REQ-126: Persist AI-filled fields to database for Blue Glow tracking
             if (proposalId && aiPopulated.length > 0) {
               try {
@@ -2537,7 +2538,7 @@ export const ProposalContextProvider = ({
               if (rName) setValue("receiver.name", rName); if (pName) setValue("details.proposalName", pName);
               setAiFields(aiPopulated);
               setAiCitations(prev => ({ ...prev, ...citations }));
-              
+
               // REQ-126: Persist AI-filled fields to database for Blue Glow tracking
               if (proposalId && aiPopulated.length > 0) {
                 try {
@@ -2552,7 +2553,7 @@ export const ProposalContextProvider = ({
                   console.error("Failed to persist AI-filled fields:", error);
                 }
               }
-              
+
               try {
                 const { clientSummary, internalAudit } = calculateProposalAudit(normalized, {
                   taxRate: getValues("details.taxRateOverride"), bondPct: getValues("details.bondRateOverride"),
@@ -2563,7 +2564,7 @@ export const ProposalContextProvider = ({
               } catch (e) { /* ignore */ }
             } else {
               setAiCitations(prev => ({ ...prev, ...citations }));
-              
+
               // REQ-126: Persist AI-filled fields even if no screens extracted
               if (proposalId && aiPopulated.length > 0) {
                 try {
