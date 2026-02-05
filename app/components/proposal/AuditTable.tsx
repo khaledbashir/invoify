@@ -116,132 +116,84 @@ const AuditTable = ({ bondRateOverride = 1.5 }: { bondRateOverride?: number }) =
           dynamicTotals.ancMargin += calc.ancMargin;
           dynamicTotals.finalClientTotal += calc.finalClientTotal;
 
-          return (
+          const saveEdit = () => {
+            const newName = draft.trim();
+            if (!newName) { setEditIdx(null); return; }
+            setValue(`details.screens.${idx}.customDisplayName`, newName, { shouldDirty: true, shouldValidate: true });
+
+            const allValues = getValues();
+            const currentScreen = screen;
+            const quoteItems = allValues.details?.quoteItems || [];
+            const qIdx = quoteItems.findIndex((q: any) =>
+              (currentScreen.id && q.id === currentScreen.id) ||
+              (q.locationName === currentScreen.name)
+            );
+            if (qIdx !== -1) {
+              setValue(`details.quoteItems.${qIdx}.locationName`, newName, { shouldDirty: true });
+              const currentDesc = quoteItems[qIdx].description || "";
+              const originalName = currentScreen.name || "";
+              let newDesc = currentDesc;
+              if (newDesc.toUpperCase().startsWith(originalName.toUpperCase())) {
+                newDesc = newDesc.substring(originalName.length).trim().replace(/^[-:]+\s*/, "");
+              }
+              if (newDesc.toUpperCase().startsWith(newName.toUpperCase())) {
+                newDesc = newDesc.substring(newName.length).trim().replace(/^[-:]+\s*/, "");
+              }
+              if (newDesc !== currentDesc) {
+                setValue(`details.quoteItems.${qIdx}.description`, newDesc, { shouldDirty: true });
+              }
+            }
+            setEditIdx(null);
+          };
+
+          return editIdx === idx ? (
+            /* Edit mode: full-width row for the input */
+            <div key={idx} className="flex items-center gap-2 p-3 bg-brand-blue/10 border-b border-border">
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                className="h-8 flex-1 bg-background border-brand-blue/40 text-foreground text-xs"
+                autoFocus
+                placeholder="Enter display name..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveEdit();
+                  if (e.key === "Escape") setEditIdx(null);
+                }}
+              />
+              <button
+                type="button"
+                className="p-1.5 rounded bg-brand-blue text-white hover:bg-brand-blue/80"
+                onClick={saveEdit}
+                title="Save (Enter)"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                className="p-1.5 rounded bg-muted text-foreground hover:bg-accent"
+                onClick={() => setEditIdx(null)}
+                title="Cancel (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
             <div key={idx} className="grid grid-cols-12 gap-2 p-3 hover:bg-accent/50 transition-colors items-center text-foreground">
               <div className="col-span-2 font-semibold min-w-0" title={displayName}>
-                <div className="flex items-center gap-2 min-w-0">
-                  {editIdx === idx ? (
-                    <>
-                      <Input
-                        value={draft}
-                        onChange={(e) => setDraft(e.target.value)}
-                        className="h-7 bg-background border-input text-foreground text-xs"
-                        autoFocus
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            const newName = draft.trim();
-                            // 1. Update Screen Name
-                            setValue(`details.screens.${idx}.customDisplayName`, newName, { shouldDirty: true, shouldValidate: true });
-
-                            // 2. INSTANT SYNC: Update corresponding QuoteItem to ensure PDF matches perfectly
-                            const allValues = getValues();
-                            const currentScreen = screen; // screen is from perScreen map, likely has ID
-                            const quoteItems = allValues.details?.quoteItems || [];
-
-                            // Find match by ID (preferred) or Name (fallback)
-                            const qIdx = quoteItems.findIndex((q: any) =>
-                              (currentScreen.id && q.id === currentScreen.id) ||
-                              (q.locationName === currentScreen.name)
-                            );
-
-                            if (qIdx !== -1) {
-                              // Sync Location Name
-                              setValue(`details.quoteItems.${qIdx}.locationName`, newName, { shouldDirty: true });
-
-                              // Clean Description (remove component name from description to avoid dupes)
-                              const currentDesc = quoteItems[qIdx].description || "";
-                              const originalName = currentScreen.name || "";
-
-                              let newDesc = currentDesc;
-                              // Strip original name if present at start
-                              if (newDesc.toUpperCase().startsWith(originalName.toUpperCase())) {
-                                newDesc = newDesc.substring(originalName.length).trim().replace(/^[-:]+\s*/, "");
-                              }
-                              // Strip NEW name if present (rare but possible)
-                              if (newDesc.toUpperCase().startsWith(newName.toUpperCase())) {
-                                newDesc = newDesc.substring(newName.length).trim().replace(/^[-:]+\s*/, "");
-                              }
-
-                              if (newDesc !== currentDesc) {
-                                setValue(`details.quoteItems.${qIdx}.description`, newDesc, { shouldDirty: true });
-                              }
-                            }
-
-                            setEditIdx(null);
-                          }
-                          if (e.key === "Escape") {
-                            setEditIdx(null);
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        className="p-1 rounded hover:bg-accent text-foreground"
-                        onClick={() => {
-                          const newName = draft.trim();
-                          // 1. Update Screen Name
-                          setValue(`details.screens.${idx}.customDisplayName`, newName, { shouldDirty: true, shouldValidate: true });
-
-                          // 2. INSTANT SYNC
-                          const allValues = getValues();
-                          const currentScreen = screen;
-                          const quoteItems = allValues.details?.quoteItems || [];
-
-                          const qIdx = quoteItems.findIndex((q: any) =>
-                            (currentScreen.id && q.id === currentScreen.id) ||
-                            (q.locationName === currentScreen.name)
-                          );
-
-                          if (qIdx !== -1) {
-                            setValue(`details.quoteItems.${qIdx}.locationName`, newName, { shouldDirty: true });
-
-                            const currentDesc = quoteItems[qIdx].description || "";
-                            const originalName = currentScreen.name || "";
-                            let newDesc = currentDesc;
-
-                            if (newDesc.toUpperCase().startsWith(originalName.toUpperCase())) {
-                              newDesc = newDesc.substring(originalName.length).trim().replace(/^[-:]+\s*/, "");
-                            }
-                            if (newDesc.toUpperCase().startsWith(newName.toUpperCase())) {
-                              newDesc = newDesc.substring(newName.length).trim().replace(/^[-:]+\s*/, "");
-                            }
-
-                            if (newDesc !== currentDesc) {
-                              setValue(`details.quoteItems.${qIdx}.description`, newDesc, { shouldDirty: true });
-                            }
-                          }
-
-                          setEditIdx(null);
-                        }}
-                        title="Save"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        className="p-1 rounded hover:bg-accent text-foreground"
-                        onClick={() => setEditIdx(null)}
-                        title="Cancel"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="truncate">{displayName}</div>
-                      <button
-                        type="button"
-                        className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground shrink-0"
-                        onClick={() => {
-                          setDraft((screenForm?.customDisplayName || displayName).toString());
-                          setEditIdx(idx);
-                        }}
-                        title="Edit display name"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    </>
-                  )}
+                <div className="flex items-center gap-1 min-w-0">
+                  <div className="truncate">{displayName}</div>
+                  <button
+                    type="button"
+                    className="p-1 rounded hover:bg-brand-blue/20 text-muted-foreground hover:text-brand-blue shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDraft((screenForm?.customDisplayName || displayName).toString());
+                      setEditIdx(idx);
+                    }}
+                    title="Edit display name"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 <div className="text-[10px] text-muted-foreground font-normal">{screen.pixelMatrix}</div>
               </div>
