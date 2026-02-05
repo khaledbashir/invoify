@@ -26,14 +26,21 @@ export type StructuralWeightResult = z.infer<typeof StructuralWeightSchema>;
  * Uses a "System Prompt" designed for Zhipu/GLM-4 or GPT-4.
  */
 export async function extractStructuralWeights(
-    textChunk: string, 
+    textChunk: string,
     llmCall: (prompt: string) => Promise<string>
 ): Promise<StructuralWeightResult> {
-    
+
     const prompt = `
     You are a Structural Engineering Extraction AI.
     Your goal is to identify structural steel weights from the following text.
-    Look for phrases like "approx 17 tons", "estimated weight: 4500 lbs", etc.
+    
+    PRIMARY TARGETS (High Priority):
+    - "Thornton Tomasetti" or "TTE" Engineering Reports.
+    - Look specifically for sketches labeled "SK-1", "SK-2", or "SK-3".
+    - Look for "Structural Steel Tonnage" or "Reinforcing Tonnage".
+
+    GENERAL TARGETS:
+    - Look for phrases like "approx 17 tons", "estimated weight: 4500 lbs", etc.
     
     TEXT CHUNK:
     """
@@ -43,7 +50,7 @@ export async function extractStructuralWeights(
     Return a VALID JSON object matching this schema:
     {
       "weights": [
-        { "value": 17, "unit": "tons", "context": "Primary header beam", "confidence": 0.95 }
+        { "value": 17, "unit": "tons", "context": "Primary header beam (TTE Report SK-1)", "confidence": 0.95 }
       ],
       "totalCalculatedWeight": 17
     }
@@ -56,7 +63,7 @@ export async function extractStructuralWeights(
         // Sanitize
         const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(jsonString);
-        
+
         // Validate with Zod
         return StructuralWeightSchema.parse(parsed);
     } catch (error) {

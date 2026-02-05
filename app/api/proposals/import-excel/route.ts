@@ -23,8 +23,10 @@ export async function POST(req: NextRequest) {
             const pricingDocument = parsePricingTables(workbook, file.name);
 
             if (pricingDocument && pricingDocument.tables.length > 0) {
-                // Attach pricingDocument to the response
-                (data as any).pricingDocument = pricingDocument;
+                // Attach pricingDocument to the response inside details so it persists
+                if (data.formData && data.formData.details) {
+                    (data.formData.details as any).pricingDocument = pricingDocument;
+                }
                 console.log(`[EXCEL IMPORT] PricingDocument: ${pricingDocument.tables.length} tables, ${pricingDocument.documentTotal} total`);
             }
         } catch (pricingErr) {

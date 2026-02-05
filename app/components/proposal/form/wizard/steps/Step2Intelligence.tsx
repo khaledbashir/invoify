@@ -19,6 +19,7 @@ const Step2Intelligence = () => {
         control
     }) || [];
     const details = useWatch({ name: "details", control });
+    const mirrorMode = useWatch({ name: "details.mirrorMode", control });
     const mode = resolveDocumentMode(details);
 
     const screenCount = screens.length;
@@ -87,8 +88,8 @@ const Step2Intelligence = () => {
                 </span>
             </div>
 
-            {/* AI-Generated SOW Panel */}
-            <SOWGeneratorPanel />
+            {/* AI-Generated SOW Panel - Intelligence Mode only */}
+            {!mirrorMode && <SOWGeneratorPanel />}
 
             {/* Main Screens Card - Takes up most space */}
             <Card className="bg-card/50 border-border flex-1 flex flex-col overflow-hidden">

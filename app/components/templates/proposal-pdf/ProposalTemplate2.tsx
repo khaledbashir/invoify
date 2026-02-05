@@ -8,6 +8,7 @@ import LogoSelectorServer from "@/app/components/reusables/LogoSelectorServer";
 import BaseBidDisplaySystemSection from "@/app/components/templates/proposal-pdf/BaseBidDisplaySystemSection";
 import ExhibitA_TechnicalSpecs from "@/app/components/templates/proposal-pdf/exhibits/ExhibitA_TechnicalSpecs";
 import ExhibitB_CostSchedule from "@/app/components/templates/proposal-pdf/exhibits/ExhibitB_CostSchedule";
+import { MirrorPricingSection, PremiumMirrorPricingSection } from "./MirrorPricingSection";
 
 // Helpers
 import { formatNumberWithCommas, isDataUrl, formatCurrency } from "@/lib/helpers";
@@ -15,6 +16,8 @@ import { resolveDocumentMode } from "@/lib/documentMode";
 
 // Variables
 import { DATE_OPTIONS } from "@/lib/variables";
+import { VENUE_CONSTRAINTS } from "@/lib/estimator";
+import { Venue } from "@/types";
 
 // Types
 import { ProposalType } from "@/types";
@@ -61,7 +64,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
     // ===== PREMIUM TEMPLATE LOGIC (ID 4) =====
     // This block is completely isolated. If templateId is 4, it renders and returns early.
     const templateId = Number(details?.pdfTemplate ?? 2);
-    
+
     if (templateId === 4) {
         const docTitle = documentMode === "BUDGET" ? "BUDGET ESTIMATE" : documentMode === "PROPOSAL" ? "SALES QUOTATION" : "LETTER OF INTENT";
         const isLOI_premium = documentMode === "LOI";
@@ -200,7 +203,13 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                                 </p>
                             </div>
                         )}
-                        {!isLOI_premium && showPricingTables_premium && <PremiumPricingSection />}
+                        {!isLOI_premium && showPricingTables_premium && (
+                            (details as any).pricingDocument && (details as any).mirrorMode ? (
+                                <PremiumMirrorPricingSection document={(details as any).pricingDocument} />
+                            ) : (
+                                <PremiumPricingSection />
+                            )
+                        )}
                         {!isLOI_premium && showSpecifications_premium && screens.length > 0 && (
                             <div className="mt-16 break-before-page">
                                 <PremiumSectionHeader title="Technical Specifications" />
@@ -598,6 +607,47 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
         );
     };
 
+
+
+    const ProjectConstraintsSection = () => {
+        const venueName = details?.venue || "";
+        // Normalize venue name check
+        const normalizedVenue = Object.keys(VENUE_CONSTRAINTS).find(k => k.toLowerCase() === venueName.toLowerCase());
+        const constraints = normalizedVenue ? VENUE_CONSTRAINTS[normalizedVenue as any] : null;
+
+        if (!constraints) return null;
+
+        return (
+            <div className="px-4 mt-8 break-inside-avoid">
+                <SectionHeader title="PROJECT CONSTRAINTS & REQUIREMENTS" />
+                <div className="text-[11px] text-gray-700 space-y-3">
+                    <p className="font-bold text-[#0A52EF] uppercase mb-1">Venue: {venueName}</p>
+
+                    {constraints.liquidatedDamages && (
+                        <div className="flex gap-4">
+                            <span className="font-bold w-32 shrink-0">Liquidated Damages:</span>
+                            <span>{constraints.liquidatedDamages}</span>
+                        </div>
+                    )}
+
+                    {constraints.weightLimitLbs && (
+                        <div className="flex gap-4">
+                            <span className="font-bold w-32 shrink-0">Weight Restrictions:</span>
+                            <span>Max {formatNumberWithCommas(constraints.weightLimitLbs)} lbs</span>
+                        </div>
+                    )}
+
+                    {constraints.completionDate && (
+                        <div className="flex gap-4">
+                            <span className="font-bold w-32 shrink-0">Substantial Completion:</span>
+                            <span>{constraints.completionDate}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     const LegalNotesSection = () => {
         const raw = (details?.additionalNotes || "").toString().trim();
         if (!raw) return null;
@@ -728,7 +778,9 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
                 {!isLOI && showPricingTables && (
                     <>
                         <SectionHeader title="PRICING" />
-                        {includePricingBreakdown ? (
+                        {(details as any).pricingDocument && (details as any).mirrorMode ? (
+                            <MirrorPricingSection document={(details as any).pricingDocument} />
+                        ) : includePricingBreakdown ? (
                             screens && screens.length > 0 ? (
                                 screens.map((screen: any, idx: number) => (
                                     <DetailedPricingTable key={idx} screen={screen} />
@@ -758,6 +810,7 @@ const ProposalTemplate2 = (data: ProposalTemplate2Props) => {
             {isLOI && (
                 <>
                     {effectiveShowPaymentTerms && <PaymentTermsSection />}
+                    <ProjectConstraintsSection />
                     <LegalNotesSection />
                     {effectiveShowSignatureBlock && (
                         <div className="px-4">

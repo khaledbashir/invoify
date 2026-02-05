@@ -542,7 +542,8 @@ const Step4Export = () => {
                             </CardContent>
                         </Card>
 
-                        {/* AI-Generated SOW Toggle - Optional On-Demand Feature */}
+                        {/* AI-Generated SOW Toggle - Intelligence Mode only */}
+                        {!mirrorMode && (
                         <Card className="bg-card/40 border border-border/60 overflow-hidden mb-6">
                             <CardHeader className="border-b border-border/60 pb-3">
                                 <div className="flex items-center justify-between">
@@ -578,6 +579,7 @@ const Step4Export = () => {
                                 )}
                             </CardContent>
                         </Card>
+                        )}
 
                         {/* PDF Section Toggles - Organized by Document Type */}
                         <Card className="bg-card/40 border border-border/60 overflow-hidden mb-6">
@@ -922,7 +924,8 @@ const Step4Export = () => {
                                         </button>
                                     </div>
 
-                                    {/* All PDF Variants */}
+                                    {/* All PDF Variants - Intelligence Mode only */}
+                                    {!mirrorMode && (<>
                                     <div className="p-4 flex items-center justify-between hover:bg-card/40 transition-colors group">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
@@ -969,6 +972,7 @@ const Step4Export = () => {
                                             </div>
                                         </div>
                                     )}
+                                    </>)}
 
                                     {/* Individual Options */}
                                     <div className="grid grid-cols-2 divide-x divide-zinc-800/60">
@@ -1135,6 +1139,8 @@ const Step4Export = () => {
                                         </TooltipContent>
                                     )}
                                 </Tooltip>
+                                {/* Play Scan - Intelligence Mode only */}
+                                {!mirrorMode && (
                                 <Tooltip>
                                     <TooltipTrigger asChild>
                                         <button
@@ -1166,6 +1172,7 @@ const Step4Export = () => {
                                         </TooltipContent>
                                     )}
                                 </Tooltip>
+                                )}
                             </div>
                         </div>
                     </CardHeader>

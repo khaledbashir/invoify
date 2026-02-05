@@ -1,5 +1,6 @@
 // Zod
 import z from "zod";
+import { PricingDocument } from "@/types/pricing";
 
 // RHF
 import { FieldPath, UseFormReturn } from "react-hook-form";
@@ -15,6 +16,7 @@ export type ProposalType = z.infer<typeof ProposalSchema> & {
         verifiedFields?: Record<string, { verifiedBy: string; verifiedAt: string }>;
     };
     marginAnalysis?: any[];
+    pricingDocument?: PricingDocument;
 };
 export type ItemType = z.infer<typeof ItemSchema>;
 export type FormType = UseFormReturn<ProposalType>;

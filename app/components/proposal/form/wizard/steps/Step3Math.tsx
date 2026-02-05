@@ -315,7 +315,8 @@ const Step3Math = () => {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-muted/50 border-border">
+                {/* Sales Quotation Items - Intelligence Mode only */}
+                {!mirrorMode && (<Card className="bg-muted/50 border-border">
                     <CardHeader className="pb-3 border-b border-border">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg bg-brand-blue/20">
@@ -397,7 +398,65 @@ const Step3Math = () => {
                             </div>
                         )}
                     </CardContent>
-                </Card>
+                </Card>)}
+
+                {/* Excel Values Summary - Mirror Mode only */}
+                {mirrorMode && (
+                    <Card className="bg-muted/50 border-border">
+                        <CardHeader className="pb-3 border-b border-border">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-brand-blue/20">
+                                    <Shield className="w-5 h-5 text-brand-blue" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-foreground text-sm font-bold uppercase tracking-tight">
+                                        Excel Values Summary
+                                    </CardTitle>
+                                    <CardDescription className="text-muted-foreground text-xs">
+                                        Read-only pass-through from imported Estimator Excel
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            {internalAudit?.perScreen && internalAudit.perScreen.length > 0 ? (
+                                <div className="space-y-3">
+                                    {internalAudit.perScreen.map((screen: any, idx: number) => (
+                                        <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border bg-card/30">
+                                            <div className="min-w-0">
+                                                <div className="text-sm font-semibold text-foreground truncate">
+                                                    {screens[idx]?.externalName || screens[idx]?.name || screen.name}
+                                                </div>
+                                                <div className="text-[10px] text-muted-foreground">
+                                                    Qty {screen.quantity} | {Number(screen.areaSqFt).toFixed(1)} sqft
+                                                    {screen.pixelMatrix && ` | ${screen.pixelMatrix}`}
+                                                </div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <div className="text-sm font-bold text-foreground">
+                                                    {formatCurrency(screen.breakdown?.finalClientTotal || 0)}
+                                                </div>
+                                                <div className="text-[10px] text-muted-foreground">Client Total</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex items-center justify-between p-3 rounded-xl border-2 border-brand-blue/20 bg-brand-blue/5">
+                                        <div className="text-sm font-bold text-foreground uppercase tracking-tight">
+                                            Project Total
+                                        </div>
+                                        <div className="text-lg font-bold text-brand-blue">
+                                            {formatCurrency(internalAudit.totals?.finalClientTotal || 0)}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-sm text-muted-foreground text-center py-6">
+                                    No Excel data imported yet. Upload an Estimator Excel in the Setup step.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Global Pricing Controls */}
                 {!mirrorMode && (
@@ -534,7 +593,8 @@ const Step3Math = () => {
                     </Card>
                 )}
 
-                {/* Audit Table Section */}
+                {/* Audit Table Section - Intelligence Mode only */}
+                {!mirrorMode && (
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-2">
@@ -552,6 +612,7 @@ const Step3Math = () => {
                         </CardContent>
                     </Card>
                 </div>
+                )}
             </div>
         </TooltipProvider>
     );
