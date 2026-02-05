@@ -2202,6 +2202,19 @@ export const ProposalContextProvider = ({
 
       aiExtractionSuccess();
       setActiveTab("audit");
+
+      // CRITICAL: Immediately save Excel data to database to prevent data loss
+      // Don't rely on auto-save debounce (2000ms delay) - user might navigate away
+      try {
+        const saveResult = await saveDraft();
+        if (!saveResult.saved) {
+          console.error("[EXCEL IMPORT] Failed to auto-save after import:", saveResult.error);
+        } else {
+          console.log("[EXCEL IMPORT] Excel data saved to database successfully");
+        }
+      } catch (saveError) {
+        console.error("[EXCEL IMPORT] Error auto-saving after import:", saveError);
+      }
     } finally {
       setExcelImportLoading(false);
     }
