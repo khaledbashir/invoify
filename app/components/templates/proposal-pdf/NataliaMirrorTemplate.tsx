@@ -147,15 +147,20 @@ export default function NataliaMirrorTemplate(data: NataliaMirrorTemplateProps) 
             {customProposalNotes && (
               <CustomNotesSection notes={customProposalNotes} isLOI={true} />
             )}
-            <SignatureSection clientName={clientName} />
           </>
         )}
 
-        {/* Statement of Work */}
+        {/* Statement of Work - MUST appear BEFORE signature */}
         <StatementOfWorkSection details={details} />
 
-        {/* Footer */}
+        {/* Footer - MUST appear BEFORE signature */}
         <Footer />
+
+        {/* Signature Block - ABSOLUTE FINAL ELEMENT (Natalia requirement) */}
+        {/* Must be last so signature applies to all content above */}
+        {documentMode === "LOI" && (
+          <SignatureSection clientName={clientName} />
+        )}
       </div>
     </div>
   );

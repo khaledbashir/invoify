@@ -472,6 +472,14 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                 </div>
             )}
 
+            {/* Hybrid Footer - Bold style with dark blue slash */}
+            {/* CRITICAL: Footer MUST appear BEFORE signature to avoid "shit after signature" */}
+            {showCompanyFooter && (
+                <div className="px-6">
+                    <HybridFooter />
+                </div>
+            )}
+
             {/* Exhibit A - Technical Specs (when enabled) */}
             {showExhibitA && (
                 <div className="px-6 break-before-page">
@@ -479,17 +487,11 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                 </div>
             )}
 
-            {/* Signature Block - Universal (available for all document types) */}
+            {/* Signature Block - ABSOLUTE FINAL ELEMENT (Natalia requirement) */}
+            {/* Must be last to satisfy legal requirement: signature applies to all above */}
             {showSignatureBlock && (
                 <div className="px-6 break-before-page">
                     <SignatureBlock />
-                </div>
-            )}
-
-            {/* Hybrid Footer - Bold style with dark blue slash */}
-            {showCompanyFooter && (
-                <div className="px-6">
-                    <HybridFooter />
                 </div>
             )}
         </ProposalLayout>
