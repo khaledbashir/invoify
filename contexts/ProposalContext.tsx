@@ -343,6 +343,8 @@ export const ProposalContextProvider = ({
         : "BUDGET";
   }, [watchedDocumentType, watchedPricingType]);
 
+  const mirrorMode = watch("details.mirrorMode") || false;
+
   const setHeaderType = useCallback((next: "LOI" | "PROPOSAL" | "BUDGET") => {
     setValue("details.documentMode", next, { shouldValidate: true, shouldDirty: true });
 
@@ -602,7 +604,6 @@ export const ProposalContextProvider = ({
 
   // Reactive Watcher for ANC Logic Brain (Real-time Math)
   const screens = watch("details.screens");
-  const mirrorMode = watch("details.mirrorMode") || false;
 
   // AUTO-SAVE LOGIC (Debounced)
   const bondRateOverride = watch("details.bondRateOverride");
