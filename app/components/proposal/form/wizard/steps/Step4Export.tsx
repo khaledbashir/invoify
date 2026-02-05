@@ -1347,16 +1347,6 @@ const Step4Export = () => {
                     </CardContent>
                 </Card>
 
-                {/* Support Footer */}
-                <div className="mt-auto pt-8 border-t border-border flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">ANC Identity Protection System Active</span>
-                    </div>
-                    <div className="text-[10px] font-medium text-muted-foreground">
-                        For branding approvals, contact <span className="text-muted-foreground underline">alison@anc.com</span>
-                    </div>
-                </div>
             </div>
         </TooltipProvider>
     );
