@@ -351,7 +351,10 @@ export const ProposalContextProvider = ({
       setValue("details.documentType", "LOI", { shouldValidate: true, shouldDirty: true });
       setValue("details.showPaymentTerms", true, { shouldDirty: true });
       setValue("details.showSignatureBlock", true, { shouldDirty: true });
-      setValue("details.showExhibitA", true, { shouldDirty: true });
+      // Mirror Mode: never enable SOW (static hard-coded content not relevant)
+      if (!mirrorMode) {
+        setValue("details.showExhibitA", true, { shouldDirty: true });
+      }
       setValue("details.showExhibitB", true, { shouldDirty: true });
       setValue("details.showSpecifications", false, { shouldDirty: true });
       return;
@@ -361,15 +364,18 @@ export const ProposalContextProvider = ({
     setValue("details.pricingType", next === "PROPOSAL" ? "Hard Quoted" : "Budget", { shouldValidate: true, shouldDirty: true });
     setValue("details.showPaymentTerms", false, { shouldDirty: true });
     setValue("details.showSignatureBlock", false, { shouldDirty: true });
-    setValue("details.showSpecifications", true, { shouldDirty: true });
+    // Mirror Mode: keep specs hidden (user controls via toggle)
+    if (!mirrorMode) {
+      setValue("details.showSpecifications", true, { shouldDirty: true });
+    }
     setValue("details.showExhibitB", false, { shouldDirty: true });
 
-    if (next === "PROPOSAL") {
+    if (!mirrorMode && next === "PROPOSAL") {
       setValue("details.showExhibitA", true, { shouldDirty: true });
     } else {
       setValue("details.showExhibitA", false, { shouldDirty: true });
     }
-  }, [setValue]);
+  }, [setValue, mirrorMode]);
 
   // Saved proposals
   const [savedProposals, setSavedProposals] = useState<ProposalType[]>([]);
@@ -2188,8 +2194,8 @@ export const ProposalContextProvider = ({
         setValue("details.pricingDocument" as any, pricingDocument, { shouldValidate: true, shouldDirty: true });
         // Auto-enable mirror mode when pricingDocument is available
         setValue("details.pricingMode" as any, "MIRROR", { shouldValidate: true, shouldDirty: true });
-        // Hide Technical Specifications by default in Mirror Mode (toggle available in Step 4)
-        setValue("details.showSpecifications", false, { shouldDirty: true });
+        // Mirror Mode: hide SOW (not relevant), keep specs visible for screen edits
+        setValue("details.showExhibitA", false, { shouldDirty: true });
         console.log("[CONTEXT] PricingDocument stored for Mirror Mode");
       }
 

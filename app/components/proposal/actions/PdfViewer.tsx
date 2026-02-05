@@ -33,11 +33,23 @@ function getPdfFingerprint(data: ProposalType): string {
             desiredMargin: s?.desiredMargin,
             brightness: s?.brightness ?? s?.brightnessNits,
         }));
+        const r = data?.receiver ?? {};
         return JSON.stringify({
             proposalId: d.proposalId,
             documentMode: d.documentMode,
             paymentTerms: (d.paymentTerms ?? "").slice(0, 200),
             additionalNotes: (d.additionalNotes ?? "").slice(0, 200),
+            customProposalNotes: (d.customProposalNotes ?? "").slice(0, 200),
+            showSpecifications: d.showSpecifications,
+            showExhibitA: d.showExhibitA,
+            showExhibitB: d.showExhibitB,
+            showPaymentTerms: d.showPaymentTerms,
+            showSignatureBlock: d.showSignatureBlock,
+            showPricingTables: d.showPricingTables,
+            receiverName: r.name,
+            receiverAddress: r.address,
+            receiverCity: r.city,
+            receiverZip: r.zipCode,
             screens,
         });
     } catch {
