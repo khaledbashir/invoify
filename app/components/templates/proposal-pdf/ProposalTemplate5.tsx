@@ -261,7 +261,7 @@ const ProposalTemplate5 = (data: ProposalTemplate5Props) => {
                         >
                             <div className="col-span-8">
                                 {/* Line 1: UPPERCASE BOLD */}
-                                <div className="font-bold text-xs tracking-wide" style={{ color: colors.text }}>
+                                <div className="font-bold text-xs tracking-wide uppercase" style={{ color: colors.text }}>
                                     {item.name}
                                 </div>
                                 {/* Line 2+: Smaller, lighter specs */}
