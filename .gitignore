@@ -19,6 +19,7 @@ dist/
 *.pdf
 *.md
 !README.md
+!CLAUDE.md
 .kilocode/
 anc-proposal-engine-docs/
 nataliaa33
