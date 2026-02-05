@@ -3,9 +3,12 @@
  *
  * Renders PricingTable[] to match Natalia's Scotia Bank PDF exactly.
  * Each location = separate table with footer + alternates.
+ *
+ * NOTE: This component must work on BOTH client and server
+ * - Client: Live PDF preview in browser
+ * - Server: PDF generation API endpoint
+ * Do NOT add "use client" directive or it breaks server-side rendering.
  */
-
-"use client";
 
 import React from "react";
 import { ProposalType } from "@/types";
