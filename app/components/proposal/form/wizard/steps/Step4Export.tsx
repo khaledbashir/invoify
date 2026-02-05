@@ -1220,10 +1220,6 @@ const Step4Export = () => {
                                             />
                                         </div>
                                     </div>
-
-                                    <div className="rounded-2xl border border-border bg-card/40 px-4 py-3 text-xs text-muted-foreground">
-                                        Use the live PDF preview on the right panel to compare against Excel.
-                                    </div>
                                 </div>
 
                                 {playIndex >= 0 && playIndex < playbackItems.length && (
