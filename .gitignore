@@ -13,3 +13,12 @@ dist/
 .vscode/
 *.swp
 *.swo
+.aider*
+
+# Reference docs, meeting notes, client PDFs (not source code)
+*.pdf
+*.md
+!README.md
+.kilocode/
+anc-proposal-engine-docs/
+nataliaa33
