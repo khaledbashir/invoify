@@ -49,9 +49,13 @@ const FormSelect = ({
                                 <SelectValue placeholder={placeholder} />
                             </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-zinc-900 border-zinc-800">
+                        <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
                             {options.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="text-zinc-100 focus:bg-zinc-800 focus:text-white"
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -78,9 +82,13 @@ const FormSelect = ({
                                         <SelectValue placeholder={placeholder} />
                                     </SelectTrigger>
                                 </FormControl>
-                                <SelectContent className="bg-zinc-900 border-zinc-800">
+                                <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
                                     {options.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                            className="text-zinc-100 focus:bg-zinc-800 focus:text-white"
+                                        >
                                             {option.label}
                                         </SelectItem>
                                     ))}
